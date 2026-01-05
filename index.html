@@ -220,12 +220,17 @@
 
     /* Education / Certificates Grid */
     .certs-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
       gap: 16px;
     }
 
+    .certs-grid .cert-card {
+      flex: 1;
+      max-width: 50%;
+    }
+
     .cert-card {
+      display: block;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -240,9 +245,11 @@
 
     .cert-image {
       width: 100%;
-      height: 200px;
-      object-fit: cover;
-      object-position: top;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
       border-bottom: 1px solid var(--border);
     }
 
@@ -506,7 +513,11 @@
       }
 
       .certs-grid {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+
+      .certs-grid .cert-card {
+        max-width: 100%;
       }
 
       .video-grid {
@@ -584,35 +595,6 @@
             YouTube
           </a>
         </div>
-      </div>
-
-      <div class="card skills-card">
-        <h3>🤖 AI & ML Skills</h3>
-        <div class="skill-tags">
-          <span class="skill-tag">Machine Learning</span>
-          <span class="skill-tag">Neural Networks</span>
-          <span class="skill-tag">TensorFlow</span>
-          <span class="skill-tag">PyTorch</span>
-          <span class="skill-tag">Python</span>
-          <span class="skill-tag">NLP</span>
-          <span class="skill-tag">Computer Vision</span>
-          <span class="skill-tag">Deep Learning</span>
-        </div>
-      </div>
-
-      <div class="card skills-card">
-        <h3>💻 Development</h3>
-        <div class="skill-tags">
-          <span class="skill-tag">JavaScript</span>
-          <span class="skill-tag">TypeScript</span>
-          <span class="skill-tag">React</span>
-          <span class="skill-tag">Node.js</span>
-          <span class="skill-tag">SQL</span>
-          <span class="skill-tag">AWS</span>
-          <span class="skill-tag">Docker</span>
-          <span class="skill-tag">Git</span>
-        </div>
-      </div>
     </aside>
 
     <!-- Content -->
@@ -630,7 +612,11 @@
         <div class="certs-grid">
           <!-- Harvard Certificate -->
           <a href="https://certificates.cs50.io/53bf6b15-0d58-48c9-bc47-ecaf5de849a5.pdf?size=letter" target="_blank" class="cert-card">
-            <img src="https://certificates.cs50.io/53bf6b15-0d58-48c9-bc47-ecaf5de849a5.png?size=A4" alt="Harvard CS50 AI Certificate" class="cert-image" onerror="this.style.display='none'">
+            <div class="cert-image" style="background: #ffffff; color: #1a1a1a;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Harvard_University_coat_of_arms.svg/960px-Harvard_University_coat_of_arms.svg.png" alt="Harvard" style="width: 80px; height: auto; margin-bottom: 8px;">
+              <span style="font-weight: 600; font-size: 1.2rem;">Harvard University</span>
+              <span style="font-size: 0.85rem; opacity: 0.7;">CS50</span>
+            </div>
             <div class="cert-info">
               <span class="cert-badge harvard">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -650,14 +636,12 @@
           </a>
 
           <!-- Stanford Certificate -->
-          <a href="https://digitalcredential.stanford.edu/check/0C7C66EEE2454D934E1B3FAEA700266F20C5C781906483B6A37790FEF335BE90VzcxL05PSU52TE04UndJRVpSY3Z1SzVMaUg1bklUMkhvano1bmtUc001U0VXUGxT" target="_blank" class="cert-card">
-            <div class="cert-image" style="background: linear-gradient(135deg, #8C1515 0%, #B83A4B 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; color: white;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" style="width: 64px; height: 64px; margin-bottom: 8px;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
-              </svg>
+          <div class="cert-card">
+            <a href="https://digitalcredential.stanford.edu/check/0C7C66EEE2454D934E1B3FAEA700266F20C5C781906483B6A37790FEF335BE90VzcxL05PSU52TE04UndJRVpSY3Z1SzVMaUg1bklUMkhvano1bmtUc001U0VXUGxT" target="_blank" class="cert-image" style="background: #ffffff; color: #8C1515; text-decoration: none;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Seal_of_Leland_Stanford_Junior_University.svg/960px-Seal_of_Leland_Stanford_Junior_University.svg.png" alt="Stanford" style="width: 80px; height: auto; margin-bottom: 8px;">
               <span style="font-weight: 600; font-size: 1.2rem;">Stanford University</span>
-              <span style="font-size: 0.85rem; opacity: 0.9;">School of Engineering</span>
-            </div>
+              <span style="font-size: 0.85rem; opacity: 0.7;">School of Engineering</span>
+            </a>
             <div class="cert-info">
               <span class="cert-badge stanford">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -667,27 +651,27 @@
               </span>
               <h3>Artificial Intelligence Professional Certificate</h3>
               <p style="margin-bottom: 8px;">Completed 3 required courses • May 2025</p>
-              <ul style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 16px; line-height: 1.8;">
+              <ul style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 16px; line-height: 1.8; word-break: break-word;">
                 <li><a href="https://digitalcredential.stanford.edu/check/20760FFBFFB2FDB7DA3E0CC8875FDD182B9052BA3CCC9C5111662465590E4D10aFdQVit4VUtEajNrMTVhTkdRcWRZSDhoV1Q5S1ZGVWd0RkJWSVZ1bmVsS2FNbnNu" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS221 - Artificial Intelligence: Principles and Techniques</a></li>
-                <li><a href="https://digitalcredential.stanford.edu/check/82E08D108B5241B2AB78168896443DF7210C7D8DEAC5C6382FE6A12AF4B3A2ACVkdYSEx0MU56VlFyRVAyQkdMWTFzejJ4SzhNNGtYSitFRGpkU1N3ZWpCWjBPQUhW" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS224N - Natural Language Processing with Deep Learning</a></li>
+                <li><a href="https://digitalcredential.stanford.edu/check/82E08D108B5241B2AB78168896443DF7210C7D8DEAC5C6382FE6A12AF4B3A2ACVkdYSEx0MU56VlFyRVAyQkdMWTFzejJ4SzhNNGtYSitFRGpkU1N3ZWpCWjBPQUhW" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS224N - NLP with Deep Learning</a></li>
                 <li><a href="https://digitalcredential.stanford.edu/check/0C57962319673A5B586624E8D29F55D1118D76724100EA26F3330567C55F2DAFOGN4VlhkVDJOUjJKYjNPaUUrOVZtcTlBYUY4MkV2VjM2emlxa1ZHTUhwbVhRN3JN" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS224U - Natural Language Understanding</a></li>
               </ul>
-              <span class="cert-link">
+              <a href="https://digitalcredential.stanford.edu/check/0C7C66EEE2454D934E1B3FAEA700266F20C5C781906483B6A37790FEF335BE90VzcxL05PSU52TE04UndJRVpSY3Z1SzVMaUg1bklUMkhvano1bmtUc001U0VXUGxT" target="_blank" class="cert-link">
                 View Certificate
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
-              </span>
+              </a>
             </div>
-          </a>
+          </div>
         </div>
       </section>
 
       <!-- YouTube Section -->
       <section id="youtube">
         <div class="card youtube-card" style="position: relative; overflow: hidden;">
-          <img src="https://yt3.googleusercontent.com/LDMiJe9bF08fTU1ZO0lufirGL7USJ5tXd6Np7NlvTghOiAxBUDztWkeTByjvGsMpmDV4r3kBu1Q=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
-          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(26,26,26,0.95)); z-index: 1;"></div>
+          <img src="https://yt3.googleusercontent.com/LDMiJe9bF08fTU1ZO0lufirGL7USJ5tXd6Np7NlvTghOiAxBUDztWkeTByjvGsMpmDV4r3kBu1Q=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: top; z-index: 0; background: #1a1a1a;">
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(26,26,26,0.8) 60%); z-index: 1;"></div>
           <div style="position: relative; z-index: 2;">
           <div class="youtube-header">
             <div class="youtube-avatar" style="background: #fff; overflow: hidden; border: 2px solid #fff;">
@@ -695,20 +679,19 @@
             </div>
             <div class="youtube-info">
               <h3 style="color: #ffffff;">Lijian Liu (Hanggliding Pilot)</h3>
-              <p style="color: #cccccc;">@Hangglide • Bay Area Hang Gliding Flights</p>
             </div>
           </div>
           <div class="youtube-stats">
             <div class="stat">
-              <div class="stat-value" style="color: #ff0000;">32.6K</div>
+              <div class="stat-value" style="color: #ffffff;">32.6K</div>
               <div class="stat-label" style="color: #cccccc;">Subscribers</div>
             </div>
             <div class="stat">
-              <div class="stat-value" style="color: #ff0000;">985</div>
+              <div class="stat-value" style="color: #ffffff;">985</div>
               <div class="stat-label" style="color: #cccccc;">Videos</div>
             </div>
             <div class="stat">
-              <div class="stat-value" style="color: #ff0000;">SF Bay</div>
+              <div class="stat-value" style="color: #ffffff;">San Francisco Bay Area</div>
               <div class="stat-label" style="color: #cccccc;">Location</div>
             </div>
           </div>
@@ -768,9 +751,7 @@
         </div>
         <div class="about-grid">
           <div class="card about-card">
-            <p><strong>AI Engineer</strong> with certifications from Harvard and Stanford. Passionate about machine learning, neural networks, and building intelligent systems that solve real-world problems.</p>
-            <p><strong>Hang Gliding Pilot</strong> with 985+ flight videos and 32.6K YouTube subscribers. I document my adventures soaring above the San Francisco Bay Area, sharing the thrill of unpowered flight with pilots and enthusiasts worldwide.</p>
-            <p>I believe the best engineers combine technical depth with a spirit of exploration. Whether debugging code or reading thermals at 3,000 feet, problem-solving is at the heart of what I do.</p>
+            <p>Hey, I am Lijian Liu.</p>
           </div>
           <div class="card contact-card">
             <h3>Connect</h3>
