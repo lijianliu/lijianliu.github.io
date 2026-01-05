@@ -1,1 +1,801 @@
-this is a test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lijian Liu - AI Engineer & Hang Gliding Pilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #555;
+      --accent: #0066cc;
+      --harvard: #A51C30;
+      --stanford: #8C1515;
+      --border: #e0e0e0;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Header */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    nav ul {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    nav a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    /* Main Layout */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 16px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .profile-card {
+      text-align: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #00aaff);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .profile-card h1 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+
+    .profile-card .tagline {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .social-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .social-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Skills Card */
+    .skills-card h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .skill-tag {
+      background: var(--bg);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    /* Content Area */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .section-header .icon {
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .section-header .icon svg {
+      width: 14px;
+      height: 14px;
+      color: white;
+    }
+
+    /* Education / Certificates Grid */
+    .certs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .cert-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .cert-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .cert-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      object-position: top;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cert-info {
+      padding: 16px;
+    }
+
+    .cert-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .cert-badge.harvard {
+      background: #fce8eb;
+      color: var(--harvard);
+    }
+
+    .cert-badge.stanford {
+      background: #fce8e8;
+      color: var(--stanford);
+    }
+
+    .cert-badge svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .cert-info h3 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .cert-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .cert-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .cert-link svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* YouTube / Hang Gliding Section */
+    .youtube-card {
+      background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+      color: white;
+      border: none;
+    }
+
+    .youtube-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .youtube-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #ff0000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .youtube-avatar svg {
+      width: 32px;
+      height: 32px;
+      color: white;
+    }
+
+    .youtube-info h3 {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+
+    .youtube-info p {
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    .youtube-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ff0000;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #aaa;
+      text-transform: uppercase;
+    }
+
+    .youtube-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ff0000;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .youtube-btn:hover {
+      background: #cc0000;
+    }
+
+    .youtube-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Video Thumbnails */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .video-thumb {
+      aspect-ratio: 16/9;
+      background: #444;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-thumb .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 36px;
+      height: 36px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .video-thumb:hover .play-icon {
+      opacity: 1;
+    }
+
+    .video-thumb .play-icon svg {
+      width: 16px;
+      height: 16px;
+      color: white;
+      margin-left: 2px;
+    }
+
+    /* About Section */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+
+    .about-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .about-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .contact-card h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .contact-item:last-child {
+      border-bottom: none;
+    }
+
+    .contact-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
+    }
+
+    /* Footer */
+    footer {
+      max-width: 1400px;
+      margin: 16px auto;
+      padding: 16px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .sidebar .card {
+        flex: 1;
+        min-width: 280px;
+      }
+
+      .certs-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .video-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 12px;
+      }
+
+      .sidebar {
+        flex-direction: column;
+      }
+
+      .sidebar .card {
+        min-width: 100%;
+      }
+
+      nav ul {
+        gap: 12px;
+      }
+
+      .social-links {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">Lijian Liu</div>
+      <nav>
+        <ul>
+          <li><a href="#education">Education</a></li>
+          <li><a href="#youtube">YouTube</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="https://www.linkedin.com/in/lijian-liu-4830b02/" target="_blank">LinkedIn</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="card profile-card">
+        <div class="avatar">LL</div>
+        <h1>Lijian Liu</h1>
+        <p class="tagline">AI Engineer • Hang Gliding Pilot</p>
+        <div class="social-links">
+          <a href="https://www.linkedin.com/in/lijian-liu-4830b02/" target="_blank" class="social-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+            </svg>
+            LinkedIn
+          </a>
+          <a href="https://github.com/" target="_blank" class="social-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+          <a href="https://www.youtube.com/@Hangglide" target="_blank" class="social-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            YouTube
+          </a>
+        </div>
+      </div>
+
+      <div class="card skills-card">
+        <h3>🤖 AI & ML Skills</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Machine Learning</span>
+          <span class="skill-tag">Neural Networks</span>
+          <span class="skill-tag">TensorFlow</span>
+          <span class="skill-tag">PyTorch</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">NLP</span>
+          <span class="skill-tag">Computer Vision</span>
+          <span class="skill-tag">Deep Learning</span>
+        </div>
+      </div>
+
+      <div class="card skills-card">
+        <h3>💻 Development</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">SQL</span>
+          <span class="skill-tag">AWS</span>
+          <span class="skill-tag">Docker</span>
+          <span class="skill-tag">Git</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Education Section -->
+      <section id="education">
+        <div class="section-header">
+          <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+            </svg>
+          </div>
+          <h2>AI Education & Certifications</h2>
+        </div>
+        <div class="certs-grid">
+          <!-- Harvard Certificate -->
+          <a href="https://certificates.cs50.io/53bf6b15-0d58-48c9-bc47-ecaf5de849a5.pdf?size=letter" target="_blank" class="cert-card">
+            <img src="https://certificates.cs50.io/53bf6b15-0d58-48c9-bc47-ecaf5de849a5.png?size=A4" alt="Harvard CS50 AI Certificate" class="cert-image" onerror="this.style.display='none'">
+            <div class="cert-info">
+              <span class="cert-badge harvard">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                </svg>
+                Harvard University
+              </span>
+              <h3>CS50's Introduction to Artificial Intelligence with Python</h3>
+              <p>An introduction to the intellectual enterprises of computer science and the art of programming. • 2024</p>
+              <span class="cert-link">
+                View Certificate
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </span>
+            </div>
+          </a>
+
+          <!-- Stanford Certificate -->
+          <a href="https://digitalcredential.stanford.edu/check/0C7C66EEE2454D934E1B3FAEA700266F20C5C781906483B6A37790FEF335BE90VzcxL05PSU52TE04UndJRVpSY3Z1SzVMaUg1bklUMkhvano1bmtUc001U0VXUGxT" target="_blank" class="cert-card">
+            <div class="cert-image" style="background: linear-gradient(135deg, #8C1515 0%, #B83A4B 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; color: white;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" style="width: 64px; height: 64px; margin-bottom: 8px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+              </svg>
+              <span style="font-weight: 600; font-size: 1.2rem;">Stanford University</span>
+              <span style="font-size: 0.85rem; opacity: 0.9;">School of Engineering</span>
+            </div>
+            <div class="cert-info">
+              <span class="cert-badge stanford">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                </svg>
+                Stanford University
+              </span>
+              <h3>Artificial Intelligence Professional Certificate</h3>
+              <p style="margin-bottom: 8px;">Completed 3 required courses • May 2025</p>
+              <ul style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px 16px; line-height: 1.8;">
+                <li><a href="https://digitalcredential.stanford.edu/check/20760FFBFFB2FDB7DA3E0CC8875FDD182B9052BA3CCC9C5111662465590E4D10aFdQVit4VUtEajNrMTVhTkdRcWRZSDhoV1Q5S1ZGVWd0RkJWSVZ1bmVsS2FNbnNu" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS221 - Artificial Intelligence: Principles and Techniques</a></li>
+                <li><a href="https://digitalcredential.stanford.edu/check/82E08D108B5241B2AB78168896443DF7210C7D8DEAC5C6382FE6A12AF4B3A2ACVkdYSEx0MU56VlFyRVAyQkdMWTFzejJ4SzhNNGtYSitFRGpkU1N3ZWpCWjBPQUhW" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS224N - Natural Language Processing with Deep Learning</a></li>
+                <li><a href="https://digitalcredential.stanford.edu/check/0C57962319673A5B586624E8D29F55D1118D76724100EA26F3330567C55F2DAFOGN4VlhkVDJOUjJKYjNPaUUrOVZtcTlBYUY4MkV2VjM2emlxa1ZHTUhwbVhRN3JN" target="_blank" style="color: var(--stanford); text-decoration: underline;">XCS224U - Natural Language Understanding</a></li>
+              </ul>
+              <span class="cert-link">
+                View Certificate
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- YouTube Section -->
+      <section id="youtube">
+        <div class="card youtube-card" style="position: relative; overflow: hidden;">
+          <img src="https://yt3.googleusercontent.com/LDMiJe9bF08fTU1ZO0lufirGL7USJ5tXd6Np7NlvTghOiAxBUDztWkeTByjvGsMpmDV4r3kBu1Q=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(26,26,26,0.95)); z-index: 1;"></div>
+          <div style="position: relative; z-index: 2;">
+          <div class="youtube-header">
+            <div class="youtube-avatar" style="background: #fff; overflow: hidden; border: 2px solid #fff;">
+              <img src="https://yt3.googleusercontent.com/ytc/AIdro_lhFaFsewom2Eo77pQJF-ravJEjs9lNvobYnkcK1DJdyBg=s160-c-k-c0x00ffffff-no-rj" alt="Lijian Liu YouTube" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            </div>
+            <div class="youtube-info">
+              <h3 style="color: #ffffff;">Lijian Liu (Hanggliding Pilot)</h3>
+              <p style="color: #cccccc;">@Hangglide • Bay Area Hang Gliding Flights</p>
+            </div>
+          </div>
+          <div class="youtube-stats">
+            <div class="stat">
+              <div class="stat-value" style="color: #ff0000;">32.6K</div>
+              <div class="stat-label" style="color: #cccccc;">Subscribers</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: #ff0000;">985</div>
+              <div class="stat-label" style="color: #cccccc;">Videos</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color: #ff0000;">SF Bay</div>
+              <div class="stat-label" style="color: #cccccc;">Location</div>
+            </div>
+          </div>
+          <a href="https://www.youtube.com/@Hangglide" target="_blank" class="youtube-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            Visit Channel
+          </a>
+          <div class="video-grid">
+            <div class="video-thumb" style="background: linear-gradient(45deg, #2196F3, #4CAF50);">
+              <div class="play-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="video-thumb" style="background: linear-gradient(45deg, #FF9800, #F44336);">
+              <div class="play-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="video-thumb" style="background: linear-gradient(45deg, #9C27B0, #E91E63);">
+              <div class="play-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="video-thumb" style="background: linear-gradient(45deg, #00BCD4, #3F51B5);">
+              <div class="play-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section id="about">
+        <div class="section-header">
+          <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+          </div>
+          <h2>About Me</h2>
+        </div>
+        <div class="about-grid">
+          <div class="card about-card">
+            <p><strong>AI Engineer</strong> with certifications from Harvard and Stanford. Passionate about machine learning, neural networks, and building intelligent systems that solve real-world problems.</p>
+            <p><strong>Hang Gliding Pilot</strong> with 985+ flight videos and 32.6K YouTube subscribers. I document my adventures soaring above the San Francisco Bay Area, sharing the thrill of unpowered flight with pilots and enthusiasts worldwide.</p>
+            <p>I believe the best engineers combine technical depth with a spirit of exploration. Whether debugging code or reading thermals at 3,000 feet, problem-solving is at the heart of what I do.</p>
+          </div>
+          <div class="card contact-card">
+            <h3>Connect</h3>
+            <a href="https://www.linkedin.com/in/lijian-liu-4830b02/" target="_blank" class="contact-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+              </svg>
+              LinkedIn Profile
+            </a>
+            <a href="https://www.youtube.com/@Hangglide" target="_blank" class="contact-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              YouTube Channel
+            </a>
+            <a href="https://github.com/" target="_blank" class="contact-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 Lijian Liu • AI Engineer & Hang Gliding Pilot • San Francisco Bay Area
+  </footer>
+</body>
+</html>
