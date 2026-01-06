@@ -561,6 +561,7 @@
         <ul>
           <li><a href="#education">Education</a></li>
           <li><a href="#projects">Projects</a></li>
+          <li><a href="#blog">Blog</a></li>
           <li><a href="#youtube">YouTube</a></li>
           <li><a href="#about">About</a></li>
           <li><a href="https://www.linkedin.com/in/lijian-liu-4830b02/" target="_blank">LinkedIn</a></li>
@@ -811,6 +812,34 @@
                 <li><a href="https://lijianliu.github.io/visual-linear-algebra-for-ai/makemore-rand-vs-randn.html" target="_blank" style="color: var(--accent);">Randn vs. Rand</a></li>
               </ul>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Blog Section -->
+      <section id="blog">
+        <div class="section-header">
+          <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+          </div>
+          <h2>Blog</h2>
+        </div>
+        
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+          <img src="https://karabiner-elements.pqrs.org/images/logo.png" alt="Karabiner Elements" style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 8px;">
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px;">
+              <h3 style="margin: 0; font-size: 1.1rem;">Karabiner Elements Tips for macOS</h3>
+              <span style="font-size: 0.85rem; color: #888;">Jan 6, 2026</span>
+            </div>
+            
+            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">Home / End (beginning / end of line in Chrome)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">In Chrome, Home/End are handled as page navigation, so they scroll instead of moving the cursor. Use a <a href="https://karabiner-elements.pqrs.org/" target="_blank" style="color: var(--accent);">Karabiner</a> Complex Modification to remap <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">Home → Cmd+Left</code> and <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">End → Cmd+Right</code> only when Chrome is frontmost. This makes Home/End move to the beginning/end of the current line in Confluence and other Chrome editors, while leaving other apps unchanged.</p>
+            
+            <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">Cmd + PgUp / PgDn (previous / next tab in Chrome and iTerm2)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">On macOS, PgUp/PgDn are treated as scroll events, not real keystrokes, so apps don't reliably see them for shortcuts. That's why <a href="https://karabiner-elements.pqrs.org/" target="_blank" style="color: var(--accent);">Karabiner</a> is required. Use a global <a href="https://karabiner-elements.pqrs.org/" target="_blank" style="color: var(--accent);">Karabiner</a> Complex Modification to translate PgUp/PgDn (or physical Alt+PgUp/PgDn) into <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">Cmd+Option+Left/Right</code>. Chrome already uses these for tab switching. In iTerm2 → Settings → Keys, explicitly bind <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">Cmd+Option+Left/Right</code> to "Select Previous/Next Tab" and remove conflicting defaults, so the same shortcuts work consistently in both apps.</p>
           </div>
         </div>
       </section>
