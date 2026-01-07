@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Quiz - Speak Your Answers</title>
+    <title>Voice Quiz - Hands Free</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,6 +12,8 @@
             --accent-cyan: #00f5d4;
             --accent-magenta: #f72585;
             --accent-yellow: #fee440;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
             --text-primary: #ffffff;
             --text-secondary: #8888aa;
             --gradient-glow: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #f72585 100%);
@@ -48,20 +50,24 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 700px;
             margin: 0 auto;
             padding: 40px 20px;
             position: relative;
             z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
         header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
 
         h1 {
-            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-size: clamp(2.5rem, 8vw, 4rem);
             font-weight: 800;
             background: var(--gradient-glow);
             -webkit-background-clip: text;
@@ -69,12 +75,6 @@
             background-clip: text;
             letter-spacing: -2px;
             margin-bottom: 10px;
-            animation: titlePulse 3s ease-in-out infinite;
-        }
-
-        @keyframes titlePulse {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(1.2); }
         }
 
         .subtitle {
@@ -85,15 +85,95 @@
             text-transform: uppercase;
         }
 
+        /* Start Screen */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .start-btn {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 30px 60px;
+            border: none;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            background: var(--gradient-glow);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 60px rgba(0, 245, 212, 0.3), 0 0 100px rgba(247, 37, 133, 0.2);
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(0, 245, 212, 0.3), 0 0 100px rgba(247, 37, 133, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0, 245, 212, 0.5), 0 0 120px rgba(247, 37, 133, 0.4); }
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 100px rgba(0, 245, 212, 0.5), 0 0 150px rgba(247, 37, 133, 0.4);
+        }
+
+        .start-instructions {
+            margin-top: 40px;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 2;
+        }
+
+        /* Quiz Screen */
+        .quiz-screen {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-glow);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .question-counter {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
         .quiz-card {
             background: var(--bg-card);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 30px;
+            padding: 50px 40px;
+            width: 100%;
+            text-align: center;
             position: relative;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .quiz-card::before {
@@ -104,171 +184,170 @@
             right: 0;
             height: 3px;
             background: var(--gradient-glow);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .quiz-card:hover::before,
-        .quiz-card.active::before {
-            opacity: 1;
-        }
-
-        .question-number {
-            font-family: 'Space Mono', monospace;
-            color: var(--accent-cyan);
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .question-number::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, var(--accent-cyan), transparent);
         }
 
         .question-text {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             font-weight: 600;
             line-height: 1.5;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
-        .voice-controls {
+        .status-area {
+            min-height: 150px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85rem;
-            padding: 14px 28px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-speak {
-            background: linear-gradient(135deg, var(--accent-cyan), #00c4a7);
-            color: var(--bg-dark);
-            font-weight: 700;
-        }
-
-        .btn-speak:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(0, 245, 212, 0.3);
-        }
-
-        .btn-listen {
-            background: linear-gradient(135deg, var(--accent-magenta), #d91a6a);
-            color: white;
-            font-weight: 700;
-        }
-
-        .btn-listen:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(247, 37, 133, 0.3);
-        }
-
-        .btn-listen.listening {
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(247, 37, 133, 0.5); }
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--accent-yellow), #e6c800);
-            color: var(--bg-dark);
-            font-weight: 700;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(254, 228, 64, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .answer-display {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 80px;
+            justify-content: center;
             margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .status-icon.speaking {
+            background: rgba(0, 245, 212, 0.2);
+            border: 2px solid var(--accent-cyan);
+            animation: pulse-cyan 1.5s ease-in-out infinite;
+        }
+
+        .status-icon.listening {
+            background: rgba(247, 37, 133, 0.2);
+            border: 2px solid var(--accent-magenta);
+            animation: pulse-magenta 1s ease-in-out infinite;
+        }
+
+        .status-icon.correct {
+            background: rgba(74, 222, 128, 0.2);
+            border: 2px solid var(--accent-green);
+        }
+
+        .status-icon.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            border: 2px solid var(--accent-red);
+        }
+
+        @keyframes pulse-cyan {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 245, 212, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(0, 245, 212, 0.2); }
+        }
+
+        @keyframes pulse-magenta {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.4); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px 10px rgba(247, 37, 133, 0.3); }
+        }
+
+        .status-text {
             font-family: 'Space Mono', monospace;
-            font-size: 1rem;
-            line-height: 1.6;
-            position: relative;
-        }
-
-        .answer-display.empty {
+            font-size: 0.9rem;
             color: var(--text-secondary);
-            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .answer-display.listening-active {
-            border-color: var(--accent-magenta);
-            box-shadow: 0 0 20px rgba(247, 37, 133, 0.2);
-        }
-
-        .feedback {
-            padding: 15px 20px;
-            border-radius: 12px;
+        .user-answer {
+            font-size: 1.2rem;
+            color: var(--text-primary);
             margin-top: 15px;
+            font-style: italic;
+            min-height: 30px;
+        }
+
+        .feedback-text {
+            font-size: 1.1rem;
             font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .feedback-text.correct {
+            color: var(--accent-green);
+        }
+
+        .feedback-text.incorrect {
+            color: var(--accent-red);
+        }
+
+        /* Wave Animation */
+        .wave-animation {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            height: 40px;
+            align-items: center;
+        }
+
+        .wave-bar {
+            width: 5px;
+            height: 20px;
+            background: var(--accent-magenta);
+            border-radius: 3px;
+            animation: wave 0.8s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+
+        /* Speaker Animation */
+        .speaker-waves {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .speaker-wave {
+            width: 3px;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+            animation: speaker 0.6s ease-in-out infinite;
+        }
+
+        .speaker-wave:nth-child(1) { height: 15px; animation-delay: 0s; }
+        .speaker-wave:nth-child(2) { height: 25px; animation-delay: 0.1s; }
+        .speaker-wave:nth-child(3) { height: 35px; animation-delay: 0.2s; }
+        .speaker-wave:nth-child(4) { height: 25px; animation-delay: 0.3s; }
+        .speaker-wave:nth-child(5) { height: 15px; animation-delay: 0.4s; }
+
+        @keyframes speaker {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* Results Screen */
+        .results-screen {
             display: none;
-            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .feedback.correct {
-            display: block;
-            background: rgba(0, 245, 212, 0.15);
-            border: 1px solid var(--accent-cyan);
-            color: var(--accent-cyan);
-        }
-
-        .feedback.incorrect {
-            display: block;
-            background: rgba(247, 37, 133, 0.15);
-            border: 1px solid var(--accent-magenta);
-            color: var(--accent-magenta);
-        }
-
-        .score-card {
+        .results-card {
             background: var(--bg-card);
             border: 2px solid var(--accent-yellow);
             border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            margin-top: 40px;
+            padding: 50px;
         }
 
         .score-value {
-            font-size: 5rem;
+            font-size: 6rem;
             font-weight: 800;
             background: var(--gradient-glow);
             -webkit-background-clip: text;
@@ -282,115 +361,52 @@
             text-transform: uppercase;
             letter-spacing: 3px;
             margin-top: 10px;
-        }
-
-        .instructions {
-            background: rgba(123, 44, 191, 0.1);
-            border: 1px solid rgba(123, 44, 191, 0.3);
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 40px;
-        }
-
-        .instructions h3 {
-            color: var(--accent-cyan);
-            margin-bottom: 15px;
             font-size: 1.1rem;
         }
 
-        .instructions ul {
-            list-style: none;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 2;
-        }
-
-        .instructions li::before {
-            content: '→';
-            color: var(--accent-magenta);
-            margin-right: 10px;
-        }
-
-        .wave-animation {
-            display: none;
-            justify-content: center;
-            gap: 4px;
-            padding: 10px 0;
-        }
-
-        .wave-animation.active {
-            display: flex;
-        }
-
-        .wave-bar {
-            width: 4px;
-            height: 20px;
-            background: var(--accent-magenta);
-            border-radius: 2px;
-            animation: wave 0.8s ease-in-out infinite;
-        }
-
-        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
-        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
-        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
-        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
-
-        @keyframes wave {
-            0%, 100% { height: 10px; }
-            50% { height: 30px; }
-        }
-
-        .status-indicator {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .browser-warning {
-            background: rgba(247, 37, 133, 0.15);
-            border: 1px solid var(--accent-magenta);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            display: none;
-        }
-
-        .reset-btn {
-            background: transparent;
-            border: 2px solid var(--accent-cyan);
+        .score-message {
+            margin-top: 30px;
+            font-size: 1.3rem;
             color: var(--accent-cyan);
-            margin-top: 20px;
         }
 
-        .reset-btn:hover {
+        .restart-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            padding: 18px 40px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            margin-top: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
             background: var(--accent-cyan);
             color: var(--bg-dark);
         }
 
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px 15px;
-            }
+        .hidden {
+            display: none !important;
+        }
 
+        @media (max-width: 600px) {
             .quiz-card {
-                padding: 25px;
+                padding: 30px 20px;
             }
 
             .question-text {
+                font-size: 1.3rem;
+            }
+
+            .start-btn {
+                width: 160px;
+                height: 160px;
                 font-size: 1.2rem;
-            }
-
-            .voice-controls {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
             }
         }
     </style>
@@ -399,28 +415,74 @@
     <div class="container">
         <header>
             <h1>Voice Quiz</h1>
-            <p class="subtitle">Speak Your Answers Into Existence</p>
+            <p class="subtitle">100% Hands-Free Experience</p>
         </header>
 
-        <div class="browser-warning" id="browserWarning">
-            ⚠️ Your browser may not support speech recognition. Please use Chrome, Edge, or Safari for the best experience.
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <button class="start-btn" id="startBtn" onclick="startQuiz()">
+                START
+            </button>
+            <div class="start-instructions">
+                → Press start and allow microphone<br>
+                → Listen to each question<br>
+                → Speak your answer clearly<br>
+                → Quiz runs automatically!
+            </div>
         </div>
 
-        <div class="instructions">
-            <h3>How to Play</h3>
-            <ul>
-                <li><strong>Hear Question:</strong> Click to have the question read aloud</li>
-                <li><strong>Speak Answer:</strong> Click and say your answer into the microphone</li>
-                <li><strong>Submit:</strong> Check if your answer is correct</li>
-            </ul>
+        <!-- Quiz Screen -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question-counter" id="questionCounter">Question 1 of 5</div>
+            
+            <div class="quiz-card">
+                <div class="question-text" id="questionText"></div>
+                
+                <div class="status-area">
+                    <div class="status-icon" id="statusIcon">
+                        <div class="speaker-waves" id="speakerWaves">
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                        </div>
+                        <div class="wave-animation hidden" id="waveAnimation">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <svg id="checkIcon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="#4ade80">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        <svg id="crossIcon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="#f87171">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="status-text" id="statusText">Speaking question...</div>
+                    <div class="user-answer" id="userAnswer"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+            </div>
         </div>
 
-        <div id="quizContainer"></div>
-
-        <div class="score-card" id="scoreCard" style="display: none;">
-            <div class="score-value" id="finalScore">0/0</div>
-            <div class="score-label">Final Score</div>
-            <button class="btn reset-btn" onclick="resetQuiz()">Play Again</button>
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="results-card">
+                <div class="score-value" id="finalScore">0/5</div>
+                <div class="score-label">Final Score</div>
+                <div class="score-message" id="scoreMessage"></div>
+                <button class="restart-btn" onclick="restartQuiz()">Play Again</button>
+            </div>
         </div>
     </div>
 
@@ -430,119 +492,161 @@
             {
                 question: "What is the capital city of France?",
                 answer: "paris",
-                acceptedAnswers: ["paris", "paris france"]
+                acceptedAnswers: ["paris", "paris france", "it's paris", "the answer is paris"]
             },
             {
                 question: "How many planets are in our solar system?",
                 answer: "eight",
-                acceptedAnswers: ["eight", "8", "eight planets"]
+                acceptedAnswers: ["eight", "8", "eight planets", "there are eight", "it's eight"]
             },
             {
                 question: "What color do you get when you mix red and blue?",
                 answer: "purple",
-                acceptedAnswers: ["purple", "violet"]
+                acceptedAnswers: ["purple", "violet", "it's purple", "you get purple"]
             },
             {
                 question: "What is the largest mammal on Earth?",
                 answer: "blue whale",
-                acceptedAnswers: ["blue whale", "the blue whale", "whale", "a blue whale"]
+                acceptedAnswers: ["blue whale", "the blue whale", "whale", "a blue whale", "it's the blue whale"]
             },
             {
                 question: "In what year did World War Two end?",
                 answer: "1945",
-                acceptedAnswers: ["1945", "nineteen forty five", "nineteen forty-five"]
+                acceptedAnswers: ["1945", "nineteen forty five", "nineteen forty-five", "it ended in 1945"]
             }
         ];
 
         // Speech Recognition Setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
-        let currentlyListening = null;
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = true;
             recognition.lang = 'en-US';
-        } else {
-            document.getElementById('browserWarning').style.display = 'block';
+            recognition.maxAlternatives = 1;
         }
 
         // Speech Synthesis Setup
         const synth = window.speechSynthesis;
 
         // State
-        let userAnswers = {};
-        let submitted = {};
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswer = '';
+        let quizActive = false;
 
-        // Initialize Quiz
-        function initQuiz() {
-            const container = document.getElementById('quizContainer');
-            container.innerHTML = '';
-            userAnswers = {};
-            submitted = {};
+        // DOM Elements
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const questionText = document.getElementById('questionText');
+        const questionCounter = document.getElementById('questionCounter');
+        const progressFill = document.getElementById('progressFill');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const userAnswerEl = document.getElementById('userAnswer');
+        const feedbackText = document.getElementById('feedbackText');
+        const speakerWaves = document.getElementById('speakerWaves');
+        const waveAnimation = document.getElementById('waveAnimation');
+        const checkIcon = document.getElementById('checkIcon');
+        const crossIcon = document.getElementById('crossIcon');
 
-            quizQuestions.forEach((q, index) => {
-                const card = document.createElement('div');
-                card.className = 'quiz-card';
-                card.id = `question-${index}`;
-                card.innerHTML = `
-                    <div class="question-number">Question ${index + 1} of ${quizQuestions.length}</div>
-                    <div class="question-text">${q.question}</div>
-                    
-                    <div class="voice-controls">
-                        <button class="btn btn-speak" onclick="speakQuestion(${index})">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                            </svg>
-                            Hear Question
-                        </button>
-                        <button class="btn btn-listen" id="listen-${index}" onclick="startListening(${index})" ${!recognition ? 'disabled' : ''}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                            </svg>
-                            Speak Answer
-                        </button>
-                    </div>
+        // Start Quiz
+        function startQuiz() {
+            if (!recognition) {
+                alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+                return;
+            }
 
-                    <div class="wave-animation" id="wave-${index}">
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                    </div>
+            currentQuestion = 0;
+            score = 0;
+            quizActive = true;
 
-                    <div class="answer-display empty" id="answer-${index}">Your spoken answer will appear here...</div>
-                    
-                    <div class="status-indicator" id="status-${index}"></div>
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            resultsScreen.style.display = 'none';
 
-                    <button class="btn btn-submit" id="submit-${index}" onclick="checkAnswer(${index})" disabled>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                        </svg>
-                        Check Answer
-                    </button>
-
-                    <div class="feedback" id="feedback-${index}"></div>
-                `;
-                container.appendChild(card);
-            });
-
-            document.getElementById('scoreCard').style.display = 'none';
+            // Small delay before starting
+            setTimeout(() => {
+                presentQuestion();
+            }, 500);
         }
 
-        // Speak Question
-        function speakQuestion(index) {
+        // Present Question
+        function presentQuestion() {
+            if (currentQuestion >= quizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const q = quizQuestions[currentQuestion];
+            
+            // Update UI
+            questionText.textContent = q.question;
+            questionCounter.textContent = `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+            progressFill.style.width = `${((currentQuestion) / quizQuestions.length) * 100}%`;
+            
+            // Reset status area
+            userAnswerEl.textContent = '';
+            feedbackText.textContent = '';
+            feedbackText.className = 'feedback-text';
+            
+            // Show speaking state
+            setStatusState('speaking');
+            
+            // Speak the question
+            speakText(q.question, () => {
+                // After speaking, start listening
+                setTimeout(() => {
+                    startListening();
+                }, 300);
+            });
+        }
+
+        // Set Status State
+        function setStatusState(state) {
+            statusIcon.className = 'status-icon';
+            speakerWaves.classList.add('hidden');
+            waveAnimation.classList.add('hidden');
+            checkIcon.classList.add('hidden');
+            crossIcon.classList.add('hidden');
+
+            switch(state) {
+                case 'speaking':
+                    statusIcon.classList.add('speaking');
+                    speakerWaves.classList.remove('hidden');
+                    statusText.textContent = 'Speaking question...';
+                    break;
+                case 'listening':
+                    statusIcon.classList.add('listening');
+                    waveAnimation.classList.remove('hidden');
+                    statusText.textContent = 'Listening for your answer...';
+                    break;
+                case 'correct':
+                    statusIcon.classList.add('correct');
+                    checkIcon.classList.remove('hidden');
+                    statusText.textContent = 'Correct!';
+                    break;
+                case 'incorrect':
+                    statusIcon.classList.add('incorrect');
+                    crossIcon.classList.remove('hidden');
+                    statusText.textContent = 'Not quite!';
+                    break;
+            }
+        }
+
+        // Speak Text
+        function speakText(text, callback) {
             if (synth.speaking) {
                 synth.cancel();
             }
 
-            const utterance = new SpeechSynthesisUtterance(quizQuestions[index].question);
+            const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
             utterance.pitch = 1;
             
-            // Get available voices and prefer a good English voice
             const voices = synth.getVoices();
             const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
                                  voices.find(v => v.lang.startsWith('en'));
@@ -550,165 +654,170 @@
                 utterance.voice = englishVoice;
             }
 
-            synth.speak(utterance);
-        }
+            utterance.onend = () => {
+                if (callback) callback();
+            };
 
-        // Speak Feedback
-        function speakFeedback(text) {
-            if (synth.speaking) {
-                synth.cancel();
-            }
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1;
-            utterance.pitch = 1;
             synth.speak(utterance);
         }
 
         // Start Listening
-        function startListening(index) {
-            if (!recognition) return;
+        function startListening() {
+            if (!recognition || !quizActive) return;
 
-            // Stop any ongoing recognition
-            if (currentlyListening !== null) {
-                recognition.stop();
-                const prevBtn = document.getElementById(`listen-${currentlyListening}`);
-                const prevWave = document.getElementById(`wave-${currentlyListening}`);
-                const prevDisplay = document.getElementById(`answer-${currentlyListening}`);
-                prevBtn.classList.remove('listening');
-                prevWave.classList.remove('active');
-                prevDisplay.classList.remove('listening-active');
-            }
+            userAnswer = '';
+            userAnswerEl.textContent = '';
+            setStatusState('listening');
 
-            currentlyListening = index;
-            const btn = document.getElementById(`listen-${index}`);
-            const wave = document.getElementById(`wave-${index}`);
-            const display = document.getElementById(`answer-${index}`);
-            const status = document.getElementById(`status-${index}`);
-            const card = document.getElementById(`question-${index}`);
-
-            btn.classList.add('listening');
-            wave.classList.add('active');
-            display.classList.add('listening-active');
-            card.classList.add('active');
-            status.textContent = 'Listening...';
+            let silenceTimeout;
+            let hasResult = false;
 
             recognition.onresult = (event) => {
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
+                    transcript = event.results[i][0].transcript;
                 }
                 
-                display.textContent = transcript;
-                display.classList.remove('empty');
-                userAnswers[index] = transcript.toLowerCase().trim();
+                userAnswer = transcript.toLowerCase().trim();
+                userAnswerEl.textContent = `"${transcript}"`;
+
+                // Reset silence timeout on new input
+                clearTimeout(silenceTimeout);
                 
-                document.getElementById(`submit-${index}`).disabled = false;
+                // Check if this is a final result
+                if (event.results[event.results.length - 1].isFinal) {
+                    hasResult = true;
+                    // Wait a moment then check answer
+                    silenceTimeout = setTimeout(() => {
+                        recognition.stop();
+                    }, 800);
+                }
             };
 
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
-                status.textContent = `Error: ${event.error}. Try again.`;
-                stopListening(index);
+                if (event.error === 'no-speech') {
+                    // Retry listening
+                    setTimeout(() => {
+                        if (quizActive) startListening();
+                    }, 500);
+                }
             };
 
             recognition.onend = () => {
-                stopListening(index);
+                clearTimeout(silenceTimeout);
+                if (hasResult && userAnswer) {
+                    checkAnswer();
+                } else if (quizActive) {
+                    // Restart listening if no answer yet
+                    setTimeout(() => {
+                        if (quizActive) startListening();
+                    }, 300);
+                }
             };
 
-            recognition.start();
-        }
-
-        // Stop Listening
-        function stopListening(index) {
-            const btn = document.getElementById(`listen-${index}`);
-            const wave = document.getElementById(`wave-${index}`);
-            const display = document.getElementById(`answer-${index}`);
-            const status = document.getElementById(`status-${index}`);
-            const card = document.getElementById(`question-${index}`);
-
-            btn.classList.remove('listening');
-            wave.classList.remove('active');
-            display.classList.remove('listening-active');
-            card.classList.remove('active');
-            
-            if (userAnswers[index]) {
-                status.textContent = 'Answer recorded!';
-            } else {
-                status.textContent = '';
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Recognition start error:', e);
             }
 
-            currentlyListening = null;
+            // Auto-stop after 8 seconds if no answer
+            setTimeout(() => {
+                if (!hasResult && quizActive) {
+                    recognition.stop();
+                }
+            }, 8000);
         }
 
         // Check Answer
-        function checkAnswer(index) {
-            if (submitted[index]) return;
-
-            const userAnswer = userAnswers[index] || '';
-            const question = quizQuestions[index];
-            const feedback = document.getElementById(`feedback-${index}`);
+        function checkAnswer() {
+            const q = quizQuestions[currentQuestion];
             
             // Check if answer matches any accepted answer
-            const isCorrect = question.acceptedAnswers.some(accepted => 
+            const isCorrect = q.acceptedAnswers.some(accepted => 
                 userAnswer.includes(accepted) || accepted.includes(userAnswer)
             );
 
-            submitted[index] = true;
-            
             if (isCorrect) {
-                feedback.className = 'feedback correct';
-                feedback.innerHTML = `✓ Correct! The answer is "${question.answer}".`;
-                speakFeedback(`Correct! The answer is ${question.answer}.`);
+                score++;
+                setStatusState('correct');
+                feedbackText.textContent = `The answer is ${q.answer}!`;
+                feedbackText.className = 'feedback-text correct';
+                speakText(`Correct! The answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
             } else {
-                feedback.className = 'feedback incorrect';
-                feedback.innerHTML = `✗ Not quite. The correct answer is "${question.answer}".`;
-                speakFeedback(`Not quite. The correct answer is ${question.answer}.`);
+                setStatusState('incorrect');
+                feedbackText.textContent = `The correct answer was ${q.answer}`;
+                feedbackText.className = 'feedback-text incorrect';
+                speakText(`Not quite. The correct answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
             }
-
-            // Disable buttons for this question
-            document.getElementById(`listen-${index}`).disabled = true;
-            document.getElementById(`submit-${index}`).disabled = true;
-
-            // Check if all questions answered
-            checkAllAnswered();
         }
 
-        // Check All Answered
-        function checkAllAnswered() {
-            const allAnswered = quizQuestions.every((_, index) => submitted[index]);
+        // Move to Next Question
+        function moveToNextQuestion() {
+            currentQuestion++;
             
-            if (allAnswered) {
-                const correct = quizQuestions.filter((q, index) => {
-                    const userAnswer = userAnswers[index] || '';
-                    return q.acceptedAnswers.some(accepted => 
-                        userAnswer.includes(accepted) || accepted.includes(userAnswer)
-                    );
-                }).length;
-
+            if (currentQuestion >= quizQuestions.length) {
                 setTimeout(() => {
-                    document.getElementById('finalScore').textContent = `${correct}/${quizQuestions.length}`;
-                    document.getElementById('scoreCard').style.display = 'block';
-                    document.getElementById('scoreCard').scrollIntoView({ behavior: 'smooth' });
-                    
-                    speakFeedback(`Quiz complete! You got ${correct} out of ${quizQuestions.length} correct.`);
+                    showResults();
+                }, 1000);
+            } else {
+                setTimeout(() => {
+                    presentQuestion();
                 }, 1500);
             }
         }
 
-        // Reset Quiz
-        function resetQuiz() {
-            initQuiz();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Show Results
+        function showResults() {
+            quizActive = false;
+            quizScreen.style.display = 'none';
+            resultsScreen.style.display = 'flex';
+
+            document.getElementById('finalScore').textContent = `${score}/${quizQuestions.length}`;
+            
+            let message = '';
+            const percentage = (score / quizQuestions.length) * 100;
+            
+            if (percentage === 100) {
+                message = "Perfect score! You're amazing! 🎉";
+            } else if (percentage >= 80) {
+                message = "Excellent work! Almost perfect! ⭐";
+            } else if (percentage >= 60) {
+                message = "Good job! Keep practicing! 👍";
+            } else if (percentage >= 40) {
+                message = "Not bad! Room for improvement! 💪";
+            } else {
+                message = "Keep trying! You'll get better! 🌟";
+            }
+
+            document.getElementById('scoreMessage').textContent = message;
+
+            speakText(`Quiz complete! You scored ${score} out of ${quizQuestions.length}. ${message.replace(/[^\w\s!]/g, '')}`);
         }
 
-        // Load voices when available
+        // Restart Quiz
+        function restartQuiz() {
+            synth.cancel();
+            resultsScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+        }
+
+        // Load voices
         if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => {};
+            speechSynthesis.onvoiceschanged = () => {
+                synth.getVoices();
+            };
         }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', initQuiz);
+        // Preload voices
+        window.addEventListener('load', () => {
+            synth.getVoices();
+        });
     </script>
 </body>
 </html>
