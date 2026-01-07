@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Quiz - Hands Free</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --accent-cyan: #00f5d4;
+            --accent-magenta: #f72585;
+            --accent-yellow: #fee440;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --text-primary: #ffffff;
+            --text-secondary: #8888aa;
+            --gradient-glow: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #f72585 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 245, 212, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(247, 37, 133, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 60% at 50% 50%, rgba(123, 44, 191, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 800;
+            background: var(--gradient-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .start-btn {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 30px 60px;
+            border: none;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            background: var(--gradient-glow);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 60px rgba(0, 245, 212, 0.3), 0 0 100px rgba(247, 37, 133, 0.2);
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(0, 245, 212, 0.3), 0 0 100px rgba(247, 37, 133, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0, 245, 212, 0.5), 0 0 120px rgba(247, 37, 133, 0.4); }
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 100px rgba(0, 245, 212, 0.5), 0 0 150px rgba(247, 37, 133, 0.4);
+        }
+
+        .start-instructions {
+            margin-top: 40px;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 2;
+        }
+
+        /* Quiz Screen */
+        .quiz-screen {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-glow);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .question-counter {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .quiz-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-glow);
+        }
+
+        .question-text {
+            font-size: 1.6rem;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 40px;
+        }
+
+        .status-area {
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .status-icon.speaking {
+            background: rgba(0, 245, 212, 0.2);
+            border: 2px solid var(--accent-cyan);
+            animation: pulse-cyan 1.5s ease-in-out infinite;
+        }
+
+        .status-icon.listening {
+            background: rgba(247, 37, 133, 0.2);
+            border: 2px solid var(--accent-magenta);
+            animation: pulse-magenta 1s ease-in-out infinite;
+        }
+
+        .status-icon.correct {
+            background: rgba(74, 222, 128, 0.2);
+            border: 2px solid var(--accent-green);
+        }
+
+        .status-icon.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            border: 2px solid var(--accent-red);
+        }
+
+        .status-icon.thinking {
+            background: rgba(254, 228, 64, 0.2);
+            border: 2px solid var(--accent-yellow);
+            animation: pulse-yellow 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-yellow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(254, 228, 64, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(254, 228, 64, 0.2); }
+        }
+
+        @keyframes pulse-cyan {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 245, 212, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(0, 245, 212, 0.2); }
+        }
+
+        @keyframes pulse-magenta {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.4); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px 10px rgba(247, 37, 133, 0.3); }
+        }
+
+        .status-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .user-answer {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-top: 15px;
+            font-style: italic;
+            min-height: 30px;
+        }
+
+        .feedback-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .feedback-text.correct {
+            color: var(--accent-green);
+        }
+
+        .feedback-text.incorrect {
+            color: var(--accent-red);
+        }
+
+        /* Wave Animation */
+        .wave-animation {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            height: 40px;
+            align-items: center;
+        }
+
+        .wave-bar {
+            width: 5px;
+            height: 20px;
+            background: var(--accent-magenta);
+            border-radius: 3px;
+            animation: wave 0.8s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+
+        /* Speaker Animation */
+        .speaker-waves {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .speaker-wave {
+            width: 3px;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+            animation: speaker 0.6s ease-in-out infinite;
+        }
+
+        .speaker-wave:nth-child(1) { height: 15px; animation-delay: 0s; }
+        .speaker-wave:nth-child(2) { height: 25px; animation-delay: 0.1s; }
+        .speaker-wave:nth-child(3) { height: 35px; animation-delay: 0.2s; }
+        .speaker-wave:nth-child(4) { height: 25px; animation-delay: 0.3s; }
+        .speaker-wave:nth-child(5) { height: 15px; animation-delay: 0.4s; }
+
+        @keyframes speaker {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* Results Screen */
+        .results-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .results-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 24px;
+            padding: 50px;
+        }
+
+        .score-value {
+            font-size: 6rem;
+            font-weight: 800;
+            background: var(--gradient-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        .score-message {
+            margin-top: 30px;
+            font-size: 1.3rem;
+            color: var(--accent-cyan);
+        }
+
+        .restart-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            padding: 18px 40px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            margin-top: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-card {
+                padding: 30px 20px;
+            }
+
+            .question-text {
+                font-size: 1.3rem;
+            }
+
+            .start-btn {
+                width: 160px;
+                height: 160px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Voice Quiz</h1>
+            <p class="subtitle">100% Hands-Free Experience</p>
+        </header>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <button class="start-btn" id="startBtn" onclick="startQuiz()">
+                START
+            </button>
+            <div class="start-instructions">
+                → Press start and allow microphone<br>
+                → Listen to each question<br>
+                → Speak your answer clearly<br>
+                → Quiz runs automatically!
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question-counter" id="questionCounter">Question 1 of 5</div>
+            
+            <div class="quiz-card">
+                <div class="question-text" id="questionText"></div>
+                
+                <div class="status-area">
+                    <div class="status-icon" id="statusIcon">
+                        <div class="speaker-waves" id="speakerWaves">
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                        </div>
+                        <div class="wave-animation hidden" id="waveAnimation">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <svg id="checkIcon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="#4ade80">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        <svg id="crossIcon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="#f87171">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="status-text" id="statusText">Speaking question...</div>
+                    <div class="user-answer" id="userAnswer"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="results-card">
+                <div class="score-value" id="finalScore">0/5</div>
+                <div class="score-label">Final Score</div>
+                <div class="score-message" id="scoreMessage"></div>
+                <button class="restart-btn" onclick="restartQuiz()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Questions
+        const quizQuestions = [
+            {
+                question: "What is the capital city of France?",
+                answer: "paris",
+                acceptedAnswers: ["paris", "paris france", "it's paris", "the answer is paris"]
+            },
+            {
+                question: "How many planets are in our solar system?",
+                answer: "eight",
+                acceptedAnswers: ["eight", "8", "eight planets", "there are eight", "it's eight"]
+            },
+            {
+                question: "What color do you get when you mix red and blue?",
+                answer: "purple",
+                acceptedAnswers: ["purple", "violet", "it's purple", "you get purple"]
+            },
+            {
+                question: "What is the largest mammal on Earth?",
+                answer: "blue whale",
+                acceptedAnswers: ["blue whale", "the blue whale", "whale", "a blue whale", "it's the blue whale"]
+            },
+            {
+                question: "In what year did World War Two end?",
+                answer: "1945",
+                acceptedAnswers: ["1945", "nineteen forty five", "nineteen forty-five", "it ended in 1945"]
+            }
+        ];
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+        }
+        
+        let isProcessingAnswer = false;
+
+        // Speech Synthesis Setup
+        const synth = window.speechSynthesis;
+
+        // State
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswer = '';
+        let quizActive = false;
+
+        // DOM Elements
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const questionText = document.getElementById('questionText');
+        const questionCounter = document.getElementById('questionCounter');
+        const progressFill = document.getElementById('progressFill');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const userAnswerEl = document.getElementById('userAnswer');
+        const feedbackText = document.getElementById('feedbackText');
+        const speakerWaves = document.getElementById('speakerWaves');
+        const waveAnimation = document.getElementById('waveAnimation');
+        const checkIcon = document.getElementById('checkIcon');
+        const crossIcon = document.getElementById('crossIcon');
+
+        // Start Quiz
+        function startQuiz() {
+            if (!recognition) {
+                alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+                return;
+            }
+
+            currentQuestion = 0;
+            score = 0;
+            quizActive = true;
+
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            resultsScreen.style.display = 'none';
+
+            // Small delay before starting
+            setTimeout(() => {
+                presentQuestion();
+            }, 500);
+        }
+
+        // Present Question
+        function presentQuestion() {
+            if (currentQuestion >= quizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const q = quizQuestions[currentQuestion];
+            
+            // Update UI
+            questionText.textContent = q.question;
+            questionCounter.textContent = `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+            progressFill.style.width = `${((currentQuestion) / quizQuestions.length) * 100}%`;
+            
+            // Reset status area
+            userAnswerEl.textContent = '';
+            feedbackText.textContent = '';
+            feedbackText.className = 'feedback-text';
+            
+            // Show speaking state
+            setStatusState('speaking');
+            
+            // Speak the question
+            speakText(q.question, () => {
+                // After speaking, start listening
+                setTimeout(() => {
+                    startListening();
+                }, 300);
+            });
+        }
+
+        // Set Status State
+        function setStatusState(state) {
+            statusIcon.className = 'status-icon';
+            speakerWaves.classList.add('hidden');
+            waveAnimation.classList.add('hidden');
+            checkIcon.classList.add('hidden');
+            crossIcon.classList.add('hidden');
+
+            switch(state) {
+                case 'speaking':
+                    statusIcon.classList.add('speaking');
+                    speakerWaves.classList.remove('hidden');
+                    statusText.textContent = 'Speaking question...';
+                    break;
+                case 'listening':
+                    statusIcon.classList.add('listening');
+                    waveAnimation.classList.remove('hidden');
+                    statusText.textContent = 'Listening for your answer...';
+                    break;
+                case 'correct':
+                    statusIcon.classList.add('correct');
+                    checkIcon.classList.remove('hidden');
+                    statusText.textContent = 'Correct!';
+                    break;
+                case 'incorrect':
+                    statusIcon.classList.add('incorrect');
+                    crossIcon.classList.remove('hidden');
+                    statusText.textContent = 'Not quite!';
+                    break;
+            }
+        }
+
+        // Speak Text
+        function speakText(text, callback) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            
+            const voices = synth.getVoices();
+            const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
+                                 voices.find(v => v.lang.startsWith('en'));
+            if (englishVoice) {
+                utterance.voice = englishVoice;
+            }
+
+            utterance.onend = () => {
+                if (callback) callback();
+            };
+
+            synth.speak(utterance);
+        }
+
+        // Start Listening
+        function startListening() {
+            if (!recognition || !quizActive || isProcessingAnswer) return;
+
+            userAnswer = '';
+            userAnswerEl.textContent = '';
+            setStatusState('listening');
+
+            let silenceTimeout;
+
+            recognition.onresult = (event) => {
+                if (isProcessingAnswer) return;
+                
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript = event.results[i][0].transcript;
+                }
+                
+                userAnswer = transcript.toLowerCase().trim();
+                userAnswerEl.textContent = `"${transcript}"`;
+
+                // Reset silence timeout on new input
+                clearTimeout(silenceTimeout);
+                
+                // Check if this is a final result
+                if (event.results[event.results.length - 1].isFinal && userAnswer) {
+                    // Wait a moment for user to finish speaking, then process
+                    silenceTimeout = setTimeout(() => {
+                        if (!isProcessingAnswer && quizActive && userAnswer) {
+                            isProcessingAnswer = true;
+                            try {
+                                recognition.stop();
+                            } catch(e) {}
+                            checkAnswer();
+                        }
+                    }, 1200);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                // Silently handle errors - no console spam
+                if (event.error === 'aborted' || event.error === 'no-speech') {
+                    // These are expected, ignore them
+                    return;
+                }
+            };
+
+            recognition.onend = () => {
+                clearTimeout(silenceTimeout);
+                // Only restart if we're still in listening mode and haven't processed an answer
+                if (quizActive && !isProcessingAnswer) {
+                    setTimeout(() => {
+                        if (quizActive && !isProcessingAnswer) {
+                            try {
+                                recognition.start();
+                            } catch(e) {}
+                        }
+                    }, 100);
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                // Already started, ignore
+            }
+        }
+        
+        // Stop listening completely
+        function stopListening() {
+            try {
+                recognition.onend = null;
+                recognition.onresult = null;
+                recognition.onerror = null;
+                recognition.stop();
+            } catch(e) {}
+        }
+
+        // Check Answer using Free LLM (Puter.js - no API key needed!)
+        async function checkAnswer() {
+            const q = quizQuestions[currentQuestion];
+            
+            setStatusState('thinking');
+            statusText.textContent = 'Checking your answer...';
+            
+            let isCorrect = false;
+            
+            try {
+                // Using Puter.js free LLM - explicitly using GPT-4o mini model
+                const response = await puter.ai.chat(
+                    `You are a quiz answer validator. Determine if the user's answer is correct.
+
+Question: "${q.question}"
+Correct answer: "${q.answer}"
+User's spoken answer: "${userAnswer}"
+
+Is the user's answer correct? Consider:
+- Semantic equivalence (e.g., "8" = "eight")
+- Partial matches that show understanding
+- Minor speech recognition errors
+- Extra words like "I think it's..." or "The answer is..."
+
+Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`,
+                    { model: 'gpt-4o-mini' }  // Explicitly specifying the model
+                );
+
+                const result = (response?.message?.content || response || '').toString().toUpperCase();
+                isCorrect = result.includes('CORRECT') && !result.includes('INCORRECT');
+                
+                console.log('LLM Model: gpt-4o-mini via Puter.js');
+                console.log('LLM Response:', response);
+                
+            } catch (error) {
+                console.error('LLM check failed, trying backup API:', error);
+                
+                // Backup: Try ApiFreeLLM
+                try {
+                    const backupResponse = await fetch('https://apifreellm.com/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: `Question: "${q.question}" Correct answer: "${q.answer}" User said: "${userAnswer}" - Is this CORRECT or INCORRECT? Reply with only one word.`
+                        })
+                    });
+                    const backupData = await backupResponse.json();
+                    const backupResult = (backupData?.response || backupData?.message || '').toString().toUpperCase();
+                    isCorrect = backupResult.includes('CORRECT') && !backupResult.includes('INCORRECT');
+                } catch (backupError) {
+                    console.error('Backup API also failed, using fallback:', backupError);
+                    // Final fallback to simple string matching
+                    isCorrect = q.acceptedAnswers.some(accepted => 
+                        userAnswer.includes(accepted) || accepted.includes(userAnswer)
+                    );
+                }
+            }
+
+            if (isCorrect) {
+                score++;
+                setStatusState('correct');
+                feedbackText.textContent = `The answer is ${q.answer}!`;
+                feedbackText.className = 'feedback-text correct';
+                speakText(`Correct! The answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
+            } else {
+                setStatusState('incorrect');
+                feedbackText.textContent = `The correct answer was ${q.answer}`;
+                feedbackText.className = 'feedback-text incorrect';
+                speakText(`Not quite. The correct answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
+            }
+        }
+
+        // Move to Next Question
+        function moveToNextQuestion() {
+            currentQuestion++;
+            isProcessingAnswer = false;
+            
+            if (currentQuestion >= quizQuestions.length) {
+                setTimeout(() => {
+                    showResults();
+                }, 1000);
+            } else {
+                setTimeout(() => {
+                    presentQuestion();
+                }, 1500);
+            }
+        }
+
+        // Show Results
+        function showResults() {
+            quizActive = false;
+            isProcessingAnswer = false;
+            stopListening();
+            
+            quizScreen.style.display = 'none';
+            resultsScreen.style.display = 'flex';
+
+            document.getElementById('finalScore').textContent = `${score}/${quizQuestions.length}`;
+            
+            let message = '';
+            const percentage = (score / quizQuestions.length) * 100;
+            
+            if (percentage === 100) {
+                message = "Perfect score! You're amazing! 🎉";
+            } else if (percentage >= 80) {
+                message = "Excellent work! Almost perfect! ⭐";
+            } else if (percentage >= 60) {
+                message = "Good job! Keep practicing! 👍";
+            } else if (percentage >= 40) {
+                message = "Not bad! Room for improvement! 💪";
+            } else {
+                message = "Keep trying! You'll get better! 🌟";
+            }
+
+            document.getElementById('scoreMessage').textContent = message;
+
+            speakText(`Quiz complete! You scored ${score} out of ${quizQuestions.length}. ${message.replace(/[^\w\s!]/g, '')}`);
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            synth.cancel();
+            stopListening();
+            isProcessingAnswer = false;
+            resultsScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+        }
+
+        // Load voices
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {
+                synth.getVoices();
+            };
+        }
+
+        // Preload voices
+        window.addEventListener('load', () => {
+            synth.getVoices();
+        });
+    </script>
+</body>
+</html>
