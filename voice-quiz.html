@@ -522,11 +522,13 @@
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = false;
+            recognition.continuous = true;
             recognition.interimResults = true;
             recognition.lang = 'en-US';
             recognition.maxAlternatives = 1;
         }
+        
+        let isProcessingAnswer = false;
 
         // Speech Synthesis Setup
         const synth = window.speechSynthesis;
@@ -663,16 +665,17 @@
 
         // Start Listening
         function startListening() {
-            if (!recognition || !quizActive) return;
+            if (!recognition || !quizActive || isProcessingAnswer) return;
 
             userAnswer = '';
             userAnswerEl.textContent = '';
             setStatusState('listening');
 
             let silenceTimeout;
-            let hasResult = false;
 
             recognition.onresult = (event) => {
+                if (isProcessingAnswer) return;
+                
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     transcript = event.results[i][0].transcript;
@@ -685,49 +688,57 @@
                 clearTimeout(silenceTimeout);
                 
                 // Check if this is a final result
-                if (event.results[event.results.length - 1].isFinal) {
-                    hasResult = true;
-                    // Wait a moment then check answer
+                if (event.results[event.results.length - 1].isFinal && userAnswer) {
+                    // Wait a moment for user to finish speaking, then process
                     silenceTimeout = setTimeout(() => {
-                        recognition.stop();
-                    }, 800);
+                        if (!isProcessingAnswer && quizActive && userAnswer) {
+                            isProcessingAnswer = true;
+                            try {
+                                recognition.stop();
+                            } catch(e) {}
+                            checkAnswer();
+                        }
+                    }, 1200);
                 }
             };
 
             recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                if (event.error === 'no-speech') {
-                    // Retry listening
-                    setTimeout(() => {
-                        if (quizActive) startListening();
-                    }, 500);
+                // Silently handle errors - no console spam
+                if (event.error === 'aborted' || event.error === 'no-speech') {
+                    // These are expected, ignore them
+                    return;
                 }
             };
 
             recognition.onend = () => {
                 clearTimeout(silenceTimeout);
-                if (hasResult && userAnswer) {
-                    checkAnswer();
-                } else if (quizActive) {
-                    // Restart listening if no answer yet
+                // Only restart if we're still in listening mode and haven't processed an answer
+                if (quizActive && !isProcessingAnswer) {
                     setTimeout(() => {
-                        if (quizActive) startListening();
-                    }, 300);
+                        if (quizActive && !isProcessingAnswer) {
+                            try {
+                                recognition.start();
+                            } catch(e) {}
+                        }
+                    }, 100);
                 }
             };
 
             try {
                 recognition.start();
             } catch (e) {
-                console.error('Recognition start error:', e);
+                // Already started, ignore
             }
-
-            // Auto-stop after 8 seconds if no answer
-            setTimeout(() => {
-                if (!hasResult && quizActive) {
-                    recognition.stop();
-                }
-            }, 8000);
+        }
+        
+        // Stop listening completely
+        function stopListening() {
+            try {
+                recognition.onend = null;
+                recognition.onresult = null;
+                recognition.onerror = null;
+                recognition.stop();
+            } catch(e) {}
         }
 
         // Check Answer
@@ -760,6 +771,7 @@
         // Move to Next Question
         function moveToNextQuestion() {
             currentQuestion++;
+            isProcessingAnswer = false;
             
             if (currentQuestion >= quizQuestions.length) {
                 setTimeout(() => {
@@ -775,6 +787,9 @@
         // Show Results
         function showResults() {
             quizActive = false;
+            isProcessingAnswer = false;
+            stopListening();
+            
             quizScreen.style.display = 'none';
             resultsScreen.style.display = 'flex';
 
@@ -803,6 +818,8 @@
         // Restart Quiz
         function restartQuiz() {
             synth.cancel();
+            stopListening();
+            isProcessingAnswer = false;
             resultsScreen.style.display = 'none';
             startScreen.style.display = 'flex';
         }
