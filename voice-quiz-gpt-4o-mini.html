@@ -503,6 +503,67 @@
             color: var(--accent-red);
         }
 
+        /* LLM Log Meta Info */
+        .llm-log-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-label {
+            font-size: 0.65rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 0.7rem;
+            color: var(--text-primary);
+        }
+
+        /* Grammar Correction */
+        .llm-log-grammar {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: rgba(254, 228, 64, 0.15);
+            border: 1px solid rgba(254, 228, 64, 0.3);
+            border-radius: 6px;
+        }
+
+        .grammar-label {
+            color: var(--accent-yellow);
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .grammar-text {
+            color: var(--text-primary);
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        .llm-log-input {
+            margin-top: 10px;
+        }
+
+        .llm-log-output {
+            margin-top: 10px;
+        }
+
         /* Results Screen */
         .results-screen {
             display: none;
@@ -747,7 +808,7 @@
         const crossIcon = document.getElementById('crossIcon');
 
         // Log LLM interaction to the panel
-        function logLLMInteraction(input, output, isCorrect) {
+        function logLLMInteraction(data) {
             const logContent = document.getElementById('llmLogContent');
             
             // Remove empty message if present
@@ -767,22 +828,52 @@
             const entry = document.createElement('div');
             entry.className = 'llm-log-entry';
             
+            // Result badge
             let resultHtml = '';
-            if (isCorrect !== null) {
-                resultHtml = `<div class="llm-log-result ${isCorrect ? 'correct' : 'incorrect'}">
-                    ${isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
+            if (data.isCorrect !== null && data.isCorrect !== undefined) {
+                resultHtml = `<div class="llm-log-result ${data.isCorrect ? 'correct' : 'incorrect'}">
+                    ${data.isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
                 </div>`;
             }
             
+            // Grammar correction badge
+            let grammarHtml = '';
+            if (data.grammarIssue && data.grammarCorrection) {
+                grammarHtml = `
+                    <div class="llm-log-grammar">
+                        <span class="grammar-label">📝 Grammar Correction:</span>
+                        <span class="grammar-text">"${escapeHtml(data.grammarCorrection)}"</span>
+                    </div>`;
+            }
+            
             entry.innerHTML = `
+                <div class="llm-log-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">🔐 Auth:</span>
+                        <span class="meta-value">${escapeHtml(data.authInfo)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">🤖 Model:</span>
+                        <span class="meta-value">${escapeHtml(data.model)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">⏱️ Response:</span>
+                        <span class="meta-value">${data.responseTime}ms</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">🎟️ Tokens:</span>
+                        <span class="meta-value">~${data.tokens.input} in / ~${data.tokens.output} out (≈${data.tokens.total} total)</span>
+                    </div>
+                </div>
                 <div class="llm-log-input">
                     <div class="llm-log-label">📤 INPUT (Question ${currentQuestion + 1}):</div>
-                    <div class="llm-log-text">${escapeHtml(input)}</div>
+                    <div class="llm-log-text">${escapeHtml(data.prompt)}</div>
                 </div>
-                <div class="llm-log-output" style="margin-top: 10px;">
+                <div class="llm-log-output">
                     <div class="llm-log-label">📥 OUTPUT:</div>
-                    <div class="llm-log-text">${escapeHtml(output)}</div>
+                    <div class="llm-log-text">${escapeHtml(data.response)}</div>
                     ${resultHtml}
+                    ${grammarHtml}
                 </div>
             `;
             
@@ -1006,70 +1097,114 @@
             statusText.textContent = 'Checking your answer...';
             
             let isCorrect = false;
+            let grammarCorrection = null;
             
-            const prompt = `You are a quiz answer validator. Determine if the user's answer is correct.
+            const prompt = `You are a quiz answer validator and grammar checker. 
 
 Question: "${q.question}"
 Correct answer: "${q.answer}"
 User's spoken answer: "${userAnswer}"
 
-Is the user's answer correct? Consider:
-- Semantic equivalence (e.g., "8" = "eight")
-- Partial matches that show understanding
-- Minor speech recognition errors
-- Extra words like "I think it's..." or "The answer is..."
+Task 1 - Check if the answer is correct:
+- Consider semantic equivalence (e.g., "8" = "eight")
+- Accept partial matches that show understanding
+- Ignore minor speech recognition errors
+- Ignore filler words like "I think it's..." or "The answer is..."
 
-Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`;
+Task 2 - Check grammar of the user's spoken answer:
+- Is the grammar correct?
+- If not, provide the corrected version
+
+Respond in this EXACT format (3 lines only):
+ANSWER: CORRECT or INCORRECT
+GRAMMAR: OK or WRONG
+CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]`;
+            
+            // Get auth info for logging
+            let authInfo = 'Anonymous (free tier)';
+            try {
+                if (puter.auth.isSignedIn()) {
+                    const user = await puter.auth.getUser();
+                    authInfo = `Logged in: ${user.username}`;
+                }
+            } catch(e) {}
+            
+            const modelInfo = 'gpt-4o-mini';
+            const startTime = Date.now();
             
             try {
                 // Using Puter.js free LLM - explicitly using GPT-4o mini model
                 const response = await puter.ai.chat(
                     prompt,
-                    { model: 'gpt-4o-mini' }  // Explicitly specifying the model
+                    { model: 'gpt-4o-mini' }
                 );
-
-                const result = (response?.message?.content || response || '').toString().toUpperCase();
-                isCorrect = result.includes('CORRECT') && !result.includes('INCORRECT');
                 
-                // Log to the LLM panel
-                logLLMInteraction(prompt, response?.message?.content || response, isCorrect);
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+
+                const resultText = (response?.message?.content || response || '').toString();
+                
+                // Parse the response
+                const lines = resultText.split('\n').map(l => l.trim()).filter(l => l);
+                
+                // Check answer correctness
+                const answerLine = lines.find(l => l.toUpperCase().startsWith('ANSWER:')) || '';
+                isCorrect = answerLine.toUpperCase().includes('CORRECT') && !answerLine.toUpperCase().includes('INCORRECT');
+                
+                // Check grammar
+                const grammarLine = lines.find(l => l.toUpperCase().startsWith('GRAMMAR:')) || '';
+                const hasGrammarIssue = grammarLine.toUpperCase().includes('WRONG');
+                
+                // Get correction if any
+                const correctionLine = lines.find(l => l.toUpperCase().startsWith('CORRECTION:')) || '';
+                if (hasGrammarIssue && correctionLine) {
+                    grammarCorrection = correctionLine.replace(/^CORRECTION:\s*/i, '').trim();
+                    if (grammarCorrection.toLowerCase() === 'none') {
+                        grammarCorrection = null;
+                    }
+                }
+                
+                // Estimate token usage (rough estimate)
+                const inputTokens = Math.ceil(prompt.length / 4);
+                const outputTokens = Math.ceil(resultText.length / 4);
+                const totalTokens = inputTokens + outputTokens;
+                
+                // Log to the LLM panel with all info
+                logLLMInteraction({
+                    prompt: prompt,
+                    response: resultText,
+                    isCorrect: isCorrect,
+                    authInfo: authInfo,
+                    model: modelInfo,
+                    responseTime: responseTime,
+                    tokens: { input: inputTokens, output: outputTokens, total: totalTokens },
+                    grammarIssue: hasGrammarIssue,
+                    grammarCorrection: grammarCorrection
+                });
                 
                 console.log('LLM Model: gpt-4o-mini via Puter.js');
                 console.log('LLM Response:', response);
                 
             } catch (error) {
-                console.error('LLM check failed, trying backup API:', error);
+                console.error('LLM check failed, using fallback:', error);
                 
-                // Log the error
-                logLLMInteraction(prompt, `Error: ${error.message}. Trying backup...`, null);
+                // Fallback to simple string matching
+                isCorrect = q.acceptedAnswers.some(accepted => 
+                    userAnswer.includes(accepted) || accepted.includes(userAnswer)
+                );
                 
-                // Backup: Try ApiFreeLLM
-                try {
-                    const backupPrompt = `Question: "${q.question}" Correct answer: "${q.answer}" User said: "${userAnswer}" - Is this CORRECT or INCORRECT? Reply with only one word.`;
-                    const backupResponse = await fetch('https://apifreellm.com/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: backupPrompt
-                        })
-                    });
-                    const backupData = await backupResponse.json();
-                    const backupResult = (backupData?.response || backupData?.message || '').toString().toUpperCase();
-                    isCorrect = backupResult.includes('CORRECT') && !backupResult.includes('INCORRECT');
-                    
-                    // Log backup API interaction
-                    logLLMInteraction(`[BACKUP API] ${backupPrompt}`, backupData?.response || backupData?.message || 'No response', isCorrect);
-                    
-                } catch (backupError) {
-                    console.error('Backup API also failed, using fallback:', backupError);
-                    // Final fallback to simple string matching
-                    isCorrect = q.acceptedAnswers.some(accepted => 
-                        userAnswer.includes(accepted) || accepted.includes(userAnswer)
-                    );
-                    
-                    // Log fallback
-                    logLLMInteraction(`[FALLBACK - String Match]`, `Both APIs failed. Using simple matching. Result: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`, isCorrect);
-                }
+                // Log fallback
+                logLLMInteraction({
+                    prompt: `[FALLBACK - String Match]\nQuestion: "${q.question}"\nUser answer: "${userAnswer}"`,
+                    response: `API Error: ${error.message}\nUsing simple string matching.\nResult: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`,
+                    isCorrect: isCorrect,
+                    authInfo: authInfo,
+                    model: 'Fallback (no LLM)',
+                    responseTime: 0,
+                    tokens: { input: 0, output: 0, total: 0 },
+                    grammarIssue: false,
+                    grammarCorrection: null
+                });
             }
 
             if (isCorrect) {
@@ -1077,9 +1212,17 @@ Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`;
                 setStatusState('correct');
                 feedbackText.textContent = `✓ ${q.answer}`;
                 feedbackText.className = 'feedback-text correct';
-                speakText(`Correct! The answer is ${q.answer}.`, () => {
-                    moveToNextQuestion();
-                });
+                
+                if (grammarCorrection) {
+                    // Correct answer but grammar issue
+                    speakText(`Correct! The answer is ${q.answer}. However, your grammar could be better. The correct way to say it is: ${grammarCorrection}`, () => {
+                        moveToNextQuestion();
+                    });
+                } else {
+                    speakText(`Correct! The answer is ${q.answer}.`, () => {
+                        moveToNextQuestion();
+                    });
+                }
             } else {
                 setStatusState('incorrect');
                 feedbackText.textContent = `✗ Answer: ${q.answer}`;
