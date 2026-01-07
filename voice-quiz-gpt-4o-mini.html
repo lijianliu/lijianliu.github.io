@@ -86,6 +86,67 @@
             text-transform: uppercase;
         }
 
+        /* User Status */
+        .user-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            transition: background 0.3s;
+        }
+
+        .status-dot.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .status-dot.offline {
+            background: var(--accent-red);
+        }
+
+        .auth-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 15px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .auth-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+        }
+
+        .auth-btn.sign-out {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        .auth-btn.sign-out:hover {
+            background: var(--accent-magenta);
+            color: white;
+        }
+
         /* Start Screen */
         .start-screen {
             display: flex;
@@ -133,86 +194,112 @@
             line-height: 2;
         }
 
-        /* Quiz Screen */
+        /* Quiz Screen - Fullscreen Mode */
         .quiz-screen {
             display: none;
-            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: var(--bg-dark);
             flex-direction: column;
-            align-items: center;
-            flex: 1;
         }
 
-        .progress-bar {
+        /* Floating Question Popup */
+        .floating-question {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94%;
+            max-width: 450px;
+            background: var(--bg-card);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 15px 20px;
+            z-index: 1001;
+            box-shadow: 0 10px 40px rgba(0, 245, 212, 0.3), 0 0 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .floating-question .question-counter {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .floating-question .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .floating-question .status-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            min-height: 50px;
+        }
+
+        .floating-question .status-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .floating-question .status-info {
+            text-align: left;
+        }
+
+        .floating-question .status-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .floating-question .user-answer {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .floating-question .feedback-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .floating-question .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 3px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            margin-bottom: 40px;
+            border-radius: 2px;
+            margin-top: 12px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
             background: var(--gradient-glow);
-            border-radius: 3px;
+            border-radius: 2px;
             transition: width 0.5s ease;
         }
 
-        .question-counter {
-            font-family: 'Space Mono', monospace;
-            color: var(--accent-cyan);
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-        }
-
-        .quiz-card {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 24px;
-            padding: 50px 40px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .quiz-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-glow);
-        }
-
-        .question-text {
-            font-size: 1.6rem;
-            font-weight: 600;
-            line-height: 1.5;
-            margin-bottom: 40px;
-        }
-
-        .status-area {
-            min-height: 150px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .status-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-
+        /* Status Icon States */
         .status-icon.speaking {
             background: rgba(0, 245, 212, 0.2);
             border: 2px solid var(--accent-cyan);
@@ -243,63 +330,36 @@
 
         @keyframes pulse-yellow {
             0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(254, 228, 64, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(254, 228, 64, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(254, 228, 64, 0.2); }
         }
 
         @keyframes pulse-cyan {
             0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 245, 212, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(0, 245, 212, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(0, 245, 212, 0.2); }
         }
 
         @keyframes pulse-magenta {
             0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.4); }
-            50% { transform: scale(1.1); box-shadow: 0 0 30px 10px rgba(247, 37, 133, 0.3); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px 5px rgba(247, 37, 133, 0.3); }
         }
 
-        .status-text {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .user-answer {
-            font-size: 1.2rem;
-            color: var(--text-primary);
-            margin-top: 15px;
-            font-style: italic;
-            min-height: 30px;
-        }
-
-        .feedback-text {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        .feedback-text.correct {
-            color: var(--accent-green);
-        }
-
-        .feedback-text.incorrect {
-            color: var(--accent-red);
-        }
+        .feedback-text.correct { color: var(--accent-green); }
+        .feedback-text.incorrect { color: var(--accent-red); }
 
         /* Wave Animation */
         .wave-animation {
             display: flex;
             justify-content: center;
-            gap: 5px;
-            height: 40px;
+            gap: 3px;
+            height: 30px;
             align-items: center;
         }
 
         .wave-bar {
-            width: 5px;
-            height: 20px;
+            width: 4px;
+            height: 15px;
             background: var(--accent-magenta);
-            border-radius: 3px;
+            border-radius: 2px;
             animation: wave 0.8s ease-in-out infinite;
         }
 
@@ -307,12 +367,10 @@
         .wave-bar:nth-child(3) { animation-delay: 0.2s; }
         .wave-bar:nth-child(4) { animation-delay: 0.3s; }
         .wave-bar:nth-child(5) { animation-delay: 0.4s; }
-        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
-        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
 
         @keyframes wave {
-            0%, 100% { height: 10px; }
-            50% { height: 40px; }
+            0%, 100% { height: 8px; }
+            50% { height: 25px; }
         }
 
         /* Speaker Animation */
@@ -320,7 +378,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 3px;
+            gap: 2px;
         }
 
         .speaker-wave {
@@ -330,15 +388,119 @@
             animation: speaker 0.6s ease-in-out infinite;
         }
 
-        .speaker-wave:nth-child(1) { height: 15px; animation-delay: 0s; }
-        .speaker-wave:nth-child(2) { height: 25px; animation-delay: 0.1s; }
-        .speaker-wave:nth-child(3) { height: 35px; animation-delay: 0.2s; }
-        .speaker-wave:nth-child(4) { height: 25px; animation-delay: 0.3s; }
-        .speaker-wave:nth-child(5) { height: 15px; animation-delay: 0.4s; }
+        .speaker-wave:nth-child(1) { height: 10px; animation-delay: 0s; }
+        .speaker-wave:nth-child(2) { height: 18px; animation-delay: 0.1s; }
+        .speaker-wave:nth-child(3) { height: 25px; animation-delay: 0.2s; }
+        .speaker-wave:nth-child(4) { height: 18px; animation-delay: 0.3s; }
+        .speaker-wave:nth-child(5) { height: 10px; animation-delay: 0.4s; }
 
         @keyframes speaker {
             0%, 100% { opacity: 0.4; }
             50% { opacity: 1; }
+        }
+
+        /* Fullscreen LLM Log */
+        .llm-log-fullscreen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 180px;
+            overflow: hidden;
+        }
+
+        .llm-log-header {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(247, 37, 133, 0.2));
+            padding: 12px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .llm-log-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .llm-log-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .llm-log-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .llm-log-content::-webkit-scrollbar-thumb {
+            background: var(--accent-magenta);
+            border-radius: 4px;
+        }
+
+        .llm-log-empty {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .llm-log-entry {
+            margin-bottom: 10px;
+        }
+
+        .llm-log-divider {
+            border: none;
+            border-top: 2px dashed var(--accent-magenta);
+            margin: 25px 0;
+            opacity: 0.5;
+        }
+
+        .llm-log-label {
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 0.75rem;
+        }
+
+        .llm-log-input .llm-log-label {
+            color: var(--accent-cyan);
+        }
+
+        .llm-log-output .llm-log-label {
+            color: var(--accent-magenta);
+        }
+
+        .llm-log-text {
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 0.75rem;
+        }
+
+        .llm-log-result {
+            margin-top: 10px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 700;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+
+        .llm-log-result.correct {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--accent-green);
+        }
+
+        .llm-log-result.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--accent-red);
         }
 
         /* Results Screen */
@@ -406,112 +568,18 @@
             display: none !important;
         }
 
-        /* LLM Log Panel */
-        .llm-log-panel {
-            width: 100%;
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .llm-log-header {
-            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(247, 37, 133, 0.2));
-            padding: 12px 20px;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--accent-cyan);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .llm-log-content {
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 15px;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            line-height: 1.6;
-        }
-
-        .llm-log-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .llm-log-content::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .llm-log-content::-webkit-scrollbar-thumb {
-            background: var(--accent-magenta);
-            border-radius: 3px;
-        }
-
-        .llm-log-empty {
-            color: var(--text-secondary);
-            font-style: italic;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .llm-log-entry {
-            margin-bottom: 15px;
-        }
-
-        .llm-log-divider {
-            border: none;
-            border-top: 1px dashed rgba(255, 255, 255, 0.2);
-            margin: 15px 0;
-        }
-
-        .llm-log-label {
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .llm-log-input .llm-log-label {
-            color: var(--accent-cyan);
-        }
-
-        .llm-log-output .llm-log-label {
-            color: var(--accent-magenta);
-        }
-
-        .llm-log-text {
-            color: var(--text-secondary);
-            white-space: pre-wrap;
-            word-break: break-word;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 5px;
-        }
-
-        .llm-log-result {
-            margin-top: 8px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-weight: 700;
-            display: inline-block;
-        }
-
-        .llm-log-result.correct {
-            background: rgba(74, 222, 128, 0.2);
-            color: var(--accent-green);
-        }
-
-        .llm-log-result.incorrect {
-            background: rgba(248, 113, 113, 0.2);
-            color: var(--accent-red);
-        }
-
         @media (max-width: 600px) {
-            .quiz-card {
-                padding: 30px 20px;
+            .floating-question {
+                top: 10px;
+                padding: 12px 15px;
             }
 
-            .question-text {
-                font-size: 1.3rem;
+            .floating-question .question-text {
+                font-size: 1rem;
+            }
+
+            .llm-log-fullscreen {
+                margin-top: 170px;
             }
 
             .start-btn {
@@ -527,6 +595,11 @@
         <header>
             <h1>Voice Quiz</h1>
             <p class="subtitle">100% Hands-Free Experience</p>
+            <div class="user-status" id="userStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="userInfo">Checking login...</span>
+                <button class="auth-btn" id="authBtn" onclick="toggleAuth()">Sign In</button>
+            </div>
         </header>
 
         <!-- Start Screen -->
@@ -542,59 +615,6 @@
             </div>
         </div>
 
-        <!-- Quiz Screen -->
-        <div class="quiz-screen" id="quizScreen">
-            <div class="llm-log-panel" id="llmLogPanel">
-                <div class="llm-log-header">
-                    <span>🤖 LLM Interactions (GPT-4o-mini via Puter.js)</span>
-                </div>
-                <div class="llm-log-content" id="llmLogContent">
-                    <div class="llm-log-empty">LLM interactions will appear here...</div>
-                </div>
-            </div>
-            
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            
-            <div class="question-counter" id="questionCounter">Question 1 of 5</div>
-            
-            <div class="quiz-card">
-                <div class="question-text" id="questionText"></div>
-                
-                <div class="status-area">
-                    <div class="status-icon" id="statusIcon">
-                        <div class="speaker-waves" id="speakerWaves">
-                            <div class="speaker-wave"></div>
-                            <div class="speaker-wave"></div>
-                            <div class="speaker-wave"></div>
-                            <div class="speaker-wave"></div>
-                            <div class="speaker-wave"></div>
-                        </div>
-                        <div class="wave-animation hidden" id="waveAnimation">
-                            <div class="wave-bar"></div>
-                            <div class="wave-bar"></div>
-                            <div class="wave-bar"></div>
-                            <div class="wave-bar"></div>
-                            <div class="wave-bar"></div>
-                            <div class="wave-bar"></div>
-                            <div class="wave-bar"></div>
-                        </div>
-                        <svg id="checkIcon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="#4ade80">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                        </svg>
-                        <svg id="crossIcon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="#f87171">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
-                    
-                    <div class="status-text" id="statusText">Speaking question...</div>
-                    <div class="user-answer" id="userAnswer"></div>
-                    <div class="feedback-text" id="feedbackText"></div>
-                </div>
-            </div>
-        </div>
-
         <!-- Results Screen -->
         <div class="results-screen" id="resultsScreen">
             <div class="results-card">
@@ -602,6 +622,57 @@
                 <div class="score-label">Final Score</div>
                 <div class="score-message" id="scoreMessage"></div>
                 <button class="restart-btn" onclick="restartQuiz()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Screen - Fullscreen Overlay -->
+    <div class="quiz-screen" id="quizScreen">
+        <!-- Floating Question Popup -->
+        <div class="floating-question" id="floatingQuestion">
+            <div class="question-counter" id="questionCounter">Question 1 of 5</div>
+            <div class="question-text" id="questionText"></div>
+            <div class="status-area">
+                <div class="status-icon" id="statusIcon">
+                    <div class="speaker-waves" id="speakerWaves">
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                    </div>
+                    <div class="wave-animation hidden" id="waveAnimation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <svg id="checkIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#4ade80">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    <svg id="crossIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#f87171">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </div>
+                <div class="status-info">
+                    <div class="status-text" id="statusText">Speaking question...</div>
+                    <div class="user-answer" id="userAnswer"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Fullscreen LLM Log -->
+        <div class="llm-log-fullscreen" id="llmLogPanel">
+            <div class="llm-log-header">
+                🤖 LLM Interactions (GPT-4o-mini via Puter.js)
+            </div>
+            <div class="llm-log-content" id="llmLogContent">
+                <div class="llm-log-empty">LLM interactions will appear here as you answer questions...<br><br>Scroll freely to review history!</div>
             </div>
         </div>
     </div>
@@ -731,7 +802,7 @@
         // Clear LLM log
         function clearLLMLog() {
             const logContent = document.getElementById('llmLogContent');
-            logContent.innerHTML = '<div class="llm-log-empty">LLM interactions will appear here...</div>';
+            logContent.innerHTML = '<div class="llm-log-empty">LLM interactions will appear here as you answer questions...<br><br>Scroll freely to review history!</div>';
         }
 
         // Start Quiz
@@ -806,7 +877,11 @@
                 case 'listening':
                     statusIcon.classList.add('listening');
                     waveAnimation.classList.remove('hidden');
-                    statusText.textContent = 'Listening for your answer...';
+                    statusText.textContent = 'Listening...';
+                    break;
+                case 'thinking':
+                    statusIcon.classList.add('thinking');
+                    statusText.textContent = 'Checking answer...';
                     break;
                 case 'correct':
                     statusIcon.classList.add('correct');
@@ -1000,14 +1075,14 @@ Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`;
             if (isCorrect) {
                 score++;
                 setStatusState('correct');
-                feedbackText.textContent = `The answer is ${q.answer}!`;
+                feedbackText.textContent = `✓ ${q.answer}`;
                 feedbackText.className = 'feedback-text correct';
                 speakText(`Correct! The answer is ${q.answer}.`, () => {
                     moveToNextQuestion();
                 });
             } else {
                 setStatusState('incorrect');
-                feedbackText.textContent = `The correct answer was ${q.answer}`;
+                feedbackText.textContent = `✗ Answer: ${q.answer}`;
                 feedbackText.className = 'feedback-text incorrect';
                 speakText(`Not quite. The correct answer is ${q.answer}.`, () => {
                     moveToNextQuestion();
@@ -1081,7 +1156,54 @@ Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`;
         // Preload voices
         window.addEventListener('load', () => {
             synth.getVoices();
+            checkAuthStatus();
         });
+        
+        // Check Puter authentication status
+        async function checkAuthStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const userInfo = document.getElementById('userInfo');
+            const authBtn = document.getElementById('authBtn');
+            
+            try {
+                const isSignedIn = puter.auth.isSignedIn();
+                
+                if (isSignedIn) {
+                    const user = await puter.auth.getUser();
+                    statusDot.className = 'status-dot online';
+                    userInfo.textContent = `Logged in: ${user.username}`;
+                    authBtn.textContent = 'Sign Out';
+                    authBtn.className = 'auth-btn sign-out';
+                } else {
+                    statusDot.className = 'status-dot offline';
+                    userInfo.textContent = 'Not logged in (using free tier)';
+                    authBtn.textContent = 'Sign In';
+                    authBtn.className = 'auth-btn';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                statusDot.className = 'status-dot offline';
+                userInfo.textContent = 'Auth status unknown';
+            }
+        }
+        
+        // Toggle sign in / sign out
+        async function toggleAuth() {
+            try {
+                const isSignedIn = puter.auth.isSignedIn();
+                
+                if (isSignedIn) {
+                    await puter.auth.signOut();
+                } else {
+                    await puter.auth.signIn();
+                }
+                
+                // Refresh status after auth change
+                await checkAuthStatus();
+            } catch (error) {
+                console.error('Auth toggle error:', error);
+            }
+        }
     </script>
 </body>
 </html>
