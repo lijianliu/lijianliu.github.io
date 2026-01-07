@@ -406,6 +406,105 @@
             display: none !important;
         }
 
+        /* LLM Log Panel */
+        .llm-log-panel {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .llm-log-header {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(247, 37, 133, 0.2));
+            padding: 12px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .llm-log-content {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .llm-log-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .llm-log-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .llm-log-content::-webkit-scrollbar-thumb {
+            background: var(--accent-magenta);
+            border-radius: 3px;
+        }
+
+        .llm-log-empty {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .llm-log-entry {
+            margin-bottom: 15px;
+        }
+
+        .llm-log-divider {
+            border: none;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            margin: 15px 0;
+        }
+
+        .llm-log-label {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .llm-log-input .llm-log-label {
+            color: var(--accent-cyan);
+        }
+
+        .llm-log-output .llm-log-label {
+            color: var(--accent-magenta);
+        }
+
+        .llm-log-text {
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .llm-log-result {
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .llm-log-result.correct {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--accent-green);
+        }
+
+        .llm-log-result.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--accent-red);
+        }
+
         @media (max-width: 600px) {
             .quiz-card {
                 padding: 30px 20px;
@@ -445,6 +544,15 @@
 
         <!-- Quiz Screen -->
         <div class="quiz-screen" id="quizScreen">
+            <div class="llm-log-panel" id="llmLogPanel">
+                <div class="llm-log-header">
+                    <span>🤖 LLM Interactions (GPT-4o-mini via Puter.js)</span>
+                </div>
+                <div class="llm-log-content" id="llmLogContent">
+                    <div class="llm-log-empty">LLM interactions will appear here...</div>
+                </div>
+            </div>
+            
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
@@ -567,6 +675,65 @@
         const checkIcon = document.getElementById('checkIcon');
         const crossIcon = document.getElementById('crossIcon');
 
+        // Log LLM interaction to the panel
+        function logLLMInteraction(input, output, isCorrect) {
+            const logContent = document.getElementById('llmLogContent');
+            
+            // Remove empty message if present
+            const emptyMsg = logContent.querySelector('.llm-log-empty');
+            if (emptyMsg) {
+                emptyMsg.remove();
+            }
+            
+            // Add divider if not first entry
+            if (logContent.children.length > 0) {
+                const divider = document.createElement('hr');
+                divider.className = 'llm-log-divider';
+                logContent.appendChild(divider);
+            }
+            
+            // Create log entry
+            const entry = document.createElement('div');
+            entry.className = 'llm-log-entry';
+            
+            let resultHtml = '';
+            if (isCorrect !== null) {
+                resultHtml = `<div class="llm-log-result ${isCorrect ? 'correct' : 'incorrect'}">
+                    ${isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
+                </div>`;
+            }
+            
+            entry.innerHTML = `
+                <div class="llm-log-input">
+                    <div class="llm-log-label">📤 INPUT (Question ${currentQuestion + 1}):</div>
+                    <div class="llm-log-text">${escapeHtml(input)}</div>
+                </div>
+                <div class="llm-log-output" style="margin-top: 10px;">
+                    <div class="llm-log-label">📥 OUTPUT:</div>
+                    <div class="llm-log-text">${escapeHtml(output)}</div>
+                    ${resultHtml}
+                </div>
+            `;
+            
+            logContent.appendChild(entry);
+            
+            // Scroll to bottom
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+        
+        // Helper to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Clear LLM log
+        function clearLLMLog() {
+            const logContent = document.getElementById('llmLogContent');
+            logContent.innerHTML = '<div class="llm-log-empty">LLM interactions will appear here...</div>';
+        }
+
         // Start Quiz
         function startQuiz() {
             if (!recognition) {
@@ -577,6 +744,9 @@
             currentQuestion = 0;
             score = 0;
             quizActive = true;
+
+            // Clear LLM log for new quiz
+            clearLLMLog();
 
             startScreen.style.display = 'none';
             quizScreen.style.display = 'flex';
@@ -762,10 +932,7 @@
             
             let isCorrect = false;
             
-            try {
-                // Using Puter.js free LLM - explicitly using GPT-4o mini model
-                const response = await puter.ai.chat(
-                    `You are a quiz answer validator. Determine if the user's answer is correct.
+            const prompt = `You are a quiz answer validator. Determine if the user's answer is correct.
 
 Question: "${q.question}"
 Correct answer: "${q.answer}"
@@ -777,12 +944,20 @@ Is the user's answer correct? Consider:
 - Minor speech recognition errors
 - Extra words like "I think it's..." or "The answer is..."
 
-Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`,
+Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`;
+            
+            try {
+                // Using Puter.js free LLM - explicitly using GPT-4o mini model
+                const response = await puter.ai.chat(
+                    prompt,
                     { model: 'gpt-4o-mini' }  // Explicitly specifying the model
                 );
 
                 const result = (response?.message?.content || response || '').toString().toUpperCase();
                 isCorrect = result.includes('CORRECT') && !result.includes('INCORRECT');
+                
+                // Log to the LLM panel
+                logLLMInteraction(prompt, response?.message?.content || response, isCorrect);
                 
                 console.log('LLM Model: gpt-4o-mini via Puter.js');
                 console.log('LLM Response:', response);
@@ -790,24 +965,35 @@ Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`,
             } catch (error) {
                 console.error('LLM check failed, trying backup API:', error);
                 
+                // Log the error
+                logLLMInteraction(prompt, `Error: ${error.message}. Trying backup...`, null);
+                
                 // Backup: Try ApiFreeLLM
                 try {
+                    const backupPrompt = `Question: "${q.question}" Correct answer: "${q.answer}" User said: "${userAnswer}" - Is this CORRECT or INCORRECT? Reply with only one word.`;
                     const backupResponse = await fetch('https://apifreellm.com/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message: `Question: "${q.question}" Correct answer: "${q.answer}" User said: "${userAnswer}" - Is this CORRECT or INCORRECT? Reply with only one word.`
+                            message: backupPrompt
                         })
                     });
                     const backupData = await backupResponse.json();
                     const backupResult = (backupData?.response || backupData?.message || '').toString().toUpperCase();
                     isCorrect = backupResult.includes('CORRECT') && !backupResult.includes('INCORRECT');
+                    
+                    // Log backup API interaction
+                    logLLMInteraction(`[BACKUP API] ${backupPrompt}`, backupData?.response || backupData?.message || 'No response', isCorrect);
+                    
                 } catch (backupError) {
                     console.error('Backup API also failed, using fallback:', backupError);
                     // Final fallback to simple string matching
                     isCorrect = q.acceptedAnswers.some(accepted => 
                         userAnswer.includes(accepted) || accepted.includes(userAnswer)
                     );
+                    
+                    // Log fallback
+                    logLLMInteraction(`[FALLBACK - String Match]`, `Both APIs failed. Using simple matching. Result: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`, isCorrect);
                 }
             }
 
