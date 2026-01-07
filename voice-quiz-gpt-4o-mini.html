@@ -677,6 +677,57 @@
             color: white;
         }
 
+        /* Inline Results (in floating question area) */
+        .results-inline {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .results-score {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .results-label {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+
+        .results-message {
+            color: var(--accent-cyan);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .restart-btn-inline {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            padding: 10px 25px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn-inline:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+        }
+
         .hidden {
             display: none !important;
         }
@@ -1237,6 +1288,9 @@ User's spoken answer: "${userAnswer}"
 
 Task 1 - Check grammar FIRST:
 - Is the user's spoken answer grammatically correct?
+- IMPORTANT: Do NOT mark as wrong for missing punctuation (periods, commas, question marks, etc.)
+- IMPORTANT: Do NOT mark as wrong for capitalization issues
+- Only mark grammar as WRONG for actual grammatical errors like wrong verb tense, subject-verb disagreement, wrong word order, missing words, etc.
 - If not, provide the corrected version with proper grammar
 
 Task 2 - Check if the answer is correct:
@@ -1398,37 +1452,33 @@ ANSWER: CORRECT or INCORRECT`;
             isProcessingAnswer = false;
             stopListening();
             
-            // Hide floating question but keep LLM log visible
-            document.getElementById('floatingQuestion').style.display = 'none';
-            
-            // Show results overlay on top
-            resultsScreen.style.display = 'flex';
-            resultsScreen.style.position = 'fixed';
-            resultsScreen.style.top = '0';
-            resultsScreen.style.left = '0';
-            resultsScreen.style.right = '0';
-            resultsScreen.style.bottom = '0';
-            resultsScreen.style.zIndex = '1002';
-            resultsScreen.style.background = 'rgba(10, 10, 15, 0.95)';
-
-            document.getElementById('finalScore').textContent = `${score}/${quizQuestions.length}`;
+            // Update floating question area to show results instead
+            const floatingQuestion = document.getElementById('floatingQuestion');
+            floatingQuestion.innerHTML = `
+                <div class="results-inline">
+                    <div class="results-score">${score}/${quizQuestions.length}</div>
+                    <div class="results-label">Final Score</div>
+                    <div class="results-message" id="inlineScoreMessage"></div>
+                    <button class="restart-btn-inline" onclick="restartQuiz()">Play Again</button>
+                </div>
+            `;
             
             let message = '';
             const percentage = (score / quizQuestions.length) * 100;
             
             if (percentage === 100) {
-                message = "Perfect score! You're amazing! 🎉";
+                message = "Perfect! 🎉";
             } else if (percentage >= 80) {
-                message = "Excellent work! Almost perfect! ⭐";
+                message = "Excellent! ⭐";
             } else if (percentage >= 60) {
-                message = "Good job! Keep practicing! 👍";
+                message = "Good job! 👍";
             } else if (percentage >= 40) {
-                message = "Not bad! Room for improvement! 💪";
+                message = "Keep practicing! 💪";
             } else {
-                message = "Keep trying! You'll get better! 🌟";
+                message = "Try again! 🌟";
             }
 
-            document.getElementById('scoreMessage').textContent = message;
+            document.getElementById('inlineScoreMessage').textContent = message;
 
             speakText(`Quiz complete! You scored ${score} out of ${quizQuestions.length}. ${message.replace(/[^\w\s!]/g, '')}`);
         }
@@ -1444,11 +1494,48 @@ ANSWER: CORRECT or INCORRECT`;
             synth.cancel();
             stopListening();
             isProcessingAnswer = false;
+            
+            // Restore floating question HTML
+            const floatingQuestion = document.getElementById('floatingQuestion');
+            floatingQuestion.innerHTML = `
+                <div class="question-counter" id="questionCounter">Question 1 of 5</div>
+                <div class="question-text" id="questionText"></div>
+                <div class="status-area">
+                    <div class="status-icon" id="statusIcon">
+                        <div class="speaker-waves" id="speakerWaves">
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                        </div>
+                        <div class="wave-animation hidden" id="waveAnimation">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <svg id="checkIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#4ade80">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        <svg id="crossIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#f87171">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-text" id="statusText">Speaking question...</div>
+                        <div class="user-answer" id="userAnswer"></div>
+                        <div class="feedback-text" id="feedbackText"></div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            `;
+            
             quizScreen.style.display = 'none';
             resultsScreen.style.display = 'none';
-            resultsScreen.style.position = '';
-            resultsScreen.style.zIndex = '';
-            resultsScreen.style.background = '';
             startScreen.style.display = 'flex';
         }
 
