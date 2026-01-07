@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Quiz - Hands Free</title>
+    <script src="https://js.puter.com/v2/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -232,6 +233,17 @@
         .status-icon.incorrect {
             background: rgba(248, 113, 113, 0.2);
             border: 2px solid var(--accent-red);
+        }
+
+        .status-icon.thinking {
+            background: rgba(254, 228, 64, 0.2);
+            border: 2px solid var(--accent-yellow);
+            animation: pulse-yellow 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-yellow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(254, 228, 64, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(254, 228, 64, 0.2); }
         }
 
         @keyframes pulse-cyan {
@@ -741,14 +753,59 @@
             } catch(e) {}
         }
 
-        // Check Answer
-        function checkAnswer() {
+        // Check Answer using Free LLM (Puter.js - no API key needed!)
+        async function checkAnswer() {
             const q = quizQuestions[currentQuestion];
             
-            // Check if answer matches any accepted answer
-            const isCorrect = q.acceptedAnswers.some(accepted => 
-                userAnswer.includes(accepted) || accepted.includes(userAnswer)
-            );
+            setStatusState('thinking');
+            statusText.textContent = 'Checking your answer...';
+            
+            let isCorrect = false;
+            
+            try {
+                // Using Puter.js free LLM - no API key required!
+                const response = await puter.ai.chat(
+                    `You are a quiz answer validator. Determine if the user's answer is correct.
+
+Question: "${q.question}"
+Correct answer: "${q.answer}"
+User's spoken answer: "${userAnswer}"
+
+Is the user's answer correct? Consider:
+- Semantic equivalence (e.g., "8" = "eight")
+- Partial matches that show understanding
+- Minor speech recognition errors
+- Extra words like "I think it's..." or "The answer is..."
+
+Respond with ONLY "CORRECT" or "INCORRECT" - nothing else.`
+                );
+
+                const result = (response?.message?.content || response || '').toString().toUpperCase();
+                isCorrect = result.includes('CORRECT') && !result.includes('INCORRECT');
+                
+            } catch (error) {
+                console.error('LLM check failed, trying backup API:', error);
+                
+                // Backup: Try ApiFreeLLM
+                try {
+                    const backupResponse = await fetch('https://apifreellm.com/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: `Question: "${q.question}" Correct answer: "${q.answer}" User said: "${userAnswer}" - Is this CORRECT or INCORRECT? Reply with only one word.`
+                        })
+                    });
+                    const backupData = await backupResponse.json();
+                    const backupResult = (backupData?.response || backupData?.message || '').toString().toUpperCase();
+                    isCorrect = backupResult.includes('CORRECT') && !backupResult.includes('INCORRECT');
+                } catch (backupError) {
+                    console.error('Backup API also failed, using fallback:', backupError);
+                    // Final fallback to simple string matching
+                    isCorrect = q.acceptedAnswers.some(accepted => 
+                        userAnswer.includes(accepted) || accepted.includes(userAnswer)
+                    );
+                }
+            }
 
             if (isCorrect) {
                 score++;
