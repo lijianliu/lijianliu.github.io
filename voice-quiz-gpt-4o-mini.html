@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Quiz - Hands Free</title>
+    <title>Neural Network Quiz - Voice Powered</title>
     <script src="https://js.puter.com/v2/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -757,8 +757,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>Voice Quiz</h1>
-            <p class="subtitle">100% Hands-Free Experience</p>
+            <h1>Neural Net Quiz</h1>
+            <p class="subtitle">100 Questions • Voice Powered • LLM Validated</p>
             <div class="user-status" id="userStatus">
                 <span class="status-dot" id="statusDot"></span>
                 <span id="userInfo">Checking login...</span>
@@ -873,32 +873,521 @@
     </div>
 
     <script>
-        // Quiz Questions
+        // Quiz Questions - Neural Network Knowledge (100 Voice-Friendly Questions)
+        // Designed for: Easy to hear, short answers (1-3 words)
         const quizQuestions = [
+            // Basics (1-20)
             {
-                question: "What is the capital city of France?",
-                answer: "paris",
-                acceptedAnswers: ["paris", "paris france", "it's paris", "the answer is paris"]
+                question: "What is the basic unit of a neural network called?",
+                answer: "neuron",
+                acceptedAnswers: ["neuron", "a neuron", "neurons", "node", "perceptron"]
             },
             {
-                question: "How many planets are in our solar system?",
-                answer: "eight",
-                acceptedAnswers: ["eight", "8", "eight planets", "there are eight", "it's eight"]
+                question: "Learning with labeled data is called what type of learning?",
+                answer: "supervised",
+                acceptedAnswers: ["supervised", "supervised learning"]
             },
             {
-                question: "What color do you get when you mix red and blue?",
-                answer: "purple",
-                acceptedAnswers: ["purple", "violet", "it's purple", "you get purple"]
+                question: "Learning without labels is called what type of learning?",
+                answer: "unsupervised",
+                acceptedAnswers: ["unsupervised", "unsupervised learning"]
             },
             {
-                question: "What is the largest mammal on Earth?",
-                answer: "blue whale",
-                acceptedAnswers: ["blue whale", "the blue whale", "whale", "a blue whale", "it's the blue whale"]
+                question: "What function adds non-linearity to neurons?",
+                answer: "activation function",
+                acceptedAnswers: ["activation", "activation function", "activation functions"]
             },
             {
-                question: "In what year did World War Two end?",
-                answer: "1945",
-                acceptedAnswers: ["1945", "nineteen forty five", "nineteen forty-five", "it ended in 1945"]
+                question: "What is the most popular activation function today?",
+                answer: "ReLU",
+                acceptedAnswers: ["relu", "rectified linear unit"]
+            },
+            {
+                question: "What algorithm trains neural networks by going backwards?",
+                answer: "backpropagation",
+                acceptedAnswers: ["backpropagation", "backprop", "back propagation"]
+            },
+            {
+                question: "One complete pass through all training data is called what?",
+                answer: "epoch",
+                acceptedAnswers: ["epoch", "an epoch", "one epoch"]
+            },
+            {
+                question: "What measures how wrong the model's predictions are?",
+                answer: "loss",
+                acceptedAnswers: ["loss", "loss function", "cost", "error"]
+            },
+            {
+                question: "What controls how big each weight update is?",
+                answer: "learning rate",
+                acceptedAnswers: ["learning rate", "the learning rate", "step size"]
+            },
+            {
+                question: "When a model memorizes training data but fails on new data, it's called?",
+                answer: "overfitting",
+                acceptedAnswers: ["overfitting", "over fitting", "overfit"]
+            },
+            {
+                question: "When a model is too simple to learn patterns, it's called?",
+                answer: "underfitting",
+                acceptedAnswers: ["underfitting", "under fitting", "underfit"]
+            },
+            {
+                question: "What layer receives the input data?",
+                answer: "input layer",
+                acceptedAnswers: ["input layer", "input", "the input layer"]
+            },
+            {
+                question: "What layer produces the final prediction?",
+                answer: "output layer",
+                acceptedAnswers: ["output layer", "output", "the output layer"]
+            },
+            {
+                question: "Layers between input and output are called?",
+                answer: "hidden layers",
+                acceptedAnswers: ["hidden layers", "hidden", "hidden layer"]
+            },
+            {
+                question: "What are the learnable parameters in a neural network called?",
+                answer: "weights",
+                acceptedAnswers: ["weights", "the weights", "parameters"]
+            },
+            {
+                question: "What is added to weighted sum before activation?",
+                answer: "bias",
+                acceptedAnswers: ["bias", "the bias", "biases"]
+            },
+            {
+                question: "A network with many layers is called what kind of network?",
+                answer: "deep",
+                acceptedAnswers: ["deep", "deep network", "deep neural network"]
+            },
+            {
+                question: "What do we call the network's prediction before training?",
+                answer: "random",
+                acceptedAnswers: ["random", "random guess", "untrained"]
+            },
+            {
+                question: "Forward pass means data flows in which direction?",
+                answer: "forward",
+                acceptedAnswers: ["forward", "forwards", "input to output"]
+            },
+            {
+                question: "Backward pass computes what?",
+                answer: "gradients",
+                acceptedAnswers: ["gradients", "gradient", "the gradients"]
+            },
+
+            // Architectures (21-40)
+            {
+                question: "What type of network is best for images? C-N-N or R-N-N?",
+                answer: "CNN",
+                acceptedAnswers: ["cnn", "c n n", "convolutional"]
+            },
+            {
+                question: "What type of network is best for sequences? C-N-N or R-N-N?",
+                answer: "RNN",
+                acceptedAnswers: ["rnn", "r n n", "recurrent"]
+            },
+            {
+                question: "What does C-N-N stand for?",
+                answer: "convolutional neural network",
+                acceptedAnswers: ["convolutional neural network", "convolutional"]
+            },
+            {
+                question: "What does R-N-N stand for?",
+                answer: "recurrent neural network",
+                acceptedAnswers: ["recurrent neural network", "recurrent"]
+            },
+            {
+                question: "L-S-T-M solves what gradient problem?",
+                answer: "vanishing",
+                acceptedAnswers: ["vanishing", "vanishing gradient", "vanishing gradients"]
+            },
+            {
+                question: "What architecture powers ChatGPT and modern language models?",
+                answer: "transformer",
+                acceptedAnswers: ["transformer", "transformers", "the transformer"]
+            },
+            {
+                question: "G-A-N has two parts: generator and what?",
+                answer: "discriminator",
+                acceptedAnswers: ["discriminator", "the discriminator"]
+            },
+            {
+                question: "What does G-A-N stand for?",
+                answer: "generative adversarial network",
+                acceptedAnswers: ["generative adversarial network", "generative adversarial"]
+            },
+            {
+                question: "What network compresses then reconstructs data?",
+                answer: "autoencoder",
+                acceptedAnswers: ["autoencoder", "auto encoder", "autoencoders"]
+            },
+            {
+                question: "ResNet uses what kind of connections to skip layers?",
+                answer: "skip connections",
+                acceptedAnswers: ["skip connections", "skip", "residual", "shortcut"]
+            },
+            {
+                question: "What C-N-N won ImageNet 2012?",
+                answer: "AlexNet",
+                acceptedAnswers: ["alexnet", "alex net"]
+            },
+            {
+                question: "In C-N-N, what slides over the image to detect features?",
+                answer: "filter",
+                acceptedAnswers: ["filter", "filters", "kernel", "kernels"]
+            },
+            {
+                question: "What layer shrinks the image size in C-N-N?",
+                answer: "pooling",
+                acceptedAnswers: ["pooling", "pooling layer", "max pooling"]
+            },
+            {
+                question: "Max pooling keeps what value: maximum or minimum?",
+                answer: "maximum",
+                acceptedAnswers: ["maximum", "max", "the maximum"]
+            },
+            {
+                question: "A layer where every neuron connects to all previous neurons is called?",
+                answer: "fully connected",
+                acceptedAnswers: ["fully connected", "dense", "fc"]
+            },
+            {
+                question: "G-R-U is a simpler version of what?",
+                answer: "LSTM",
+                acceptedAnswers: ["lstm", "l s t m", "long short term memory"]
+            },
+            {
+                question: "Bidirectional R-N-N reads sequences in how many directions?",
+                answer: "two",
+                acceptedAnswers: ["two", "2", "both", "both directions"]
+            },
+            {
+                question: "U-Net is popular for what computer vision task?",
+                answer: "segmentation",
+                acceptedAnswers: ["segmentation", "image segmentation", "semantic segmentation"]
+            },
+            {
+                question: "YOLO is famous for real-time what?",
+                answer: "object detection",
+                acceptedAnswers: ["object detection", "detection"]
+            },
+            {
+                question: "VGG networks are known for using what size filters?",
+                answer: "three by three",
+                acceptedAnswers: ["three by three", "3 by 3", "3x3", "small"]
+            },
+
+            // Training (41-60)
+            {
+                question: "What technique randomly turns off neurons during training?",
+                answer: "dropout",
+                acceptedAnswers: ["dropout", "drop out"]
+            },
+            {
+                question: "Batch normalization normalizes what?",
+                answer: "activations",
+                acceptedAnswers: ["activations", "activation", "the activations", "layer outputs"]
+            },
+            {
+                question: "Adam optimizer combines momentum and what?",
+                answer: "RMSprop",
+                acceptedAnswers: ["rmsprop", "rms prop", "adaptive learning rates"]
+            },
+            {
+                question: "S-G-D stands for what?",
+                answer: "stochastic gradient descent",
+                acceptedAnswers: ["stochastic gradient descent", "stochastic"]
+            },
+            {
+                question: "Using a pretrained model for a new task is called?",
+                answer: "transfer learning",
+                acceptedAnswers: ["transfer learning", "transfer", "fine tuning"]
+            },
+            {
+                question: "Flipping and rotating images to get more data is called?",
+                answer: "data augmentation",
+                acceptedAnswers: ["data augmentation", "augmentation"]
+            },
+            {
+                question: "Stopping training when validation loss stops improving is called?",
+                answer: "early stopping",
+                acceptedAnswers: ["early stopping", "early stop"]
+            },
+            {
+                question: "Adding penalty for large weights is called?",
+                answer: "regularization",
+                acceptedAnswers: ["regularization", "weight decay", "l2"]
+            },
+            {
+                question: "L2 regularization is also called?",
+                answer: "weight decay",
+                acceptedAnswers: ["weight decay", "ridge"]
+            },
+            {
+                question: "Clipping prevents what kind of gradients?",
+                answer: "exploding",
+                acceptedAnswers: ["exploding", "exploding gradients", "large"]
+            },
+            {
+                question: "Data for tuning hyperparameters is called what set?",
+                answer: "validation",
+                acceptedAnswers: ["validation", "validation set", "dev set"]
+            },
+            {
+                question: "Data for final evaluation is called what set?",
+                answer: "test",
+                acceptedAnswers: ["test", "test set", "testing"]
+            },
+            {
+                question: "K-fold is a type of what validation?",
+                answer: "cross validation",
+                acceptedAnswers: ["cross validation", "cross-validation"]
+            },
+            {
+                question: "Xavier and He are types of what initialization?",
+                answer: "weight",
+                acceptedAnswers: ["weight", "weight initialization", "weights"]
+            },
+            {
+                question: "Grid search finds the best what?",
+                answer: "hyperparameters",
+                acceptedAnswers: ["hyperparameters", "hyperparameter", "parameters"]
+            },
+            {
+                question: "Mini-batch is smaller than full batch: true or false?",
+                answer: "true",
+                acceptedAnswers: ["true", "yes", "correct"]
+            },
+            {
+                question: "Momentum helps escape what in the loss landscape?",
+                answer: "local minima",
+                acceptedAnswers: ["local minima", "local minimum", "minima"]
+            },
+            {
+                question: "Learning rate that decreases over time is called?",
+                answer: "learning rate decay",
+                acceptedAnswers: ["learning rate decay", "decay", "schedule", "learning rate schedule"]
+            },
+            {
+                question: "Warm-up gradually increases what at the start?",
+                answer: "learning rate",
+                acceptedAnswers: ["learning rate", "the learning rate"]
+            },
+            {
+                question: "Mixed precision uses 16-bit and what other bit precision?",
+                answer: "32 bit",
+                acceptedAnswers: ["32 bit", "32", "thirty-two", "float 32"]
+            },
+
+            // Activation Functions (61-70)
+            {
+                question: "Sigmoid outputs values between zero and what?",
+                answer: "one",
+                acceptedAnswers: ["one", "1"]
+            },
+            {
+                question: "Tanh outputs values between negative one and what?",
+                answer: "one",
+                acceptedAnswers: ["one", "1", "positive one"]
+            },
+            {
+                question: "ReLU outputs zero for what kind of inputs?",
+                answer: "negative",
+                acceptedAnswers: ["negative", "negative inputs", "negatives"]
+            },
+            {
+                question: "Leaky ReLU allows small values for negative inputs: true or false?",
+                answer: "true",
+                acceptedAnswers: ["true", "yes", "correct"]
+            },
+            {
+                question: "Softmax is used for multi-class or binary classification?",
+                answer: "multi-class",
+                acceptedAnswers: ["multi-class", "multiclass", "multi class", "multiple classes"]
+            },
+            {
+                question: "Sigmoid is used for multi-class or binary classification?",
+                answer: "binary",
+                acceptedAnswers: ["binary", "binary classification"]
+            },
+            {
+                question: "G-E-L-U is popular in what type of models?",
+                answer: "transformers",
+                acceptedAnswers: ["transformers", "transformer", "language models"]
+            },
+            {
+                question: "ReLU has what problem for negative inputs?",
+                answer: "dying ReLU",
+                acceptedAnswers: ["dying relu", "dead neurons", "dying", "dead"]
+            },
+            {
+                question: "Softmax outputs sum to what number?",
+                answer: "one",
+                acceptedAnswers: ["one", "1"]
+            },
+            {
+                question: "The derivative of ReLU for positive values is?",
+                answer: "one",
+                acceptedAnswers: ["one", "1"]
+            },
+
+            // Loss Functions (71-80)
+            {
+                question: "M-S-E stands for?",
+                answer: "mean squared error",
+                acceptedAnswers: ["mean squared error", "mean square error"]
+            },
+            {
+                question: "Cross-entropy is used for classification or regression?",
+                answer: "classification",
+                acceptedAnswers: ["classification"]
+            },
+            {
+                question: "M-S-E is used for classification or regression?",
+                answer: "regression",
+                acceptedAnswers: ["regression"]
+            },
+            {
+                question: "M-A-E is less sensitive to what than M-S-E?",
+                answer: "outliers",
+                acceptedAnswers: ["outliers", "outlier"]
+            },
+            {
+                question: "Lower loss means better or worse predictions?",
+                answer: "better",
+                acceptedAnswers: ["better", "good", "more accurate"]
+            },
+            {
+                question: "K-L divergence measures difference between what?",
+                answer: "distributions",
+                acceptedAnswers: ["distributions", "probability distributions", "probabilities"]
+            },
+            {
+                question: "Hinge loss is used with what type of classifier?",
+                answer: "SVM",
+                acceptedAnswers: ["svm", "support vector machine", "support vector"]
+            },
+            {
+                question: "Triplet loss needs anchor, positive, and what?",
+                answer: "negative",
+                acceptedAnswers: ["negative", "negative sample"]
+            },
+            {
+                question: "Contrastive loss learns what kind of representations?",
+                answer: "embeddings",
+                acceptedAnswers: ["embeddings", "embedding", "similar"]
+            },
+            {
+                question: "Focal loss helps with what kind of class imbalance?",
+                answer: "hard examples",
+                acceptedAnswers: ["hard examples", "imbalanced", "rare classes", "hard"]
+            },
+
+            // Modern Deep Learning (81-90)
+            {
+                question: "Attention lets the model focus on what parts?",
+                answer: "relevant",
+                acceptedAnswers: ["relevant", "important", "relevant parts"]
+            },
+            {
+                question: "Self-attention looks at relationships within what?",
+                answer: "same sequence",
+                acceptedAnswers: ["same sequence", "itself", "the sequence", "same input"]
+            },
+            {
+                question: "G-P-T uses encoder, decoder, or both?",
+                answer: "decoder",
+                acceptedAnswers: ["decoder", "decoder only"]
+            },
+            {
+                question: "BERT uses encoder, decoder, or both?",
+                answer: "encoder",
+                acceptedAnswers: ["encoder", "encoder only"]
+            },
+            {
+                question: "G-P-T stands for?",
+                answer: "generative pre-trained transformer",
+                acceptedAnswers: ["generative pre-trained transformer", "generative pretrained transformer"]
+            },
+            {
+                question: "BERT predicts what kind of words during training?",
+                answer: "masked",
+                acceptedAnswers: ["masked", "masked words", "hidden"]
+            },
+            {
+                question: "Word embeddings convert words into what?",
+                answer: "vectors",
+                acceptedAnswers: ["vectors", "numbers", "embeddings"]
+            },
+            {
+                question: "Few-shot learning uses how many examples: many or few?",
+                answer: "few",
+                acceptedAnswers: ["few", "a few", "small number"]
+            },
+            {
+                question: "Zero-shot uses how many examples?",
+                answer: "zero",
+                acceptedAnswers: ["zero", "none", "no examples", "0"]
+            },
+            {
+                question: "R-L-H-F uses feedback from whom?",
+                answer: "humans",
+                acceptedAnswers: ["humans", "human", "people"]
+            },
+
+            // Applications (91-100)
+            {
+                question: "Finding objects and their locations in images is called?",
+                answer: "object detection",
+                acceptedAnswers: ["object detection", "detection"]
+            },
+            {
+                question: "Labeling every pixel in an image is called?",
+                answer: "segmentation",
+                acceptedAnswers: ["segmentation", "semantic segmentation", "image segmentation"]
+            },
+            {
+                question: "Converting speech to text is called speech what?",
+                answer: "recognition",
+                acceptedAnswers: ["recognition", "speech recognition", "to text"]
+            },
+            {
+                question: "Converting text to speech is called T-T-S or?",
+                answer: "text to speech",
+                acceptedAnswers: ["text to speech", "speech synthesis", "tts"]
+            },
+            {
+                question: "Translating between languages is called machine what?",
+                answer: "translation",
+                acceptedAnswers: ["translation", "machine translation"]
+            },
+            {
+                question: "Detecting if text is positive or negative is called?",
+                answer: "sentiment analysis",
+                acceptedAnswers: ["sentiment analysis", "sentiment"]
+            },
+            {
+                question: "Finding names of people and places in text is called N-E-R or?",
+                answer: "named entity recognition",
+                acceptedAnswers: ["named entity recognition", "entity recognition", "ner"]
+            },
+            {
+                question: "ChatGPT is best known for what task?",
+                answer: "text generation",
+                acceptedAnswers: ["text generation", "chat", "conversation", "generating text"]
+            },
+            {
+                question: "Making a short version of a long text is called?",
+                answer: "summarization",
+                acceptedAnswers: ["summarization", "text summarization", "summary"]
+            },
+            {
+                question: "Answering questions about a given text is called Q-A or?",
+                answer: "question answering",
+                acceptedAnswers: ["question answering", "qa", "reading comprehension"]
             }
         ];
 
