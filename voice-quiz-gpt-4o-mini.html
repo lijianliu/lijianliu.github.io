@@ -418,6 +418,36 @@
             flex-shrink: 0;
         }
 
+        .llm-stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
         .llm-log-content {
             flex: 1;
             overflow-y: auto;
@@ -625,6 +655,28 @@
             color: var(--bg-dark);
         }
 
+        .history-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            padding: 12px 30px;
+            border: 2px solid var(--accent-magenta);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--accent-magenta);
+            cursor: pointer;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            display: block;
+            width: 100%;
+        }
+
+        .history-btn:hover {
+            background: var(--accent-magenta);
+            color: white;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -683,6 +735,7 @@
                 <div class="score-label">Final Score</div>
                 <div class="score-message" id="scoreMessage"></div>
                 <button class="restart-btn" onclick="restartQuiz()">Play Again</button>
+                <button class="history-btn" onclick="viewHistory()">View LLM History</button>
             </div>
         </div>
     </div>
@@ -731,6 +784,36 @@
         <div class="llm-log-fullscreen" id="llmLogPanel">
             <div class="llm-log-header">
                 🤖 LLM Interactions (GPT-4o-mini via Puter.js)
+            </div>
+            <div class="llm-stats-bar" id="llmStatsBar">
+                <div class="stat-item">
+                    <span class="stat-label">🔐 Auth:</span>
+                    <span class="stat-value" id="statAuth">Checking...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📞 Calls:</span>
+                    <span class="stat-value" id="statCalls">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📥 In:</span>
+                    <span class="stat-value" id="statTokensIn">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📤 Out:</span>
+                    <span class="stat-value" id="statTokensOut">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🎟️ Total:</span>
+                    <span class="stat-value" id="statTokensTotal">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⏱️ Avg:</span>
+                    <span class="stat-value" id="statAvgTime">0ms</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📝 Fixes:</span>
+                    <span class="stat-value" id="statGrammarFixes">0</span>
+                </div>
             </div>
             <div class="llm-log-content" id="llmLogContent">
                 <div class="llm-log-empty">LLM interactions will appear here as you answer questions...<br><br>Scroll freely to review history!</div>
@@ -790,6 +873,16 @@
         let score = 0;
         let userAnswer = '';
         let quizActive = false;
+        
+        // LLM Stats
+        let llmStats = {
+            totalCalls: 0,
+            totalInputTokens: 0,
+            totalOutputTokens: 0,
+            totalResponseTime: 0,
+            grammarCorrections: 0,
+            authInfo: 'Checking...'
+        };
 
         // DOM Elements
         const startScreen = document.getElementById('startScreen');
@@ -807,6 +900,29 @@
         const checkIcon = document.getElementById('checkIcon');
         const crossIcon = document.getElementById('crossIcon');
 
+        // Update stats bar display
+        function updateStatsBar() {
+            document.getElementById('statAuth').textContent = llmStats.authInfo;
+            document.getElementById('statCalls').textContent = llmStats.totalCalls;
+            document.getElementById('statTokensIn').textContent = `~${llmStats.totalInputTokens}`;
+            document.getElementById('statTokensOut').textContent = `~${llmStats.totalOutputTokens}`;
+            document.getElementById('statTokensTotal').textContent = `~${llmStats.totalInputTokens + llmStats.totalOutputTokens}`;
+            document.getElementById('statAvgTime').textContent = llmStats.totalCalls > 0 
+                ? `${Math.round(llmStats.totalResponseTime / llmStats.totalCalls)}ms` 
+                : '0ms';
+            document.getElementById('statGrammarFixes').textContent = llmStats.grammarCorrections;
+        }
+        
+        // Reset stats for new quiz
+        function resetStats() {
+            llmStats.totalCalls = 0;
+            llmStats.totalInputTokens = 0;
+            llmStats.totalOutputTokens = 0;
+            llmStats.totalResponseTime = 0;
+            llmStats.grammarCorrections = 0;
+            updateStatsBar();
+        }
+
         // Log LLM interaction to the panel
         function logLLMInteraction(data) {
             const logContent = document.getElementById('llmLogContent');
@@ -816,6 +932,17 @@
             if (emptyMsg) {
                 emptyMsg.remove();
             }
+            
+            // Update global stats
+            llmStats.totalCalls++;
+            llmStats.totalInputTokens += data.tokens.input;
+            llmStats.totalOutputTokens += data.tokens.output;
+            llmStats.totalResponseTime += data.responseTime;
+            llmStats.authInfo = data.authInfo;
+            if (data.grammarIssue && data.grammarCorrection) {
+                llmStats.grammarCorrections++;
+            }
+            updateStatsBar();
             
             // Add divider if not first entry
             if (logContent.children.length > 0) {
@@ -907,11 +1034,13 @@
             score = 0;
             quizActive = true;
 
-            // Clear LLM log for new quiz
+            // Reset stats and clear LLM log for new quiz
+            resetStats();
             clearLLMLog();
 
             startScreen.style.display = 'none';
             quizScreen.style.display = 'flex';
+            document.getElementById('floatingQuestion').style.display = 'block';
             resultsScreen.style.display = 'none';
 
             // Small delay before starting
@@ -1094,10 +1223,11 @@
             const q = quizQuestions[currentQuestion];
             
             setStatusState('thinking');
-            statusText.textContent = 'Checking your answer...';
+            statusText.textContent = 'Checking grammar...';
             
             let isCorrect = false;
             let grammarCorrection = null;
+            let hasGrammarIssue = false;
             
             const prompt = `You are a quiz answer validator and grammar checker. 
 
@@ -1105,20 +1235,20 @@ Question: "${q.question}"
 Correct answer: "${q.answer}"
 User's spoken answer: "${userAnswer}"
 
-Task 1 - Check if the answer is correct:
+Task 1 - Check grammar FIRST:
+- Is the user's spoken answer grammatically correct?
+- If not, provide the corrected version with proper grammar
+
+Task 2 - Check if the answer is correct:
 - Consider semantic equivalence (e.g., "8" = "eight")
 - Accept partial matches that show understanding
 - Ignore minor speech recognition errors
 - Ignore filler words like "I think it's..." or "The answer is..."
 
-Task 2 - Check grammar of the user's spoken answer:
-- Is the grammar correct?
-- If not, provide the corrected version
-
 Respond in this EXACT format (3 lines only):
-ANSWER: CORRECT or INCORRECT
 GRAMMAR: OK or WRONG
-CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]`;
+CORRECTION: [corrected sentence with proper grammar, or "none" if grammar is OK]
+ANSWER: CORRECT or INCORRECT`;
             
             // Get auth info for logging
             let authInfo = 'Anonymous (free tier)';
@@ -1147,13 +1277,9 @@ CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]
                 // Parse the response
                 const lines = resultText.split('\n').map(l => l.trim()).filter(l => l);
                 
-                // Check answer correctness
-                const answerLine = lines.find(l => l.toUpperCase().startsWith('ANSWER:')) || '';
-                isCorrect = answerLine.toUpperCase().includes('CORRECT') && !answerLine.toUpperCase().includes('INCORRECT');
-                
-                // Check grammar
+                // Check grammar FIRST
                 const grammarLine = lines.find(l => l.toUpperCase().startsWith('GRAMMAR:')) || '';
-                const hasGrammarIssue = grammarLine.toUpperCase().includes('WRONG');
+                hasGrammarIssue = grammarLine.toUpperCase().includes('WRONG');
                 
                 // Get correction if any
                 const correctionLine = lines.find(l => l.toUpperCase().startsWith('CORRECTION:')) || '';
@@ -1163,6 +1289,10 @@ CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]
                         grammarCorrection = null;
                     }
                 }
+                
+                // Check answer correctness
+                const answerLine = lines.find(l => l.toUpperCase().startsWith('ANSWER:')) || '';
+                isCorrect = answerLine.toUpperCase().includes('CORRECT') && !answerLine.toUpperCase().includes('INCORRECT');
                 
                 // Estimate token usage (rough estimate)
                 const inputTokens = Math.ceil(prompt.length / 4);
@@ -1207,22 +1337,35 @@ CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]
                 });
             }
 
+            // STEP 1: If grammar issue, tell user FIRST
+            if (hasGrammarIssue && grammarCorrection) {
+                setStatusState('thinking');
+                feedbackText.textContent = `📝 Grammar: "${grammarCorrection}"`;
+                feedbackText.className = 'feedback-text';
+                
+                // Speak grammar correction first, then check answer
+                speakText(`Your grammar needs improvement. You said: "${userAnswer}". The correct way to say it is: "${grammarCorrection}".`, () => {
+                    // Small pause before giving answer feedback
+                    setTimeout(() => {
+                        giveAnswerFeedback(isCorrect, q);
+                    }, 500);
+                });
+            } else {
+                // No grammar issue, go straight to answer feedback
+                giveAnswerFeedback(isCorrect, q);
+            }
+        }
+        
+        // Give answer feedback (correct or incorrect)
+        function giveAnswerFeedback(isCorrect, q) {
             if (isCorrect) {
                 score++;
                 setStatusState('correct');
                 feedbackText.textContent = `✓ ${q.answer}`;
                 feedbackText.className = 'feedback-text correct';
-                
-                if (grammarCorrection) {
-                    // Correct answer but grammar issue
-                    speakText(`Correct! The answer is ${q.answer}. However, your grammar could be better. The correct way to say it is: ${grammarCorrection}`, () => {
-                        moveToNextQuestion();
-                    });
-                } else {
-                    speakText(`Correct! The answer is ${q.answer}.`, () => {
-                        moveToNextQuestion();
-                    });
-                }
+                speakText(`Correct! The answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
             } else {
                 setStatusState('incorrect');
                 feedbackText.textContent = `✗ Answer: ${q.answer}`;
@@ -1255,8 +1398,18 @@ CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]
             isProcessingAnswer = false;
             stopListening();
             
-            quizScreen.style.display = 'none';
+            // Hide floating question but keep LLM log visible
+            document.getElementById('floatingQuestion').style.display = 'none';
+            
+            // Show results overlay on top
             resultsScreen.style.display = 'flex';
+            resultsScreen.style.position = 'fixed';
+            resultsScreen.style.top = '0';
+            resultsScreen.style.left = '0';
+            resultsScreen.style.right = '0';
+            resultsScreen.style.bottom = '0';
+            resultsScreen.style.zIndex = '1002';
+            resultsScreen.style.background = 'rgba(10, 10, 15, 0.95)';
 
             document.getElementById('finalScore').textContent = `${score}/${quizQuestions.length}`;
             
@@ -1280,12 +1433,22 @@ CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]
             speakText(`Quiz complete! You scored ${score} out of ${quizQuestions.length}. ${message.replace(/[^\w\s!]/g, '')}`);
         }
 
+        // View LLM History from results screen
+        function viewHistory() {
+            resultsScreen.style.display = 'none';
+            // Quiz screen with LLM log is still visible
+        }
+
         // Restart Quiz
         function restartQuiz() {
             synth.cancel();
             stopListening();
             isProcessingAnswer = false;
+            quizScreen.style.display = 'none';
             resultsScreen.style.display = 'none';
+            resultsScreen.style.position = '';
+            resultsScreen.style.zIndex = '';
+            resultsScreen.style.background = '';
             startScreen.style.display = 'flex';
         }
 
@@ -1317,16 +1480,21 @@ CORRECTION: [corrected sentence if grammar is wrong, or "none" if grammar is OK]
                     userInfo.textContent = `Logged in: ${user.username}`;
                     authBtn.textContent = 'Sign Out';
                     authBtn.className = 'auth-btn sign-out';
+                    llmStats.authInfo = `${user.username}`;
                 } else {
                     statusDot.className = 'status-dot offline';
                     userInfo.textContent = 'Not logged in (using free tier)';
                     authBtn.textContent = 'Sign In';
                     authBtn.className = 'auth-btn';
+                    llmStats.authInfo = 'Anonymous (free tier)';
                 }
+                updateStatsBar();
             } catch (error) {
                 console.error('Auth check error:', error);
                 statusDot.className = 'status-dot offline';
                 userInfo.textContent = 'Auth status unknown';
+                llmStats.authInfo = 'Unknown';
+                updateStatsBar();
             }
         }
         
