@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Quiz - Voice Powered</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --accent-cyan: #00f5d4;
+            --accent-magenta: #f72585;
+            --accent-yellow: #fee440;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --text-primary: #ffffff;
+            --text-secondary: #8888aa;
+            --gradient-glow: linear-gradient(135deg, #00f5d4 0%, #7b2cbf 50%, #f72585 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 245, 212, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(247, 37, 133, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 60% at 50% 50%, rgba(123, 44, 191, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .author-credit {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .author-credit a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .author-credit a:hover {
+            color: var(--accent-magenta);
+            text-decoration: underline;
+        }
+
+        .hit-counter {
+            vertical-align: middle;
+            margin-left: 10px;
+            height: 20px;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* User Status */
+        .user-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            transition: background 0.3s;
+        }
+
+        .status-dot.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .status-dot.offline {
+            background: var(--accent-red);
+        }
+
+        .auth-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 15px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .auth-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+        }
+
+        .auth-btn.sign-out {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        .auth-btn.sign-out:hover {
+            background: var(--accent-magenta);
+            color: white;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .start-btn {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 30px 60px;
+            border: none;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            background: var(--gradient-glow);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 60px rgba(0, 245, 212, 0.3), 0 0 100px rgba(247, 37, 133, 0.2);
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(0, 245, 212, 0.3), 0 0 100px rgba(247, 37, 133, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0, 245, 212, 0.5), 0 0 120px rgba(247, 37, 133, 0.4); }
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 100px rgba(0, 245, 212, 0.5), 0 0 150px rgba(247, 37, 133, 0.4);
+        }
+
+        .start-instructions {
+            margin-top: 40px;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 2;
+        }
+
+        /* Quiz Screen - Fullscreen Mode */
+        .quiz-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: var(--bg-dark);
+            flex-direction: column;
+        }
+
+        /* Floating Question Popup */
+        .floating-question {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94%;
+            max-width: 450px;
+            background: var(--bg-card);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 15px 20px;
+            z-index: 1001;
+            box-shadow: 0 10px 40px rgba(0, 245, 212, 0.3), 0 0 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .floating-question .question-counter {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .floating-question .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .floating-question .status-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            min-height: 50px;
+        }
+
+        .floating-question .status-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .floating-question .status-info {
+            text-align: left;
+        }
+
+        .floating-question .status-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .floating-question .user-answer {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .floating-question .feedback-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .floating-question .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-glow);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        /* Status Icon States */
+        .status-icon.speaking {
+            background: rgba(0, 245, 212, 0.2);
+            border: 2px solid var(--accent-cyan);
+            animation: pulse-cyan 1.5s ease-in-out infinite;
+        }
+
+        .status-icon.listening {
+            background: rgba(247, 37, 133, 0.2);
+            border: 2px solid var(--accent-magenta);
+            animation: pulse-magenta 1s ease-in-out infinite;
+        }
+
+        .status-icon.correct {
+            background: rgba(74, 222, 128, 0.2);
+            border: 2px solid var(--accent-green);
+        }
+
+        .status-icon.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            border: 2px solid var(--accent-red);
+        }
+
+        .status-icon.thinking {
+            background: rgba(254, 228, 64, 0.2);
+            border: 2px solid var(--accent-yellow);
+            animation: pulse-yellow 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-yellow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(254, 228, 64, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(254, 228, 64, 0.2); }
+        }
+
+        @keyframes pulse-cyan {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 245, 212, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(0, 245, 212, 0.2); }
+        }
+
+        @keyframes pulse-magenta {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.4); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px 5px rgba(247, 37, 133, 0.3); }
+        }
+
+        .feedback-text.correct { color: var(--accent-green); }
+        .feedback-text.incorrect { color: var(--accent-red); }
+
+        /* Wave Animation */
+        .wave-animation {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+            height: 30px;
+            align-items: center;
+        }
+
+        .wave-bar {
+            width: 4px;
+            height: 15px;
+            background: var(--accent-magenta);
+            border-radius: 2px;
+            animation: wave 0.8s ease-in-out infinite;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 25px; }
+        }
+
+        /* Speaker Animation */
+        .speaker-waves {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .speaker-wave {
+            width: 3px;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+            animation: speaker 0.6s ease-in-out infinite;
+        }
+
+        .speaker-wave:nth-child(1) { height: 10px; animation-delay: 0s; }
+        .speaker-wave:nth-child(2) { height: 18px; animation-delay: 0.1s; }
+        .speaker-wave:nth-child(3) { height: 25px; animation-delay: 0.2s; }
+        .speaker-wave:nth-child(4) { height: 18px; animation-delay: 0.3s; }
+        .speaker-wave:nth-child(5) { height: 10px; animation-delay: 0.4s; }
+
+        @keyframes speaker {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* Fullscreen LLM Log */
+        .llm-log-fullscreen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 180px;
+            overflow: hidden;
+        }
+
+        .llm-log-header {
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(247, 37, 133, 0.2));
+            padding: 12px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .llm-stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .llm-log-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .llm-log-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .llm-log-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .llm-log-content::-webkit-scrollbar-thumb {
+            background: var(--accent-magenta);
+            border-radius: 4px;
+        }
+
+        .llm-log-empty {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .llm-log-entry {
+            margin-bottom: 10px;
+        }
+
+        .llm-log-divider {
+            border: none;
+            border-top: 2px dashed var(--accent-magenta);
+            margin: 25px 0;
+            opacity: 0.5;
+        }
+
+        .llm-log-label {
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 0.75rem;
+        }
+
+        .llm-log-input .llm-log-label {
+            color: var(--accent-cyan);
+        }
+
+        .llm-log-output .llm-log-label {
+            color: var(--accent-magenta);
+        }
+
+        .llm-log-text {
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 0.75rem;
+        }
+
+        .llm-log-result {
+            margin-top: 10px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 700;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+
+        .llm-log-result.correct {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--accent-green);
+        }
+
+        .llm-log-result.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--accent-red);
+        }
+
+        /* LLM Log Meta Info */
+        .llm-log-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-label {
+            font-size: 0.65rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 0.7rem;
+            color: var(--text-primary);
+        }
+
+        /* Grammar Correction */
+        .llm-log-grammar {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: rgba(254, 228, 64, 0.15);
+            border: 1px solid rgba(254, 228, 64, 0.3);
+            border-radius: 6px;
+        }
+
+        .grammar-label {
+            color: var(--accent-yellow);
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .grammar-text {
+            color: var(--text-primary);
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        .llm-log-input {
+            margin-top: 10px;
+        }
+
+        .llm-log-output {
+            margin-top: 10px;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .results-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 24px;
+            padding: 50px;
+        }
+
+        .score-value {
+            font-size: 6rem;
+            font-weight: 800;
+            background: var(--gradient-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        .score-message {
+            margin-top: 30px;
+            font-size: 1.3rem;
+            color: var(--accent-cyan);
+        }
+
+        .restart-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            padding: 18px 40px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            margin-top: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+        }
+
+        .history-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            padding: 12px 30px;
+            border: 2px solid var(--accent-magenta);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--accent-magenta);
+            cursor: pointer;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            display: block;
+            width: 100%;
+        }
+
+        .history-btn:hover {
+            background: var(--accent-magenta);
+            color: white;
+        }
+
+        /* Inline Results (in floating question area) */
+        .results-inline {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .results-score {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .results-label {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+
+        .results-message {
+            color: var(--accent-cyan);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .restart-btn-inline {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            padding: 10px 25px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn-inline:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .floating-question {
+                top: 10px;
+                padding: 12px 15px;
+            }
+
+            .floating-question .question-text {
+                font-size: 1rem;
+            }
+
+            .llm-log-fullscreen {
+                margin-top: 170px;
+            }
+
+            .start-btn {
+                width: 160px;
+                height: 160px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Mobile Portrait Mode - Question at bottom */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .floating-question {
+                top: auto;
+                bottom: 15px;
+                border-color: var(--accent-magenta);
+                box-shadow: 0 -10px 40px rgba(247, 37, 133, 0.3), 0 0 60px rgba(0, 0, 0, 0.8);
+            }
+
+            .llm-log-fullscreen {
+                margin-top: 0;
+                margin-bottom: 200px;
+            }
+
+            .quiz-screen {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="author-credit">
+                Created by <a href="https://lijianliu.github.io/" target="_blank">Lijian Liu</a>
+                <img src="https://hitscounter.dev/badge?page=lijianliu.github.io/voice-neural-net-quiz-v1.html&label=Visits&icon=eye" alt="Hit Counter" class="hit-counter">
+            </div>
+            <h1>Neural Net Quiz</h1>
+            <p class="subtitle">100 Questions • Voice Powered • LLM Validated</p>
+            <div class="user-status" id="userStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="userInfo">Checking login...</span>
+                <button class="auth-btn" id="authBtn" onclick="toggleAuth()">Sign In</button>
+            </div>
+        </header>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <button class="start-btn" id="startBtn" onclick="startQuiz()">
+                START
+            </button>
+            <div class="start-instructions">
+                → Press start and allow microphone<br>
+                → Listen to each question<br>
+                → Speak your answer clearly<br>
+                → Quiz runs automatically!
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="results-card">
+                <div class="score-value" id="finalScore">0/5</div>
+                <div class="score-label">Final Score</div>
+                <div class="score-message" id="scoreMessage"></div>
+                <button class="restart-btn" onclick="restartQuiz()">Play Again</button>
+                <button class="history-btn" onclick="viewHistory()">View LLM History</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Screen - Fullscreen Overlay -->
+    <div class="quiz-screen" id="quizScreen">
+        <!-- Floating Question Popup -->
+        <div class="floating-question" id="floatingQuestion">
+            <div class="question-counter" id="questionCounter">Question 1 of 5</div>
+            <div class="question-text" id="questionText"></div>
+            <div class="status-area">
+                <div class="status-icon" id="statusIcon">
+                    <div class="speaker-waves" id="speakerWaves">
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                        <div class="speaker-wave"></div>
+                    </div>
+                    <div class="wave-animation hidden" id="waveAnimation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <svg id="checkIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#4ade80">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    <svg id="crossIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#f87171">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </div>
+                <div class="status-info">
+                    <div class="status-text" id="statusText">Speaking question...</div>
+                    <div class="user-answer" id="userAnswer"></div>
+                    <div class="feedback-text" id="feedbackText"></div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Fullscreen LLM Log -->
+        <div class="llm-log-fullscreen" id="llmLogPanel">
+            <div class="llm-log-header">
+                🤖 LLM Interactions (GPT-4o-mini via Puter.js)
+            </div>
+            <div class="llm-stats-bar" id="llmStatsBar">
+                <div class="stat-item">
+                    <span class="stat-label">🔐 Auth:</span>
+                    <span class="stat-value" id="statAuth">Checking...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📞 Calls:</span>
+                    <span class="stat-value" id="statCalls">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📥 In:</span>
+                    <span class="stat-value" id="statTokensIn">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📤 Out:</span>
+                    <span class="stat-value" id="statTokensOut">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🎟️ Total:</span>
+                    <span class="stat-value" id="statTokensTotal">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⏱️ Avg:</span>
+                    <span class="stat-value" id="statAvgTime">0ms</span>
+                </div>
+            </div>
+            <div class="llm-log-content" id="llmLogContent">
+                <div class="llm-log-empty">LLM interactions will appear here as you answer questions...<br><br>Scroll freely to review history!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Questions - Neural Network Knowledge (100 Voice-Friendly Questions)
+        // Designed for: Easy to hear, short answers (1-3 words)
+        const quizQuestions = [
+            // Basics (1-20)
+            {
+                question: "What is the basic unit of a neural network called?",
+                answer: "neuron",
+                acceptedAnswers: ["neuron", "a neuron", "neurons", "node", "perceptron"]
+            },
+            {
+                question: "Learning with labeled data is called what type of learning?",
+                answer: "supervised",
+                acceptedAnswers: ["supervised", "supervised learning"]
+            },
+            {
+                question: "Learning without labels is called what type of learning?",
+                answer: "unsupervised",
+                acceptedAnswers: ["unsupervised", "unsupervised learning"]
+            },
+            {
+                question: "What function adds non-linearity to neurons?",
+                answer: "activation function",
+                acceptedAnswers: ["activation", "activation function", "activation functions"]
+            },
+            {
+                question: "What is the most popular activation function today?",
+                answer: "ReLU",
+                acceptedAnswers: ["relu", "rectified linear unit"]
+            },
+            {
+                question: "What algorithm trains neural networks by going backwards?",
+                answer: "backpropagation",
+                acceptedAnswers: ["backpropagation", "backprop", "back propagation"]
+            },
+            {
+                question: "One complete pass through all training data is called what?",
+                answer: "epoch",
+                acceptedAnswers: ["epoch", "an epoch", "one epoch"]
+            },
+            {
+                question: "What measures how wrong the model's predictions are?",
+                answer: "loss",
+                acceptedAnswers: ["loss", "loss function", "cost", "error"]
+            },
+            {
+                question: "What controls how big each weight update is?",
+                answer: "learning rate",
+                acceptedAnswers: ["learning rate", "the learning rate", "step size"]
+            },
+            {
+                question: "When a model memorizes training data but fails on new data, it's called?",
+                answer: "overfitting",
+                acceptedAnswers: ["overfitting", "over fitting", "overfit"]
+            },
+            {
+                question: "When a model is too simple to learn patterns, it's called?",
+                answer: "underfitting",
+                acceptedAnswers: ["underfitting", "under fitting", "underfit"]
+            },
+            {
+                question: "What layer receives the input data?",
+                answer: "input layer",
+                acceptedAnswers: ["input layer", "input", "the input layer"]
+            },
+            {
+                question: "What layer produces the final prediction?",
+                answer: "output layer",
+                acceptedAnswers: ["output layer", "output", "the output layer"]
+            },
+            {
+                question: "Layers between input and output are called?",
+                answer: "hidden layers",
+                acceptedAnswers: ["hidden layers", "hidden", "hidden layer"]
+            },
+            {
+                question: "What are the learnable parameters in a neural network called?",
+                answer: "weights",
+                acceptedAnswers: ["weights", "the weights", "parameters"]
+            },
+            {
+                question: "What is added to weighted sum before activation?",
+                answer: "bias",
+                acceptedAnswers: ["bias", "the bias", "biases"]
+            },
+            {
+                question: "A network with many layers is called what kind of network?",
+                answer: "deep",
+                acceptedAnswers: ["deep", "deep network", "deep neural network"]
+            },
+            {
+                question: "What do we call the network's prediction before training?",
+                answer: "random",
+                acceptedAnswers: ["random", "random guess", "untrained"]
+            },
+            {
+                question: "Forward pass means data flows in which direction?",
+                answer: "forward",
+                acceptedAnswers: ["forward", "forwards", "input to output"]
+            },
+            {
+                question: "Backward pass computes what?",
+                answer: "gradients",
+                acceptedAnswers: ["gradients", "gradient", "the gradients"]
+            },
+
+            // Architectures (21-40)
+            {
+                question: "What type of network is best for images? C-N-N or R-N-N?",
+                answer: "CNN",
+                acceptedAnswers: ["cnn", "c n n", "convolutional"]
+            },
+            {
+                question: "What type of network is best for sequences? C-N-N or R-N-N?",
+                answer: "RNN",
+                acceptedAnswers: ["rnn", "r n n", "recurrent"]
+            },
+            {
+                question: "What does C-N-N stand for?",
+                answer: "convolutional neural network",
+                acceptedAnswers: ["convolutional neural network", "convolutional"]
+            },
+            {
+                question: "What does R-N-N stand for?",
+                answer: "recurrent neural network",
+                acceptedAnswers: ["recurrent neural network", "recurrent"]
+            },
+            {
+                question: "L-S-T-M solves what gradient problem?",
+                answer: "vanishing",
+                acceptedAnswers: ["vanishing", "vanishing gradient", "vanishing gradients"]
+            },
+            {
+                question: "What architecture powers ChatGPT and modern language models?",
+                answer: "transformer",
+                acceptedAnswers: ["transformer", "transformers", "the transformer"]
+            },
+            {
+                question: "G-A-N has two parts: generator and what?",
+                answer: "discriminator",
+                acceptedAnswers: ["discriminator", "the discriminator"]
+            },
+            {
+                question: "What does G-A-N stand for?",
+                answer: "generative adversarial network",
+                acceptedAnswers: ["generative adversarial network", "generative adversarial"]
+            },
+            {
+                question: "What network compresses then reconstructs data?",
+                answer: "autoencoder",
+                acceptedAnswers: ["autoencoder", "auto encoder", "autoencoders"]
+            },
+            {
+                question: "ResNet uses what kind of connections to skip layers?",
+                answer: "skip connections",
+                acceptedAnswers: ["skip connections", "skip", "residual", "shortcut"]
+            },
+            {
+                question: "What C-N-N won ImageNet 2012?",
+                answer: "AlexNet",
+                acceptedAnswers: ["alexnet", "alex net"]
+            },
+            {
+                question: "In C-N-N, what slides over the image to detect features?",
+                answer: "filter",
+                acceptedAnswers: ["filter", "filters", "kernel", "kernels"]
+            },
+            {
+                question: "What layer shrinks the image size in C-N-N?",
+                answer: "pooling",
+                acceptedAnswers: ["pooling", "pooling layer", "max pooling"]
+            },
+            {
+                question: "Max pooling keeps what value: maximum or minimum?",
+                answer: "maximum",
+                acceptedAnswers: ["maximum", "max", "the maximum"]
+            },
+            {
+                question: "A layer where every neuron connects to all previous neurons is called?",
+                answer: "fully connected",
+                acceptedAnswers: ["fully connected", "dense", "fc"]
+            },
+            {
+                question: "G-R-U is a simpler version of what?",
+                answer: "LSTM",
+                acceptedAnswers: ["lstm", "l s t m", "long short term memory"]
+            },
+            {
+                question: "Bidirectional R-N-N reads sequences in how many directions?",
+                answer: "two",
+                acceptedAnswers: ["two", "2", "both", "both directions"]
+            },
+            {
+                question: "U-Net is popular for what computer vision task?",
+                answer: "segmentation",
+                acceptedAnswers: ["segmentation", "image segmentation", "semantic segmentation"]
+            },
+            {
+                question: "YOLO is famous for real-time what?",
+                answer: "object detection",
+                acceptedAnswers: ["object detection", "detection"]
+            },
+            {
+                question: "VGG networks are known for using what size filters?",
+                answer: "three by three",
+                acceptedAnswers: ["three by three", "3 by 3", "3x3", "small"]
+            },
+
+            // Training (41-60)
+            {
+                question: "What technique randomly turns off neurons during training?",
+                answer: "dropout",
+                acceptedAnswers: ["dropout", "drop out"]
+            },
+            {
+                question: "Batch normalization normalizes what?",
+                answer: "activations",
+                acceptedAnswers: ["activations", "activation", "the activations", "layer outputs"]
+            },
+            {
+                question: "Adam optimizer combines momentum and what?",
+                answer: "RMSprop",
+                acceptedAnswers: ["rmsprop", "rms prop", "adaptive learning rates"]
+            },
+            {
+                question: "S-G-D stands for what?",
+                answer: "stochastic gradient descent",
+                acceptedAnswers: ["stochastic gradient descent", "stochastic"]
+            },
+            {
+                question: "Using a pretrained model for a new task is called?",
+                answer: "transfer learning",
+                acceptedAnswers: ["transfer learning", "transfer", "fine tuning"]
+            },
+            {
+                question: "Flipping and rotating images to get more data is called?",
+                answer: "data augmentation",
+                acceptedAnswers: ["data augmentation", "augmentation"]
+            },
+            {
+                question: "Stopping training when validation loss stops improving is called?",
+                answer: "early stopping",
+                acceptedAnswers: ["early stopping", "early stop"]
+            },
+            {
+                question: "Adding penalty for large weights is called?",
+                answer: "regularization",
+                acceptedAnswers: ["regularization", "weight decay", "l2"]
+            },
+            {
+                question: "L2 regularization is also called?",
+                answer: "weight decay",
+                acceptedAnswers: ["weight decay", "ridge"]
+            },
+            {
+                question: "Clipping prevents what kind of gradients?",
+                answer: "exploding",
+                acceptedAnswers: ["exploding", "exploding gradients", "large"]
+            },
+            {
+                question: "Data for tuning hyperparameters is called what set?",
+                answer: "validation",
+                acceptedAnswers: ["validation", "validation set", "dev set"]
+            },
+            {
+                question: "Data for final evaluation is called what set?",
+                answer: "test",
+                acceptedAnswers: ["test", "test set", "testing"]
+            },
+            {
+                question: "K-fold is a type of what validation?",
+                answer: "cross validation",
+                acceptedAnswers: ["cross validation", "cross-validation"]
+            },
+            {
+                question: "Xavier and He are types of what initialization?",
+                answer: "weight",
+                acceptedAnswers: ["weight", "weight initialization", "weights"]
+            },
+            {
+                question: "Grid search finds the best what?",
+                answer: "hyperparameters",
+                acceptedAnswers: ["hyperparameters", "hyperparameter", "parameters"]
+            },
+            {
+                question: "Mini-batch is smaller than full batch: true or false?",
+                answer: "true",
+                acceptedAnswers: ["true", "yes", "correct"]
+            },
+            {
+                question: "Momentum helps escape what in the loss landscape?",
+                answer: "local minima",
+                acceptedAnswers: ["local minima", "local minimum", "minima"]
+            },
+            {
+                question: "Learning rate that decreases over time is called?",
+                answer: "learning rate decay",
+                acceptedAnswers: ["learning rate decay", "decay", "schedule", "learning rate schedule"]
+            },
+            {
+                question: "Warm-up gradually increases what at the start?",
+                answer: "learning rate",
+                acceptedAnswers: ["learning rate", "the learning rate"]
+            },
+            {
+                question: "Mixed precision uses 16-bit and what other bit precision?",
+                answer: "32 bit",
+                acceptedAnswers: ["32 bit", "32", "thirty-two", "float 32"]
+            },
+
+            // Activation Functions (61-70)
+            {
+                question: "Sigmoid outputs values between zero and what?",
+                answer: "one",
+                acceptedAnswers: ["one", "1"]
+            },
+            {
+                question: "Tanh outputs values between negative one and what?",
+                answer: "one",
+                acceptedAnswers: ["one", "1", "positive one"]
+            },
+            {
+                question: "ReLU outputs zero for what kind of inputs?",
+                answer: "negative",
+                acceptedAnswers: ["negative", "negative inputs", "negatives"]
+            },
+            {
+                question: "Leaky ReLU allows small values for negative inputs: true or false?",
+                answer: "true",
+                acceptedAnswers: ["true", "yes", "correct"]
+            },
+            {
+                question: "Softmax is used for multi-class or binary classification?",
+                answer: "multi-class",
+                acceptedAnswers: ["multi-class", "multiclass", "multi class", "multiple classes"]
+            },
+            {
+                question: "Sigmoid is used for multi-class or binary classification?",
+                answer: "binary",
+                acceptedAnswers: ["binary", "binary classification"]
+            },
+            {
+                question: "G-E-L-U is popular in what type of models?",
+                answer: "transformers",
+                acceptedAnswers: ["transformers", "transformer", "language models"]
+            },
+            {
+                question: "ReLU has what problem for negative inputs?",
+                answer: "dying ReLU",
+                acceptedAnswers: ["dying relu", "dead neurons", "dying", "dead"]
+            },
+            {
+                question: "Softmax outputs sum to what number?",
+                answer: "one",
+                acceptedAnswers: ["one", "1"]
+            },
+            {
+                question: "The derivative of ReLU for positive values is?",
+                answer: "one",
+                acceptedAnswers: ["one", "1"]
+            },
+
+            // Loss Functions (71-80)
+            {
+                question: "M-S-E stands for?",
+                answer: "mean squared error",
+                acceptedAnswers: ["mean squared error", "mean square error"]
+            },
+            {
+                question: "Cross-entropy is used for classification or regression?",
+                answer: "classification",
+                acceptedAnswers: ["classification"]
+            },
+            {
+                question: "M-S-E is used for classification or regression?",
+                answer: "regression",
+                acceptedAnswers: ["regression"]
+            },
+            {
+                question: "M-A-E is less sensitive to what than M-S-E?",
+                answer: "outliers",
+                acceptedAnswers: ["outliers", "outlier"]
+            },
+            {
+                question: "Lower loss means better or worse predictions?",
+                answer: "better",
+                acceptedAnswers: ["better", "good", "more accurate"]
+            },
+            {
+                question: "K-L divergence measures difference between what?",
+                answer: "distributions",
+                acceptedAnswers: ["distributions", "probability distributions", "probabilities"]
+            },
+            {
+                question: "Hinge loss is used with what type of classifier?",
+                answer: "SVM",
+                acceptedAnswers: ["svm", "support vector machine", "support vector"]
+            },
+            {
+                question: "Triplet loss needs anchor, positive, and what?",
+                answer: "negative",
+                acceptedAnswers: ["negative", "negative sample"]
+            },
+            {
+                question: "Contrastive loss learns what kind of representations?",
+                answer: "embeddings",
+                acceptedAnswers: ["embeddings", "embedding", "similar"]
+            },
+            {
+                question: "Focal loss helps with what kind of class imbalance?",
+                answer: "hard examples",
+                acceptedAnswers: ["hard examples", "imbalanced", "rare classes", "hard"]
+            },
+
+            // Modern Deep Learning (81-90)
+            {
+                question: "Attention lets the model focus on what parts?",
+                answer: "relevant",
+                acceptedAnswers: ["relevant", "important", "relevant parts"]
+            },
+            {
+                question: "Self-attention looks at relationships within what?",
+                answer: "same sequence",
+                acceptedAnswers: ["same sequence", "itself", "the sequence", "same input"]
+            },
+            {
+                question: "G-P-T uses encoder, decoder, or both?",
+                answer: "decoder",
+                acceptedAnswers: ["decoder", "decoder only"]
+            },
+            {
+                question: "BERT uses encoder, decoder, or both?",
+                answer: "encoder",
+                acceptedAnswers: ["encoder", "encoder only"]
+            },
+            {
+                question: "G-P-T stands for?",
+                answer: "generative pre-trained transformer",
+                acceptedAnswers: ["generative pre-trained transformer", "generative pretrained transformer"]
+            },
+            {
+                question: "BERT predicts what kind of words during training?",
+                answer: "masked",
+                acceptedAnswers: ["masked", "masked words", "hidden"]
+            },
+            {
+                question: "Word embeddings convert words into what?",
+                answer: "vectors",
+                acceptedAnswers: ["vectors", "numbers", "embeddings"]
+            },
+            {
+                question: "Few-shot learning uses how many examples: many or few?",
+                answer: "few",
+                acceptedAnswers: ["few", "a few", "small number"]
+            },
+            {
+                question: "Zero-shot uses how many examples?",
+                answer: "zero",
+                acceptedAnswers: ["zero", "none", "no examples", "0"]
+            },
+            {
+                question: "R-L-H-F uses feedback from whom?",
+                answer: "humans",
+                acceptedAnswers: ["humans", "human", "people"]
+            },
+
+            // Applications (91-100)
+            {
+                question: "Finding objects and their locations in images is called?",
+                answer: "object detection",
+                acceptedAnswers: ["object detection", "detection"]
+            },
+            {
+                question: "Labeling every pixel in an image is called?",
+                answer: "segmentation",
+                acceptedAnswers: ["segmentation", "semantic segmentation", "image segmentation"]
+            },
+            {
+                question: "Converting speech to text is called speech what?",
+                answer: "recognition",
+                acceptedAnswers: ["recognition", "speech recognition", "to text"]
+            },
+            {
+                question: "Converting text to speech is called T-T-S or?",
+                answer: "text to speech",
+                acceptedAnswers: ["text to speech", "speech synthesis", "tts"]
+            },
+            {
+                question: "Translating between languages is called machine what?",
+                answer: "translation",
+                acceptedAnswers: ["translation", "machine translation"]
+            },
+            {
+                question: "Detecting if text is positive or negative is called?",
+                answer: "sentiment analysis",
+                acceptedAnswers: ["sentiment analysis", "sentiment"]
+            },
+            {
+                question: "Finding names of people and places in text is called N-E-R or?",
+                answer: "named entity recognition",
+                acceptedAnswers: ["named entity recognition", "entity recognition", "ner"]
+            },
+            {
+                question: "ChatGPT is best known for what task?",
+                answer: "text generation",
+                acceptedAnswers: ["text generation", "chat", "conversation", "generating text"]
+            },
+            {
+                question: "Making a short version of a long text is called?",
+                answer: "summarization",
+                acceptedAnswers: ["summarization", "text summarization", "summary"]
+            },
+            {
+                question: "Answering questions about a given text is called Q-A or?",
+                answer: "question answering",
+                acceptedAnswers: ["question answering", "qa", "reading comprehension"]
+            }
+        ];
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+        }
+        
+        let isProcessingAnswer = false;
+
+        // Speech Synthesis Setup
+        const synth = window.speechSynthesis;
+
+        // State
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswer = '';
+        let quizActive = false;
+        
+        // NoSleep to prevent screen lock
+        const noSleep = new NoSleep();
+        
+        // Voice commands
+        const voiceCommands = {
+            repeat: ["repeat", "again", "come again", "say again", "one more time", "repeat please", "repeat the question", "say it again"],
+            skip: ["skip", "next", "skip this", "next question", "pass", "skip it", "move on"],
+            previous: ["previous", "go back", "last question", "previous question", "go back to last question", "before"],
+            jumpPatterns: [
+                /go to question (?:number )?(\d+)/i,
+                /question (?:number )?(\d+)/i,
+                /jump to (?:question )?(?:number )?(\d+)/i,
+                /skip to (?:question )?(?:number )?(\d+)/i
+            ]
+        };
+        
+        // Cookie functions for saving/resuming progress
+        function saveProgress() {
+            const progress = {
+                currentQuestion: currentQuestion,
+                score: score,
+                timestamp: Date.now()
+            };
+            document.cookie = `quizProgress=${JSON.stringify(progress)}; max-age=${60*60*24*7}; path=/`; // 7 days
+        }
+        
+        function loadProgress() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'quizProgress') {
+                    try {
+                        return JSON.parse(value);
+                    } catch(e) {
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        function clearProgress() {
+            document.cookie = 'quizProgress=; max-age=0; path=/';
+        }
+        
+        // LLM Stats
+        let llmStats = {
+            totalCalls: 0,
+            totalInputTokens: 0,
+            totalOutputTokens: 0,
+            totalResponseTime: 0,
+            authInfo: 'Checking...'
+        };
+
+        // DOM Elements
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const questionText = document.getElementById('questionText');
+        const questionCounter = document.getElementById('questionCounter');
+        const progressFill = document.getElementById('progressFill');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const userAnswerEl = document.getElementById('userAnswer');
+        const feedbackText = document.getElementById('feedbackText');
+        const speakerWaves = document.getElementById('speakerWaves');
+        const waveAnimation = document.getElementById('waveAnimation');
+        const checkIcon = document.getElementById('checkIcon');
+        const crossIcon = document.getElementById('crossIcon');
+
+        // Update stats bar display
+        function updateStatsBar() {
+            document.getElementById('statAuth').textContent = llmStats.authInfo;
+            document.getElementById('statCalls').textContent = llmStats.totalCalls;
+            document.getElementById('statTokensIn').textContent = `~${llmStats.totalInputTokens}`;
+            document.getElementById('statTokensOut').textContent = `~${llmStats.totalOutputTokens}`;
+            document.getElementById('statTokensTotal').textContent = `~${llmStats.totalInputTokens + llmStats.totalOutputTokens}`;
+            document.getElementById('statAvgTime').textContent = llmStats.totalCalls > 0 
+                ? `${Math.round(llmStats.totalResponseTime / llmStats.totalCalls)}ms` 
+                : '0ms';
+        }
+        
+        // Reset stats for new quiz
+        function resetStats() {
+            llmStats.totalCalls = 0;
+            llmStats.totalInputTokens = 0;
+            llmStats.totalOutputTokens = 0;
+            llmStats.totalResponseTime = 0;
+            updateStatsBar();
+        }
+
+        // Log LLM interaction to the panel
+        function logLLMInteraction(data) {
+            const logContent = document.getElementById('llmLogContent');
+            
+            // Remove empty message if present
+            const emptyMsg = logContent.querySelector('.llm-log-empty');
+            if (emptyMsg) {
+                emptyMsg.remove();
+            }
+            
+            // Update global stats
+            llmStats.totalCalls++;
+            llmStats.totalInputTokens += data.tokens.input;
+            llmStats.totalOutputTokens += data.tokens.output;
+            llmStats.totalResponseTime += data.responseTime;
+            llmStats.authInfo = data.authInfo;
+            updateStatsBar();
+            
+            // Add divider if not first entry
+            if (logContent.children.length > 0) {
+                const divider = document.createElement('hr');
+                divider.className = 'llm-log-divider';
+                logContent.appendChild(divider);
+            }
+            
+            // Create log entry
+            const entry = document.createElement('div');
+            entry.className = 'llm-log-entry';
+            
+            // Result badge
+            let resultHtml = '';
+            if (data.isCorrect !== null && data.isCorrect !== undefined) {
+                resultHtml = `<div class="llm-log-result ${data.isCorrect ? 'correct' : 'incorrect'}">
+                    ${data.isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
+                </div>`;
+            }
+            
+            entry.innerHTML = `
+                <div class="llm-log-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">🔐 Auth:</span>
+                        <span class="meta-value">${escapeHtml(data.authInfo)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">🤖 Model:</span>
+                        <span class="meta-value">${escapeHtml(data.model)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">⏱️ Response:</span>
+                        <span class="meta-value">${data.responseTime}ms</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">🎟️ Tokens:</span>
+                        <span class="meta-value">~${data.tokens.input} in / ~${data.tokens.output} out</span>
+                    </div>
+                </div>
+                <div class="llm-log-input">
+                    <div class="llm-log-label">📤 INPUT (Q${currentQuestion + 1}):</div>
+                    <div class="llm-log-text">${escapeHtml(data.prompt)}</div>
+                </div>
+                <div class="llm-log-output">
+                    <div class="llm-log-label">📥 OUTPUT:</div>
+                    <div class="llm-log-text">${escapeHtml(data.response)}</div>
+                    ${resultHtml}
+                </div>
+            `;
+            
+            logContent.appendChild(entry);
+            
+            // Scroll to bottom
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+        
+        // Helper to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Clear LLM log
+        function clearLLMLog() {
+            const logContent = document.getElementById('llmLogContent');
+            logContent.innerHTML = '<div class="llm-log-empty">LLM interactions will appear here as you answer questions...<br><br>Scroll freely to review history!</div>';
+        }
+
+        // Start Quiz
+        function startQuiz() {
+            if (!recognition) {
+                alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+                return;
+            }
+
+            // Check for saved progress
+            const savedProgress = loadProgress();
+            if (savedProgress && savedProgress.currentQuestion > 0) {
+                const resumeFrom = savedProgress.currentQuestion + 1;
+                if (confirm(`Resume from question ${resumeFrom}? (Score: ${savedProgress.score})\n\nClick OK to resume, Cancel to start fresh.`)) {
+                    currentQuestion = savedProgress.currentQuestion;
+                    score = savedProgress.score;
+                } else {
+                    currentQuestion = 0;
+                    score = 0;
+                    clearProgress();
+                }
+            } else {
+                currentQuestion = 0;
+                score = 0;
+            }
+
+            // Enable NoSleep to keep screen awake
+            noSleep.enable();
+
+            quizActive = true;
+
+            // Reset stats and clear LLM log for new quiz
+            resetStats();
+            clearLLMLog();
+
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'flex';
+            document.getElementById('floatingQuestion').style.display = 'block';
+            resultsScreen.style.display = 'none';
+
+            // Small delay before starting
+            setTimeout(() => {
+                presentQuestion();
+            }, 500);
+        }
+
+        // Present Question
+        function presentQuestion() {
+            if (currentQuestion >= quizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const q = quizQuestions[currentQuestion];
+            
+            // Update UI
+            questionText.textContent = q.question;
+            questionCounter.textContent = `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+            progressFill.style.width = `${((currentQuestion) / quizQuestions.length) * 100}%`;
+            
+            // Reset status area
+            userAnswerEl.textContent = '';
+            feedbackText.textContent = '';
+            feedbackText.className = 'feedback-text';
+            
+            // Show speaking state
+            setStatusState('speaking');
+            
+            // Speak the question
+            speakText(q.question, () => {
+                // After speaking, start listening
+                setTimeout(() => {
+                    startListening();
+                }, 300);
+            });
+        }
+
+        // Set Status State
+        function setStatusState(state) {
+            statusIcon.className = 'status-icon';
+            speakerWaves.classList.add('hidden');
+            waveAnimation.classList.add('hidden');
+            checkIcon.classList.add('hidden');
+            crossIcon.classList.add('hidden');
+
+            switch(state) {
+                case 'speaking':
+                    statusIcon.classList.add('speaking');
+                    speakerWaves.classList.remove('hidden');
+                    statusText.textContent = 'Speaking question...';
+                    break;
+                case 'listening':
+                    statusIcon.classList.add('listening');
+                    waveAnimation.classList.remove('hidden');
+                    statusText.textContent = 'Listening...';
+                    break;
+                case 'thinking':
+                    statusIcon.classList.add('thinking');
+                    statusText.textContent = 'Checking answer...';
+                    break;
+                case 'correct':
+                    statusIcon.classList.add('correct');
+                    checkIcon.classList.remove('hidden');
+                    statusText.textContent = 'Correct!';
+                    break;
+                case 'incorrect':
+                    statusIcon.classList.add('incorrect');
+                    crossIcon.classList.remove('hidden');
+                    statusText.textContent = 'Not quite!';
+                    break;
+            }
+        }
+
+        // Speak Text
+        function speakText(text, callback) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            
+            const voices = synth.getVoices();
+            const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
+                                 voices.find(v => v.lang.startsWith('en'));
+            if (englishVoice) {
+                utterance.voice = englishVoice;
+            }
+
+            utterance.onend = () => {
+                if (callback) callback();
+            };
+
+            synth.speak(utterance);
+        }
+
+        // Start Listening
+        function startListening() {
+            if (!recognition || !quizActive || isProcessingAnswer) return;
+
+            userAnswer = '';
+            userAnswerEl.textContent = '';
+            setStatusState('listening');
+
+            let silenceTimeout;
+
+            recognition.onresult = (event) => {
+                if (isProcessingAnswer) return;
+                
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript = event.results[i][0].transcript;
+                }
+                
+                userAnswer = transcript.toLowerCase().trim();
+                userAnswerEl.textContent = `"${transcript}"`;
+
+                // Reset silence timeout on new input
+                clearTimeout(silenceTimeout);
+                
+                // Check if this is a final result
+                if (event.results[event.results.length - 1].isFinal && userAnswer) {
+                    // Wait a moment for user to finish speaking, then process
+                    silenceTimeout = setTimeout(() => {
+                        if (!isProcessingAnswer && quizActive && userAnswer) {
+                            isProcessingAnswer = true;
+                            try {
+                                recognition.stop();
+                            } catch(e) {}
+                            checkAnswer();
+                        }
+                    }, 1200);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                // Silently handle errors - no console spam
+                if (event.error === 'aborted' || event.error === 'no-speech') {
+                    // These are expected, ignore them
+                    return;
+                }
+            };
+
+            recognition.onend = () => {
+                clearTimeout(silenceTimeout);
+                // Only restart if we're still in listening mode and haven't processed an answer
+                if (quizActive && !isProcessingAnswer) {
+                    setTimeout(() => {
+                        if (quizActive && !isProcessingAnswer) {
+                            try {
+                                recognition.start();
+                            } catch(e) {}
+                        }
+                    }, 100);
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                // Already started, ignore
+            }
+        }
+        
+        // Stop listening completely
+        function stopListening() {
+            try {
+                recognition.onend = null;
+                recognition.onresult = null;
+                recognition.onerror = null;
+                recognition.stop();
+            } catch(e) {}
+        }
+
+        // Check if input matches any accepted answer for current question
+        function matchesCurrentAnswer(input) {
+            const q = quizQuestions[currentQuestion];
+            const lowerInput = input.toLowerCase().trim();
+            return q.acceptedAnswers.some(accepted => 
+                lowerInput.includes(accepted.toLowerCase()) || 
+                accepted.toLowerCase().includes(lowerInput)
+            );
+        }
+
+        // Check for voice commands
+        function checkVoiceCommand(input) {
+            const lowerInput = input.toLowerCase().trim();
+            
+            // FIRST: Check if input matches the answer - if so, don't apply voice commands
+            if (matchesCurrentAnswer(input)) {
+                return null;
+            }
+            
+            // Check for jump to question number
+            for (const pattern of voiceCommands.jumpPatterns) {
+                const match = lowerInput.match(pattern);
+                if (match) {
+                    const questionNum = parseInt(match[1]);
+                    if (questionNum >= 1 && questionNum <= quizQuestions.length) {
+                        return { type: 'jump', target: questionNum - 1 }; // Convert to 0-indexed
+                    }
+                }
+            }
+            
+            // Check repeat commands
+            for (const cmd of voiceCommands.repeat) {
+                if (lowerInput.includes(cmd)) {
+                    return { type: 'repeat' };
+                }
+            }
+            
+            // Check skip commands
+            for (const cmd of voiceCommands.skip) {
+                if (lowerInput.includes(cmd)) {
+                    return { type: 'skip' };
+                }
+            }
+            
+            // Check previous commands
+            for (const cmd of voiceCommands.previous) {
+                if (lowerInput.includes(cmd)) {
+                    return { type: 'previous' };
+                }
+            }
+            
+            return null;
+        }
+        
+        // Handle voice command
+        function handleVoiceCommand(command) {
+            isProcessingAnswer = false;
+            
+            switch(command.type) {
+                case 'repeat':
+                    speakText("Repeating the question.", () => {
+                        presentQuestion();
+                    });
+                    break;
+                case 'skip':
+                    speakText("Skipping this question.", () => {
+                        currentQuestion++;
+                        saveProgress();
+                        if (currentQuestion >= quizQuestions.length) {
+                            showResults();
+                        } else {
+                            presentQuestion();
+                        }
+                    });
+                    break;
+                case 'previous':
+                    if (currentQuestion > 0) {
+                        speakText("Going back to the previous question.", () => {
+                            currentQuestion--;
+                            saveProgress();
+                            presentQuestion();
+                        });
+                    } else {
+                        speakText("This is the first question.", () => {
+                            presentQuestion();
+                        });
+                    }
+                    break;
+                case 'jump':
+                    const targetNum = command.target + 1; // Convert back to 1-indexed for speech
+                    speakText(`Going to question ${targetNum}.`, () => {
+                        currentQuestion = command.target;
+                        saveProgress();
+                        presentQuestion();
+                    });
+                    break;
+            }
+        }
+
+        // Check Answer using Free LLM (Puter.js - no API key needed!)
+        async function checkAnswer() {
+            const q = quizQuestions[currentQuestion];
+            
+            // First check for voice commands
+            const voiceCommand = checkVoiceCommand(userAnswer);
+            if (voiceCommand) {
+                handleVoiceCommand(voiceCommand);
+                return;
+            }
+            
+            setStatusState('thinking');
+            statusText.textContent = 'Checking your answer...';
+            
+            let isCorrect = false;
+            
+            const prompt = `You are a quiz answer validator.
+
+Question: "${q.question}"
+Correct answer: "${q.answer}"
+User's spoken answer: "${userAnswer}"
+
+Is the user's answer correct? Consider:
+- Semantic equivalence (e.g., "8" = "eight", "CNN" = "convolutional neural network")
+- Partial matches that show understanding
+- Minor speech recognition errors or mispronunciations
+- Ignore filler words like "I think it's...", "The answer is...", "It's..."
+- Accept abbreviations and full forms interchangeably
+
+Respond with ONLY one word: CORRECT or INCORRECT`;
+            
+            // Get auth info for logging
+            let authInfo = 'Anonymous (free tier)';
+            try {
+                if (puter.auth.isSignedIn()) {
+                    const user = await puter.auth.getUser();
+                    authInfo = `${user.username}`;
+                }
+            } catch(e) {}
+            
+            const modelInfo = 'gpt-4o-mini';
+            const startTime = Date.now();
+            
+            try {
+                // Using Puter.js free LLM
+                const response = await puter.ai.chat(
+                    prompt,
+                    { model: 'gpt-4o-mini' }
+                );
+                
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+
+                const resultText = (response?.message?.content || response || '').toString();
+                
+                // Check answer correctness
+                isCorrect = resultText.toUpperCase().includes('CORRECT') && !resultText.toUpperCase().includes('INCORRECT');
+                
+                // Estimate token usage
+                const inputTokens = Math.ceil(prompt.length / 4);
+                const outputTokens = Math.ceil(resultText.length / 4);
+                const totalTokens = inputTokens + outputTokens;
+                
+                // Log to the LLM panel
+                logLLMInteraction({
+                    prompt: prompt,
+                    response: resultText,
+                    isCorrect: isCorrect,
+                    authInfo: authInfo,
+                    model: modelInfo,
+                    responseTime: responseTime,
+                    tokens: { input: inputTokens, output: outputTokens, total: totalTokens }
+                });
+                
+            } catch (error) {
+                console.error('LLM check failed, using fallback:', error);
+                
+                // Fallback to simple string matching
+                isCorrect = q.acceptedAnswers.some(accepted => 
+                    userAnswer.includes(accepted) || accepted.includes(userAnswer)
+                );
+                
+                // Log fallback
+                logLLMInteraction({
+                    prompt: `[FALLBACK]\nQuestion: "${q.question}"\nUser answer: "${userAnswer}"`,
+                    response: `API Error: ${error.message}\nUsing string matching.\nResult: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`,
+                    isCorrect: isCorrect,
+                    authInfo: authInfo,
+                    model: 'Fallback (no LLM)',
+                    responseTime: 0,
+                    tokens: { input: 0, output: 0, total: 0 }
+                });
+            }
+
+            // Give answer feedback
+            giveAnswerFeedback(isCorrect, q);
+        }
+        
+        // Give answer feedback (correct or incorrect)
+        function giveAnswerFeedback(isCorrect, q) {
+            if (isCorrect) {
+                score++;
+                setStatusState('correct');
+                feedbackText.textContent = `✓ ${q.answer}`;
+                feedbackText.className = 'feedback-text correct';
+                speakText(`Correct! The answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
+            } else {
+                setStatusState('incorrect');
+                feedbackText.textContent = `✗ Answer: ${q.answer}`;
+                feedbackText.className = 'feedback-text incorrect';
+                speakText(`Not quite. The correct answer is ${q.answer}.`, () => {
+                    moveToNextQuestion();
+                });
+            }
+        }
+
+        // Move to Next Question
+        function moveToNextQuestion() {
+            currentQuestion++;
+            isProcessingAnswer = false;
+            saveProgress();
+            
+            if (currentQuestion >= quizQuestions.length) {
+                setTimeout(() => {
+                    showResults();
+                }, 1000);
+            } else {
+                setTimeout(() => {
+                    presentQuestion();
+                }, 1500);
+            }
+        }
+
+        // Show Results
+        function showResults() {
+            quizActive = false;
+            isProcessingAnswer = false;
+            stopListening();
+            
+            // Clear saved progress when quiz is complete
+            clearProgress();
+            
+            // Disable NoSleep when quiz ends
+            noSleep.disable();
+            
+            // Update floating question area to show results instead
+            const floatingQuestion = document.getElementById('floatingQuestion');
+            floatingQuestion.innerHTML = `
+                <div class="results-inline">
+                    <div class="results-score">${score}/${quizQuestions.length}</div>
+                    <div class="results-label">Final Score</div>
+                    <div class="results-message" id="inlineScoreMessage"></div>
+                    <button class="restart-btn-inline" onclick="restartQuiz()">Play Again</button>
+                </div>
+            `;
+            
+            let message = '';
+            const percentage = (score / quizQuestions.length) * 100;
+            
+            if (percentage === 100) {
+                message = "Perfect! 🎉";
+            } else if (percentage >= 80) {
+                message = "Excellent! ⭐";
+            } else if (percentage >= 60) {
+                message = "Good job! 👍";
+            } else if (percentage >= 40) {
+                message = "Keep practicing! 💪";
+            } else {
+                message = "Try again! 🌟";
+            }
+
+            document.getElementById('inlineScoreMessage').textContent = message;
+
+            speakText(`Quiz complete! You scored ${score} out of ${quizQuestions.length}. ${message.replace(/[^\w\s!]/g, '')}`);
+        }
+
+        // View LLM History from results screen
+        function viewHistory() {
+            resultsScreen.style.display = 'none';
+            // Quiz screen with LLM log is still visible
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            synth.cancel();
+            stopListening();
+            isProcessingAnswer = false;
+            
+            // Clear saved progress
+            clearProgress();
+            
+            // Disable NoSleep
+            noSleep.disable();
+            
+            // Restore floating question HTML
+            const floatingQuestion = document.getElementById('floatingQuestion');
+            floatingQuestion.innerHTML = `
+                <div class="question-counter" id="questionCounter">Question 1 of 5</div>
+                <div class="question-text" id="questionText"></div>
+                <div class="status-area">
+                    <div class="status-icon" id="statusIcon">
+                        <div class="speaker-waves" id="speakerWaves">
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                            <div class="speaker-wave"></div>
+                        </div>
+                        <div class="wave-animation hidden" id="waveAnimation">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <svg id="checkIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#4ade80">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        <svg id="crossIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="#f87171">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-text" id="statusText">Speaking question...</div>
+                        <div class="user-answer" id="userAnswer"></div>
+                        <div class="feedback-text" id="feedbackText"></div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            `;
+            
+            quizScreen.style.display = 'none';
+            resultsScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+        }
+
+        // Load voices
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {
+                synth.getVoices();
+            };
+        }
+
+        // Preload voices
+        window.addEventListener('load', () => {
+            synth.getVoices();
+            checkAuthStatus();
+        });
+        
+        // Check Puter authentication status
+        async function checkAuthStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const userInfo = document.getElementById('userInfo');
+            const authBtn = document.getElementById('authBtn');
+            
+            try {
+                const isSignedIn = puter.auth.isSignedIn();
+                
+                if (isSignedIn) {
+                    const user = await puter.auth.getUser();
+                    statusDot.className = 'status-dot online';
+                    userInfo.textContent = `Logged in: ${user.username}`;
+                    authBtn.textContent = 'Sign Out';
+                    authBtn.className = 'auth-btn sign-out';
+                    llmStats.authInfo = `${user.username}`;
+                } else {
+                    statusDot.className = 'status-dot offline';
+                    userInfo.textContent = 'Not logged in (using free tier)';
+                    authBtn.textContent = 'Sign In';
+                    authBtn.className = 'auth-btn';
+                    llmStats.authInfo = 'Anonymous (free tier)';
+                }
+                updateStatsBar();
+            } catch (error) {
+                console.error('Auth check error:', error);
+                statusDot.className = 'status-dot offline';
+                userInfo.textContent = 'Auth status unknown';
+                llmStats.authInfo = 'Unknown';
+                updateStatsBar();
+            }
+        }
+        
+        // Toggle sign in / sign out
+        async function toggleAuth() {
+            try {
+                const isSignedIn = puter.auth.isSignedIn();
+                
+                if (isSignedIn) {
+                    await puter.auth.signOut();
+                } else {
+                    await puter.auth.signIn();
+                }
+                
+                // Refresh status after auth change
+                await checkAuthStatus();
+            } catch (error) {
+                console.error('Auth toggle error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
