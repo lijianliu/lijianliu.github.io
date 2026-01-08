@@ -829,6 +829,31 @@
           <h2>Blog</h2>
         </div>
         
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
+          <div style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 8px; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.5" style="width: 36px; height: 36px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+            </svg>
+          </div>
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px;">
+              <h3 style="margin: 0; font-size: 1.1rem;">Voice Neural Net Quiz</h3>
+              <span style="font-size: 0.85rem; color: #888;">by Lijian Liu</span>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">When you're driving or have free time, visit <a href="https://lijianliu.github.io/voice-neural-net-quiz-v1.html" target="_blank" style="color: var(--accent);">voice-neural-net-quiz-v1.html</a> and take a fully hands-free quiz using only your voice.</p>
+            
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">This is a small experiment that combines several free, in-browser technologies:</p>
+            
+            <ul style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 0 20px; line-height: 1.8;">
+              <li><strong>Text-to-Speech:</strong> Uses the Web Speech API (<code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">SpeechSynthesis</code>) to read questions aloud—no external services required.</li>
+              <li><strong>Voice Recognition:</strong> Uses the Web Speech API (<code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">SpeechRecognition</code>) to capture spoken answers in real time, entirely in the browser.</li>
+              <li><strong>LLM Validation:</strong> Uses Puter.js to access GPT-4o-mini for free—no API key needed; just include the script and call <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem;">puter.ai.chat()</code>.</li>
+              <li><strong>Screen Wake Lock:</strong> Uses NoSleep.js to keep the screen on during the quiz.</li>
+            </ul>
+          </div>
+        </div>
+
         <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
           <img src="https://karabiner-elements.pqrs.org/images/logo.png" alt="Karabiner Elements" style="width: 64px; height: 64px; flex-shrink: 0; border-radius: 8px;">
           <div>
@@ -849,7 +874,9 @@
   </main>
 
   <footer>
-    © 2025 Lijian Liu • Sr. Software Development Manager & Hang Gliding Pilot • San Francisco Bay Area
+    © 2025-2026 Lijian Liu • Sr. Software Development Manager & Hang Gliding Pilot • San Francisco Bay Area
+    <br style="margin-bottom: 8px;">
+    <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Flijianliu.github.io%2Findex.html&label=&icon=person-walking&color=%23cff4fc&message=&style=social&tz=UTC" alt="Hit Counter" style="margin-top: 8px;">
   </footer>
 </body>
 </html>
