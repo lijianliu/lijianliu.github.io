@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neural Network Quiz - Voice Powered</title>
     <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -752,6 +753,25 @@
                 font-size: 1.2rem;
             }
         }
+
+        /* Mobile Portrait Mode - Question at bottom */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .floating-question {
+                top: auto;
+                bottom: 15px;
+                border-color: var(--accent-magenta);
+                box-shadow: 0 -10px 40px rgba(247, 37, 133, 0.3), 0 0 60px rgba(0, 0, 0, 0.8);
+            }
+
+            .llm-log-fullscreen {
+                margin-top: 0;
+                margin-bottom: 200px;
+            }
+
+            .quiz-screen {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -860,10 +880,6 @@
                 <div class="stat-item">
                     <span class="stat-label">⏱️ Avg:</span>
                     <span class="stat-value" id="statAvgTime">0ms</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">📝 Fixes:</span>
-                    <span class="stat-value" id="statGrammarFixes">0</span>
                 </div>
             </div>
             <div class="llm-log-content" id="llmLogContent">
@@ -1414,13 +1430,22 @@
         let userAnswer = '';
         let quizActive = false;
         
+        // NoSleep to prevent screen lock
+        const noSleep = new NoSleep();
+        
+        // Voice commands
+        const voiceCommands = {
+            repeat: ["repeat", "again", "come again", "say again", "one more time", "repeat please", "repeat the question", "say it again"],
+            skip: ["skip", "next", "skip this", "next question", "pass", "skip it", "move on"],
+            previous: ["previous", "go back", "last question", "previous question", "back", "go back to last question", "before"]
+        };
+        
         // LLM Stats
         let llmStats = {
             totalCalls: 0,
             totalInputTokens: 0,
             totalOutputTokens: 0,
             totalResponseTime: 0,
-            grammarCorrections: 0,
             authInfo: 'Checking...'
         };
 
@@ -1450,7 +1475,6 @@
             document.getElementById('statAvgTime').textContent = llmStats.totalCalls > 0 
                 ? `${Math.round(llmStats.totalResponseTime / llmStats.totalCalls)}ms` 
                 : '0ms';
-            document.getElementById('statGrammarFixes').textContent = llmStats.grammarCorrections;
         }
         
         // Reset stats for new quiz
@@ -1459,7 +1483,6 @@
             llmStats.totalInputTokens = 0;
             llmStats.totalOutputTokens = 0;
             llmStats.totalResponseTime = 0;
-            llmStats.grammarCorrections = 0;
             updateStatsBar();
         }
 
@@ -1479,9 +1502,6 @@
             llmStats.totalOutputTokens += data.tokens.output;
             llmStats.totalResponseTime += data.responseTime;
             llmStats.authInfo = data.authInfo;
-            if (data.grammarIssue && data.grammarCorrection) {
-                llmStats.grammarCorrections++;
-            }
             updateStatsBar();
             
             // Add divider if not first entry
@@ -1503,16 +1523,6 @@
                 </div>`;
             }
             
-            // Grammar correction badge
-            let grammarHtml = '';
-            if (data.grammarIssue && data.grammarCorrection) {
-                grammarHtml = `
-                    <div class="llm-log-grammar">
-                        <span class="grammar-label">📝 Grammar Correction:</span>
-                        <span class="grammar-text">"${escapeHtml(data.grammarCorrection)}"</span>
-                    </div>`;
-            }
-            
             entry.innerHTML = `
                 <div class="llm-log-meta">
                     <div class="meta-item">
@@ -1529,18 +1539,17 @@
                     </div>
                     <div class="meta-item">
                         <span class="meta-label">🎟️ Tokens:</span>
-                        <span class="meta-value">~${data.tokens.input} in / ~${data.tokens.output} out (≈${data.tokens.total} total)</span>
+                        <span class="meta-value">~${data.tokens.input} in / ~${data.tokens.output} out</span>
                     </div>
                 </div>
                 <div class="llm-log-input">
-                    <div class="llm-log-label">📤 INPUT (Question ${currentQuestion + 1}):</div>
+                    <div class="llm-log-label">📤 INPUT (Q${currentQuestion + 1}):</div>
                     <div class="llm-log-text">${escapeHtml(data.prompt)}</div>
                 </div>
                 <div class="llm-log-output">
                     <div class="llm-log-label">📥 OUTPUT:</div>
                     <div class="llm-log-text">${escapeHtml(data.response)}</div>
                     ${resultHtml}
-                    ${grammarHtml}
                 </div>
             `;
             
@@ -1569,6 +1578,9 @@
                 alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
                 return;
             }
+
+            // Enable NoSleep to keep screen awake
+            noSleep.enable();
 
             currentQuestion = 0;
             score = 0;
@@ -1758,47 +1770,106 @@
             } catch(e) {}
         }
 
+        // Check for voice commands
+        function checkVoiceCommand(input) {
+            const lowerInput = input.toLowerCase().trim();
+            
+            // Check repeat commands
+            for (const cmd of voiceCommands.repeat) {
+                if (lowerInput.includes(cmd)) {
+                    return 'repeat';
+                }
+            }
+            
+            // Check skip commands
+            for (const cmd of voiceCommands.skip) {
+                if (lowerInput.includes(cmd)) {
+                    return 'skip';
+                }
+            }
+            
+            // Check previous commands
+            for (const cmd of voiceCommands.previous) {
+                if (lowerInput.includes(cmd)) {
+                    return 'previous';
+                }
+            }
+            
+            return null;
+        }
+        
+        // Handle voice command
+        function handleVoiceCommand(command) {
+            isProcessingAnswer = false;
+            
+            switch(command) {
+                case 'repeat':
+                    speakText("Repeating the question.", () => {
+                        presentQuestion();
+                    });
+                    break;
+                case 'skip':
+                    speakText("Skipping this question.", () => {
+                        currentQuestion++;
+                        if (currentQuestion >= quizQuestions.length) {
+                            showResults();
+                        } else {
+                            presentQuestion();
+                        }
+                    });
+                    break;
+                case 'previous':
+                    if (currentQuestion > 0) {
+                        speakText("Going back to the previous question.", () => {
+                            currentQuestion--;
+                            presentQuestion();
+                        });
+                    } else {
+                        speakText("This is the first question.", () => {
+                            presentQuestion();
+                        });
+                    }
+                    break;
+            }
+        }
+
         // Check Answer using Free LLM (Puter.js - no API key needed!)
         async function checkAnswer() {
             const q = quizQuestions[currentQuestion];
             
+            // First check for voice commands
+            const voiceCommand = checkVoiceCommand(userAnswer);
+            if (voiceCommand) {
+                handleVoiceCommand(voiceCommand);
+                return;
+            }
+            
             setStatusState('thinking');
-            statusText.textContent = 'Checking grammar...';
+            statusText.textContent = 'Checking your answer...';
             
             let isCorrect = false;
-            let grammarCorrection = null;
-            let hasGrammarIssue = false;
             
-            const prompt = `You are a quiz answer validator and grammar checker. 
+            const prompt = `You are a quiz answer validator.
 
 Question: "${q.question}"
 Correct answer: "${q.answer}"
 User's spoken answer: "${userAnswer}"
 
-Task 1 - Check grammar FIRST:
-- Is the user's spoken answer grammatically correct?
-- IMPORTANT: Do NOT mark as wrong for missing punctuation (periods, commas, question marks, etc.)
-- IMPORTANT: Do NOT mark as wrong for capitalization issues
-- Only mark grammar as WRONG for actual grammatical errors like wrong verb tense, subject-verb disagreement, wrong word order, missing words, etc.
-- If not, provide the corrected version with proper grammar
+Is the user's answer correct? Consider:
+- Semantic equivalence (e.g., "8" = "eight", "CNN" = "convolutional neural network")
+- Partial matches that show understanding
+- Minor speech recognition errors or mispronunciations
+- Ignore filler words like "I think it's...", "The answer is...", "It's..."
+- Accept abbreviations and full forms interchangeably
 
-Task 2 - Check if the answer is correct:
-- Consider semantic equivalence (e.g., "8" = "eight")
-- Accept partial matches that show understanding
-- Ignore minor speech recognition errors
-- Ignore filler words like "I think it's..." or "The answer is..."
-
-Respond in this EXACT format (3 lines only):
-GRAMMAR: OK or WRONG
-CORRECTION: [corrected sentence with proper grammar, or "none" if grammar is OK]
-ANSWER: CORRECT or INCORRECT`;
+Respond with ONLY one word: CORRECT or INCORRECT`;
             
             // Get auth info for logging
             let authInfo = 'Anonymous (free tier)';
             try {
                 if (puter.auth.isSignedIn()) {
                     const user = await puter.auth.getUser();
-                    authInfo = `Logged in: ${user.username}`;
+                    authInfo = `${user.username}`;
                 }
             } catch(e) {}
             
@@ -1806,7 +1877,7 @@ ANSWER: CORRECT or INCORRECT`;
             const startTime = Date.now();
             
             try {
-                // Using Puter.js free LLM - explicitly using GPT-4o mini model
+                // Using Puter.js free LLM
                 const response = await puter.ai.chat(
                     prompt,
                     { model: 'gpt-4o-mini' }
@@ -1817,32 +1888,15 @@ ANSWER: CORRECT or INCORRECT`;
 
                 const resultText = (response?.message?.content || response || '').toString();
                 
-                // Parse the response
-                const lines = resultText.split('\n').map(l => l.trim()).filter(l => l);
-                
-                // Check grammar FIRST
-                const grammarLine = lines.find(l => l.toUpperCase().startsWith('GRAMMAR:')) || '';
-                hasGrammarIssue = grammarLine.toUpperCase().includes('WRONG');
-                
-                // Get correction if any
-                const correctionLine = lines.find(l => l.toUpperCase().startsWith('CORRECTION:')) || '';
-                if (hasGrammarIssue && correctionLine) {
-                    grammarCorrection = correctionLine.replace(/^CORRECTION:\s*/i, '').trim();
-                    if (grammarCorrection.toLowerCase() === 'none') {
-                        grammarCorrection = null;
-                    }
-                }
-                
                 // Check answer correctness
-                const answerLine = lines.find(l => l.toUpperCase().startsWith('ANSWER:')) || '';
-                isCorrect = answerLine.toUpperCase().includes('CORRECT') && !answerLine.toUpperCase().includes('INCORRECT');
+                isCorrect = resultText.toUpperCase().includes('CORRECT') && !resultText.toUpperCase().includes('INCORRECT');
                 
-                // Estimate token usage (rough estimate)
+                // Estimate token usage
                 const inputTokens = Math.ceil(prompt.length / 4);
                 const outputTokens = Math.ceil(resultText.length / 4);
                 const totalTokens = inputTokens + outputTokens;
                 
-                // Log to the LLM panel with all info
+                // Log to the LLM panel
                 logLLMInteraction({
                     prompt: prompt,
                     response: resultText,
@@ -1850,13 +1904,8 @@ ANSWER: CORRECT or INCORRECT`;
                     authInfo: authInfo,
                     model: modelInfo,
                     responseTime: responseTime,
-                    tokens: { input: inputTokens, output: outputTokens, total: totalTokens },
-                    grammarIssue: hasGrammarIssue,
-                    grammarCorrection: grammarCorrection
+                    tokens: { input: inputTokens, output: outputTokens, total: totalTokens }
                 });
-                
-                console.log('LLM Model: gpt-4o-mini via Puter.js');
-                console.log('LLM Response:', response);
                 
             } catch (error) {
                 console.error('LLM check failed, using fallback:', error);
@@ -1868,35 +1917,18 @@ ANSWER: CORRECT or INCORRECT`;
                 
                 // Log fallback
                 logLLMInteraction({
-                    prompt: `[FALLBACK - String Match]\nQuestion: "${q.question}"\nUser answer: "${userAnswer}"`,
-                    response: `API Error: ${error.message}\nUsing simple string matching.\nResult: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`,
+                    prompt: `[FALLBACK]\nQuestion: "${q.question}"\nUser answer: "${userAnswer}"`,
+                    response: `API Error: ${error.message}\nUsing string matching.\nResult: ${isCorrect ? 'CORRECT' : 'INCORRECT'}`,
                     isCorrect: isCorrect,
                     authInfo: authInfo,
                     model: 'Fallback (no LLM)',
                     responseTime: 0,
-                    tokens: { input: 0, output: 0, total: 0 },
-                    grammarIssue: false,
-                    grammarCorrection: null
+                    tokens: { input: 0, output: 0, total: 0 }
                 });
             }
 
-            // STEP 1: If grammar issue, tell user FIRST
-            if (hasGrammarIssue && grammarCorrection) {
-                setStatusState('thinking');
-                feedbackText.textContent = `📝 Grammar: "${grammarCorrection}"`;
-                feedbackText.className = 'feedback-text';
-                
-                // Speak grammar correction first, then check answer
-                speakText(`Your grammar needs improvement. You said: "${userAnswer}". The correct way to say it is: "${grammarCorrection}".`, () => {
-                    // Small pause before giving answer feedback
-                    setTimeout(() => {
-                        giveAnswerFeedback(isCorrect, q);
-                    }, 500);
-                });
-            } else {
-                // No grammar issue, go straight to answer feedback
-                giveAnswerFeedback(isCorrect, q);
-            }
+            // Give answer feedback
+            giveAnswerFeedback(isCorrect, q);
         }
         
         // Give answer feedback (correct or incorrect)
@@ -1941,6 +1973,9 @@ ANSWER: CORRECT or INCORRECT`;
             isProcessingAnswer = false;
             stopListening();
             
+            // Disable NoSleep when quiz ends
+            noSleep.disable();
+            
             // Update floating question area to show results instead
             const floatingQuestion = document.getElementById('floatingQuestion');
             floatingQuestion.innerHTML = `
@@ -1983,6 +2018,9 @@ ANSWER: CORRECT or INCORRECT`;
             synth.cancel();
             stopListening();
             isProcessingAnswer = false;
+            
+            // Disable NoSleep
+            noSleep.disable();
             
             // Restore floating question HTML
             const floatingQuestion = document.getElementById('floatingQuestion');
