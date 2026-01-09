@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Number Recognition - Neural Network Trainer</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f; --bg-secondary: #12121a; --bg-tertiary: #1a1a25;
+            --accent-cyan: #00f0ff; --accent-magenta: #ff00aa; --accent-yellow: #ffee00;
+            --accent-green: #00ff88; --text-primary: #ffffff; --text-secondary: #8888aa;
+            --border-color: #2a2a3a;
+            --canvas-bg: #0a0a10;
+        }
+        [data-theme="light"] {
+            --bg-primary: #f5f5f7; --bg-secondary: #ffffff; --bg-tertiary: #e8e8ec;
+            --accent-cyan: #0099aa; --accent-magenta: #aa0088; --accent-yellow: #b8860b;
+            --accent-green: #00885a; --text-primary: #1a1a2e; --text-secondary: #666680;
+            --border-color: #d0d0d8;
+            --canvas-bg: #f0f0f4;
+        }
+        body { font-family: 'Space Grotesk', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; margin: 0; }
+        .container { max-width: 100%; margin: 0; padding: 8px 10px; }
+        header { text-align: center; margin-bottom: 8px; }
+        h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 4px; }
+        .subtitle { color: var(--text-secondary); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+        .feature-info { display: inline-flex; align-items: center; gap: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; padding: 4px 12px; margin-top: 6px; flex-wrap: wrap; justify-content: center; font-size: 0.7rem; }
+        .feature-info-item { display: flex; align-items: center; gap: 4px; }
+        .feature-info-item .label { color: var(--text-secondary); }
+        .feature-info-item .value { color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+        .feature-info-divider { width: 1px; height: 14px; background: var(--border-color); }
+        .theme-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 12px; padding: 3px 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; }
+        .theme-toggle:hover { border-color: var(--accent-cyan); }
+        .theme-icon { font-size: 0.85rem; }
+        
+        .main-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .left-column { display: flex; flex-direction: column; gap: 8px; grid-column: 1; }
+        .right-column { grid-column: 2; grid-row: 1 / 4; }
+        @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .left-column { grid-column: 1; } .right-column { grid-column: 1; grid-row: auto; } }
+        
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; position: relative; overflow: hidden; }
+        .panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta)); }
+        .panel-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .panel-title .icon { font-size: 1.7rem; color: var(--accent-cyan); }
+        .right-column.panel { display: flex; flex-direction: column; }
+        
+        /* Recording Section */
+        .record-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .number-column { background: var(--bg-tertiary); border-radius: 6px; padding: 8px; }
+        .number-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .number-label { font-size: 1.4rem; font-weight: 700; color: var(--accent-cyan); }
+        .sample-count-badge { background: var(--accent-magenta); color: white; padding: 2px 6px; border-radius: 8px; font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; }
+        
+        .record-btn-large { width: 100%; padding: 10px 8px; border: none; background: linear-gradient(135deg, var(--accent-cyan), #0088aa); border-radius: 6px; color: var(--bg-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-bottom: 6px; box-shadow: 0 2px 8px rgba(0, 240, 255, 0.3); }
+        .record-btn-large:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 240, 255, 0.5); background: linear-gradient(135deg, #00ffff, #00aacc); }
+        .record-btn-large.recording { background: linear-gradient(135deg, var(--accent-magenta), #aa0066); box-shadow: 0 2px 15px rgba(255, 0, 170, 0.5); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 170, 0.3); } 50% { box-shadow: 0 0 25px rgba(255, 0, 170, 0.6); } }
+        
+        .samples-container { display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; }
+        .sample-row { display: flex; align-items: center; gap: 6px; background: var(--bg-secondary); border-radius: 4px; padding: 4px 6px; }
+        .sample-index { font-size: 0.6rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; min-width: 16px; }
+        .sample-wave { flex: 1; height: 32px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; }
+        .sample-wave canvas { width: 100%; height: 100%; }
+        .sample-actions { display: flex; gap: 3px; }
+        .sample-actions button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; padding: 2px 4px; transition: color 0.2s; }
+        .sample-actions .play-btn:hover { color: var(--accent-cyan); }
+        .sample-actions .play-btn.playing { color: var(--accent-green); }
+        .sample-actions .delete-btn:hover { color: var(--accent-magenta); }
+        
+        .no-samples-msg { color: var(--text-secondary); font-size: 0.7rem; text-align: center; padding: 10px; font-style: italic; }
+        
+        /* Live Waveform */
+        .live-waveform { height: 35px; background: var(--bg-tertiary); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+        .live-waveform canvas { width: 100%; height: 100%; }
+        
+        /* Training Section */
+        .training-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+        .stat-box { background: var(--bg-tertiary); padding: 6px; border-radius: 6px; text-align: center; }
+        .stat-value { font-size: 1rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); }
+        .stat-label { font-size: 0.55rem; color: var(--text-secondary); margin-top: 1px; }
+        
+        .btn-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .train-btn, .clear-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: 'Space Grotesk', sans-serif; }
+        .train-btn { background: linear-gradient(135deg, var(--accent-cyan), #00a0ff); color: var(--bg-primary); }
+        .train-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3); }
+        .train-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .clear-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .clear-btn:hover { border-color: var(--accent-magenta); color: var(--accent-magenta); }
+        
+        .progress-container { background: var(--bg-tertiary); border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 8px; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta)); width: 0%; transition: width 0.3s ease; }
+        
+        #lossChart { width: 100%; height: 120px; background: var(--bg-tertiary); border-radius: 6px; }
+        
+        /* Test Section */
+        .test-btn { width: 100%; padding: 10px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: 'Space Grotesk', sans-serif; background: linear-gradient(135deg, var(--accent-magenta), #aa0066); color: white; margin-bottom: 8px; }
+        .test-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(255, 0, 170, 0.3); }
+        .test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .test-btn.recording { animation: pulse 1s infinite; }
+        
+        .prediction-result { padding: 10px; background: var(--bg-tertiary); border-radius: 6px; text-align: center; }
+        .predicted-number { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .confidence-bars { margin-top: 8px; }
+        .confidence-bar-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .confidence-label { width: 18px; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+        .confidence-track { flex: 1; height: 16px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta)); transition: width 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 4px; font-size: 0.55rem; font-family: 'JetBrains Mono', monospace; }
+        
+        .test-spectrogram { margin-top: 8px; }
+        .test-spectrogram canvas { width: 100%; height: 45px; background: var(--bg-secondary); border-radius: 4px; }
+        
+        /* Network Parameters */
+        .nn-diagram-container { background: var(--bg-tertiary); border-radius: 6px; padding: 6px; margin-bottom: 6px; }
+        .nn-diagram-container canvas { width: 100%; height: 280px; }
+        .nn-legend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 0.65rem; color: var(--text-secondary); }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-color { width: 10px; height: 10px; border-radius: 2px; }
+        .legend-total { margin-left: auto; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; }
+        
+        /* Tensor Shapes Display */
+        .tensor-shapes { background: var(--bg-tertiary); border-radius: 6px; padding: 8px; margin-bottom: 6px; }
+        .tensor-flow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 4px; }
+        .tensor-node { background: var(--bg-secondary); border-radius: 6px; padding: 6px 10px; text-align: center; min-width: 80px; }
+        .tensor-node.input-tensor { border: 2px solid #ffcc00; }
+        .tensor-node.hidden1-tensor { border: 2px solid #00ffff; }
+        .tensor-node.hidden2-tensor { border: 2px solid #ff00ff; }
+        .tensor-node.output-tensor { border: 2px solid #00ff88; }
+        .tensor-label { font-size: 0.55rem; color: var(--text-secondary); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tensor-shape { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-primary); font-weight: 600; }
+        .tensor-shape sup { font-size: 0.55rem; }
+        .tensor-detail { font-size: 0.55rem; color: var(--text-secondary); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+        .tensor-arrow { display: flex; flex-direction: column; align-items: center; padding: 0 3px; }
+        .arrow-line { width: 30px; height: 2px; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta)); position: relative; }
+        .arrow-line::after { content: '→'; position: absolute; right: -6px; top: -8px; color: var(--accent-magenta); font-size: 12px; }
+        .weight-info { font-size: 0.5rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; text-align: center; margin-top: 2px; line-height: 1.3; }
+        .weight-info sup { font-size: 0.4rem; }
+        
+        .shape-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-top: 8px; border-top: 1px solid var(--border-color); }
+        .shape-section { }
+        .shape-title { font-size: 0.55rem; color: var(--accent-cyan); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .shape-row { display: flex; justify-content: space-between; font-size: 0.6rem; margin-bottom: 2px; font-family: 'JetBrains Mono', monospace; }
+        .shape-row.total { justify-content: center; }
+        .dim-label { color: var(--text-secondary); }
+        .dim-value { color: var(--text-primary); }
+        
+        /* PCM Audio Explanation */
+        .pcm-explanation { background: var(--bg-tertiary); border-radius: 6px; padding: 8px; margin-bottom: 6px; border-left: 3px solid var(--accent-cyan); }
+        .pcm-title { font-size: 0.75rem; font-weight: 600; color: var(--accent-cyan); margin-bottom: 8px; }
+        .pcm-content { }
+        .pcm-text { font-size: 0.65rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+        .pcm-text strong { color: var(--text-primary); }
+        .pcm-example { background: var(--bg-secondary); border-radius: 4px; padding: 8px; margin: 8px 0; }
+        .pcm-example-title { font-size: 0.6rem; color: var(--accent-yellow); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+        .pcm-bytes { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; }
+        .pcm-sample { display: grid; grid-template-columns: 55px 55px 90px 1fr; align-items: center; gap: 4px; margin-bottom: 2px; }
+        .sample-index { color: var(--text-secondary); }
+        .sample-value { color: var(--accent-cyan); text-align: right; }
+        .sample-bar { height: 6px; background: linear-gradient(90deg, var(--accent-magenta), var(--bg-tertiary) var(--val), var(--bg-tertiary) var(--val), var(--accent-cyan)); border-radius: 2px; border: 1px solid var(--border-color); }
+        .sample-desc { color: var(--text-secondary); font-size: 0.5rem; }
+        .pcm-sample-dots { color: var(--text-secondary); text-align: center; padding: 3px 0; }
+        
+        .pcm-subtitle { font-size: 0.7rem; font-weight: 600; color: var(--accent-magenta); margin: 10px 0 6px 0; }
+        .freq-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+        .freq-example { background: var(--bg-secondary); border-radius: 4px; padding: 8px; }
+        .freq-title { font-size: 0.6rem; color: var(--accent-yellow); margin-bottom: 4px; font-weight: 600; }
+        .freq-samples { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: var(--accent-cyan); margin-bottom: 4px; word-break: break-all; }
+        .freq-samples span { background: var(--bg-tertiary); padding: 1px 3px; border-radius: 2px; margin: 1px; display: inline-block; }
+        .freq-desc { font-size: 0.5rem; color: var(--text-secondary); margin-bottom: 6px; }
+        .freq-wave { height: 20px; border-radius: 3px; background: var(--bg-tertiary); position: relative; overflow: hidden; }
+        .freq-wave::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+        .freq-wave.low-freq::before { background: repeating-linear-gradient(90deg, transparent 0px, transparent 20px, var(--accent-cyan) 20px, var(--accent-cyan) 21px, transparent 21px, transparent 60px, var(--accent-magenta) 60px, var(--accent-magenta) 61px); }
+        .freq-wave.high-freq::before { background: repeating-linear-gradient(90deg, transparent 0px, var(--accent-cyan) 3px, transparent 6px, var(--accent-magenta) 9px, transparent 12px); }
+        .freq-wave.low-freq { background: linear-gradient(90deg, #12121a 0%, var(--accent-cyan) 25%, #12121a 50%, var(--accent-magenta) 75%, #12121a 100%); background-size: 120px 100%; }
+        .freq-wave.high-freq { background: linear-gradient(90deg, #12121a 0%, var(--accent-cyan) 8%, #12121a 16%, var(--accent-magenta) 25%, #12121a 33%, var(--accent-cyan) 41%, #12121a 50%); background-size: 24px 100%; }
+        
+        /* Log */
+        .log-container { background: var(--bg-tertiary); border-radius: 4px; padding: 6px; max-height: 60px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-secondary); }
+        .log-entry { margin-bottom: 1px; padding-left: 8px; position: relative; }
+        .log-entry::before { content: '>'; position: absolute; left: 0; color: var(--accent-cyan); }
+        .log-entry.success { color: var(--accent-green); }
+        .log-entry.error { color: #ff4466; }
+        .log-entry.warning { color: var(--accent-yellow); }
+        
+        .full-width { grid-column: 1 / -1; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Voice Neural Network</h1>
+            <p class="subtitle">Click a number to record • Train • Test</p>
+            <div class="feature-info">
+                <div class="feature-info-item">
+                    <span class="label">Features:</span>
+                    <span class="value">40 × 50 = 2000</span>
+                </div>
+                <div class="feature-info-divider"></div>
+                <div class="feature-info-item">
+                    <span class="label">Network:</span>
+                    <span class="value">2000→128→64→3</span>
+                </div>
+                <div class="feature-info-divider"></div>
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Column: Record + Train + Log -->
+            <div class="left-column">
+                <!-- 1. Recording Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><span class="icon">⑴</span> Record Samples</h2>
+                    
+                    <div class="record-grid">
+                        <div class="number-column" id="col-1">
+                            <div class="number-header">
+                                <span class="number-label">1</span>
+                                <span class="sample-count-badge" id="count-1">0</span>
+                            </div>
+                            <button class="record-btn-large" data-number="1">🎤 "One"</button>
+                            <div class="samples-container" id="samples-1">
+                                <div class="no-samples-msg">No samples</div>
+                            </div>
+                        </div>
+                        
+                        <div class="number-column" id="col-2">
+                            <div class="number-header">
+                                <span class="number-label">2</span>
+                                <span class="sample-count-badge" id="count-2">0</span>
+                            </div>
+                            <button class="record-btn-large" data-number="2">🎤 "Two"</button>
+                            <div class="samples-container" id="samples-2">
+                                <div class="no-samples-msg">No samples</div>
+                            </div>
+                        </div>
+                        
+                        <div class="number-column" id="col-3">
+                            <div class="number-header">
+                                <span class="number-label">3</span>
+                                <span class="sample-count-badge" id="count-3">0</span>
+                            </div>
+                            <button class="record-btn-large" data-number="3">🎤 "Three"</button>
+                            <div class="samples-container" id="samples-3">
+                                <div class="no-samples-msg">No samples</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="live-waveform">
+                        <canvas id="waveformCanvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- 2. Train Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><span class="icon">⑵</span> Train Network</h2>
+                    
+                    <div class="training-stats">
+                        <div class="stat-box">
+                            <div class="stat-value" id="totalSamples">0</div>
+                            <div class="stat-label">Samples</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="currentEpoch">0</div>
+                            <div class="stat-label">Epoch</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="currentLoss">-</div>
+                            <div class="stat-label">Loss</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="accuracy">-</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-row">
+                        <button class="train-btn" id="trainBtn" disabled>Start Training</button>
+                        <button class="clear-btn" id="clearBtn">Clear All</button>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    
+                    <canvas id="lossChart"></canvas>
+                </div>
+                
+                <!-- Log Panel -->
+                <div class="panel">
+                    <h2 class="panel-title"><span class="icon">📝</span> Log</h2>
+                    <div class="log-container" id="logContainer">
+                        <div class="log-entry">Ready - Click a number to start recording</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Test + Network Diagram -->
+            <div class="right-column panel">
+                <h2 class="panel-title"><span class="icon">⑶</span> Test Recognition</h2>
+                
+                <button class="test-btn" id="testBtn" disabled>🎤 Record & Predict</button>
+                
+                <div class="prediction-result">
+                    <div class="predicted-number" id="predictedNumber">?</div>
+                    <div class="confidence-bars">
+                        <div class="confidence-bar-item">
+                            <span class="confidence-label">1</span>
+                            <div class="confidence-track"><div class="confidence-fill" id="conf-1" style="width:0%"></div></div>
+                        </div>
+                        <div class="confidence-bar-item">
+                            <span class="confidence-label">2</span>
+                            <div class="confidence-track"><div class="confidence-fill" id="conf-2" style="width:0%"></div></div>
+                        </div>
+                        <div class="confidence-bar-item">
+                            <span class="confidence-label">3</span>
+                            <div class="confidence-track"><div class="confidence-fill" id="conf-3" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="test-spectrogram">
+                    <canvas id="testSpectrogram"></canvas>
+                </div>
+                
+                <!-- Network Architecture Diagram -->
+                <div class="nn-diagram-container">
+                    <canvas id="nnDiagram"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Network Architecture Details -->
+        <div class="panel full-width">
+            <h2 class="panel-title"><span class="icon">⚡</span> Network Architecture (2000 → 128 → 64 → 3)</h2>
+            
+            <div class="tensor-shapes">
+                <div class="tensor-flow">
+                    <div class="tensor-node input-tensor">
+                        <div class="tensor-label">Input</div>
+                        <div class="tensor-shape">x ∈ ℝ<sup>2000</sup></div>
+                        <div class="tensor-detail">40 mel × 50 frames</div>
+                    </div>
+                    
+                    <div class="tensor-arrow">
+                        <div class="arrow-line"></div>
+                        <div class="weight-info">
+                            <div>W₁ ∈ ℝ<sup>2000×128</sup></div>
+                            <div>b₁ ∈ ℝ<sup>128</sup></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tensor-node hidden1-tensor">
+                        <div class="tensor-label">Hidden 1</div>
+                        <div class="tensor-shape">h₁ ∈ ℝ<sup>128</sup></div>
+                        <div class="tensor-detail">ReLU(W₁x + b₁)</div>
+                    </div>
+                    
+                    <div class="tensor-arrow">
+                        <div class="arrow-line"></div>
+                        <div class="weight-info">
+                            <div>W₂ ∈ ℝ<sup>128×64</sup></div>
+                            <div>b₂ ∈ ℝ<sup>64</sup></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tensor-node hidden2-tensor">
+                        <div class="tensor-label">Hidden 2</div>
+                        <div class="tensor-shape">h₂ ∈ ℝ<sup>64</sup></div>
+                        <div class="tensor-detail">ReLU(W₂h₁ + b₂)</div>
+                    </div>
+                    
+                    <div class="tensor-arrow">
+                        <div class="arrow-line"></div>
+                        <div class="weight-info">
+                            <div>W₃ ∈ ℝ<sup>64×3</sup></div>
+                            <div>b₃ ∈ ℝ<sup>3</sup></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tensor-node output-tensor">
+                        <div class="tensor-label">Output</div>
+                        <div class="tensor-shape">ŷ ∈ ℝ<sup>3</sup></div>
+                        <div class="tensor-detail">softmax(W₃h₂ + b₃)</div>
+                    </div>
+                </div>
+                
+                <div class="shape-summary">
+                    <div class="shape-section">
+                        <div class="shape-title">Layer Dimensions</div>
+                        <div class="shape-row"><span class="dim-label">Input:</span> <span class="dim-value">[batch, 2000]</span></div>
+                        <div class="shape-row"><span class="dim-label">Hidden 1:</span> <span class="dim-value">[batch, 128]</span></div>
+                        <div class="shape-row"><span class="dim-label">Hidden 2:</span> <span class="dim-value">[batch, 64]</span></div>
+                        <div class="shape-row"><span class="dim-label">Output:</span> <span class="dim-value">[batch, 3]</span></div>
+                    </div>
+                    <div class="shape-section">
+                        <div class="shape-title">Weight Matrices</div>
+                        <div class="shape-row"><span class="dim-label">W₁:</span> <span class="dim-value">[2000, 128] = 256,000</span></div>
+                        <div class="shape-row"><span class="dim-label">W₂:</span> <span class="dim-value">[128, 64] = 8,192</span></div>
+                        <div class="shape-row"><span class="dim-label">W₃:</span> <span class="dim-value">[64, 3] = 192</span></div>
+                    </div>
+                    <div class="shape-section">
+                        <div class="shape-title">Bias Vectors</div>
+                        <div class="shape-row"><span class="dim-label">b₁:</span> <span class="dim-value">[128]</span></div>
+                        <div class="shape-row"><span class="dim-label">b₂:</span> <span class="dim-value">[64]</span></div>
+                        <div class="shape-row"><span class="dim-label">b₃:</span> <span class="dim-value">[3]</span></div>
+                    </div>
+                    <div class="shape-section">
+                        <div class="shape-title">Total Parameters</div>
+                        <div class="shape-row total"><span class="dim-value">264,384 weights + 195 biases = 264,579</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PCM Audio Explanation -->
+        <div class="panel full-width">
+            <div class="pcm-explanation">
+                <div class="pcm-title">📊 How Voice Becomes Numbers: PCM Audio Representation</div>
+                
+                <div class="pcm-content">
+                    <p class="pcm-text">
+                        When you speak into the microphone, your voice creates pressure waves in the air. The microphone converts these 
+                        continuous analog waves into <strong>PCM (Pulse Code Modulation)</strong> digital data by sampling the wave's 
+                        amplitude at regular intervals. At a sample rate of <strong>48,000 Hz</strong>, the microphone captures 48,000 
+                        measurements per second. Each sample is stored as a <strong>32-bit floating-point number</strong> ranging from 
+                        <strong>-1.0</strong> (maximum negative pressure) to <strong>+1.0</strong> (maximum positive pressure), with 
+                        <strong>0.0</strong> representing silence.
+                    </p>
+                    
+                    <div class="pcm-example">
+                        <div class="pcm-example-title">Example: Raw PCM Samples from saying "One"</div>
+                        <div class="pcm-bytes">
+                            <div class="pcm-sample">
+                                <span class="sample-index">[0]</span>
+                                <span class="sample-value">0.0023</span>
+                                <span class="sample-bar" style="--val: 50.23%"></span>
+                                <span class="sample-desc">← near silence (start)</span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[1]</span>
+                                <span class="sample-value">0.0019</span>
+                                <span class="sample-bar" style="--val: 50.19%"></span>
+                                <span class="sample-desc"></span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[2]</span>
+                                <span class="sample-value">-0.0041</span>
+                                <span class="sample-bar" style="--val: 49.59%"></span>
+                                <span class="sample-desc"></span>
+                            </div>
+                            <div class="pcm-sample-dots">···</div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5200]</span>
+                                <span class="sample-value">0.2847</span>
+                                <span class="sample-bar" style="--val: 78.47%"></span>
+                                <span class="sample-desc">← vowel "O" peak</span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5201]</span>
+                                <span class="sample-value">0.3102</span>
+                                <span class="sample-bar" style="--val: 81.02%"></span>
+                                <span class="sample-desc"></span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5202]</span>
+                                <span class="sample-value">0.2651</span>
+                                <span class="sample-bar" style="--val: 76.51%"></span>
+                                <span class="sample-desc"></span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5203]</span>
+                                <span class="sample-value">0.1893</span>
+                                <span class="sample-bar" style="--val: 68.93%"></span>
+                                <span class="sample-desc"></span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5204]</span>
+                                <span class="sample-value">-0.0234</span>
+                                <span class="sample-bar" style="--val: 47.66%"></span>
+                                <span class="sample-desc">← wave crosses zero</span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5205]</span>
+                                <span class="sample-value">-0.1876</span>
+                                <span class="sample-bar" style="--val: 31.24%"></span>
+                                <span class="sample-desc"></span>
+                            </div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[5206]</span>
+                                <span class="sample-value">-0.2934</span>
+                                <span class="sample-bar" style="--val: 20.66%"></span>
+                                <span class="sample-desc">← negative peak</span>
+                            </div>
+                            <div class="pcm-sample-dots">···</div>
+                            <div class="pcm-sample">
+                                <span class="sample-index">[71999]</span>
+                                <span class="sample-value">0.0008</span>
+                                <span class="sample-bar" style="--val: 50.08%"></span>
+                                <span class="sample-desc">← back to silence (end)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pcm-subtitle">🎵 Where is Frequency? It's Hidden in the Pattern!</div>
+                    <p class="pcm-text">
+                        <strong>PCM does NOT store frequency directly</strong> — it only stores amplitude snapshots over time. Frequency 
+                        information is <em>implicitly encoded</em> in <strong>how quickly the values oscillate</strong>. Consider these 
+                        samples taken 1/48000th of a second apart:
+                    </p>
+                    
+                    <div class="freq-comparison">
+                        <div class="freq-example">
+                            <div class="freq-title">Low Frequency (200 Hz) — slow oscillation</div>
+                            <div class="freq-samples">
+                                <span>0.00</span> → <span>0.13</span> → <span>0.26</span> → <span>0.38</span> → <span>0.50</span> → <span>0.61</span> → <span>0.71</span> → <span>0.79</span> → ···
+                            </div>
+                            <div class="freq-desc">240 samples to complete one cycle (48000 ÷ 200 = 240)</div>
+                            <div class="freq-wave low-freq"></div>
+                        </div>
+                        <div class="freq-example">
+                            <div class="freq-title">High Frequency (4000 Hz) — fast oscillation</div>
+                            <div class="freq-samples">
+                                <span>0.00</span> → <span>0.87</span> → <span>0.87</span> → <span>0.00</span> → <span>-0.87</span> → <span>-0.87</span> → <span>0.00</span> → <span>0.87</span> → ···
+                            </div>
+                            <div class="freq-desc">12 samples to complete one cycle (48000 ÷ 4000 = 12)</div>
+                            <div class="freq-wave high-freq"></div>
+                        </div>
+                    </div>
+                    
+                    <p class="pcm-text">
+                        A low 200 Hz bass tone takes <strong>240 samples</strong> to complete one wave cycle, so consecutive values change 
+                        gradually. A high 4000 Hz tone completes a cycle in just <strong>12 samples</strong>, so values swing dramatically 
+                        between consecutive measurements. Your voice contains <em>many frequencies simultaneously</em> — the "O" in "One" 
+                        has strong energy around 300-800 Hz (formants), while the "n" adds higher frequencies from nasal resonance. The 
+                        PCM stream is actually all these sine waves <strong>added together</strong>, which is why we need FFT to separate them.
+                    </p>
+                    
+                    <div class="pcm-subtitle">🔬 FFT: Extracting Hidden Frequencies</div>
+                    <p class="pcm-text">
+                        The <strong>Fast Fourier Transform (FFT)</strong> is a mathematical algorithm that takes a window of PCM samples 
+                        (e.g., 1024 samples ≈ 21ms) and decomposes the complex waveform into its constituent frequencies. It answers: 
+                        "How much energy exists at each frequency?" The output is a <strong>spectrum</strong> — an array where index 0 
+                        represents 0 Hz (DC offset), index 1 ≈ 47 Hz, index 2 ≈ 94 Hz, and so on up to 24,000 Hz (the Nyquist limit, 
+                        half the sample rate). For speech recognition, we focus on frequencies below ~8000 Hz where voice information lives.
+                    </p>
+                    
+                    <p class="pcm-text">
+                        A 1.5-second recording at 48kHz produces <strong>72,000 raw samples</strong>. This is too many for direct neural 
+                        network input, so we transform them using <strong>MFCC (Mel-Frequency Cepstral Coefficients)</strong>: we split 
+                        the audio into 50 overlapping time windows, apply FFT to each, map frequencies to the mel scale (which mimics 
+                        human hearing), and extract 40 frequency bands per window. This compresses 72,000 samples → <strong>2,000 features</strong> 
+                        (40 bands × 50 frames) while preserving the spectral characteristics that distinguish "One" from "Two" from "Three".
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const NUM_MEL_BANDS = 40;
+const NUM_FRAMES = 50;
+const INPUT_SIZE = NUM_MEL_BANDS * NUM_FRAMES;
+
+// Neural Network
+class NeuralNetwork {
+    constructor(layers) {
+        this.layers = layers;
+        this.weights = [];
+        this.biases = [];
+        for (let i = 0; i < layers.length - 1; i++) {
+            const scale = Math.sqrt(2.0 / layers[i]);
+            const w = [];
+            // weights[i] is [layers[i] x layers[i+1]] matrix
+            for (let j = 0; j < layers[i]; j++) {
+                const row = [];
+                for (let k = 0; k < layers[i + 1]; k++) row.push((Math.random() * 2 - 1) * scale);
+                w.push(row);
+            }
+            this.weights.push(w);
+            this.biases.push(new Array(layers[i + 1]).fill(0));
+        }
+        console.log('Network created:', layers.join(' → '));
+    }
+    relu(x) { return Math.max(0, x); }
+    reluDeriv(x) { return x > 0 ? 1 : 0; }
+    softmax(arr) {
+        const max = Math.max(...arr);
+        const exps = arr.map(x => Math.exp(x - max));
+        const sum = exps.reduce((a, b) => a + b, 0);
+        return exps.map(x => x / sum);
+    }
+    forward(input) {
+        let activations = [input], preActs = [input];
+        for (let i = 0; i < this.weights.length; i++) {
+            const w = this.weights[i], b = this.biases[i], prev = activations[activations.length - 1];
+            const outputSize = this.layers[i + 1];
+            const z = new Array(outputSize).fill(0);
+            for (let j = 0; j < outputSize; j++) {
+                z[j] = b[j];
+                for (let k = 0; k < prev.length; k++) {
+                    z[j] += prev[k] * w[k][j];
+                }
+            }
+            preActs.push(z);
+            activations.push(i === this.weights.length - 1 ? this.softmax(z) : z.map(x => this.relu(x)));
+        }
+        return { activations, preActs };
+    }
+    predict(input) { return this.forward(input).activations.slice(-1)[0]; }
+    
+    train(inputs, targets, lr = 0.001) {
+        let totalLoss = 0;
+        
+        for (let s = 0; s < inputs.length; s++) {
+            const input = inputs[s];
+            const target = targets[s];
+            
+            // Forward pass
+            const { activations, preActs } = this.forward(input);
+            const output = activations[activations.length - 1];
+            
+            // Calculate loss
+            for (let i = 0; i < output.length; i++) {
+                totalLoss -= target[i] * Math.log(output[i] + 1e-10);
+            }
+            
+            // Backward pass - compute deltas
+            const deltas = [];
+            
+            // Output layer delta
+            const outputDelta = output.map((o, i) => o - target[i]);
+            deltas[this.weights.length - 1] = outputDelta;
+            
+            // Hidden layer deltas (backpropagate)
+            for (let i = this.weights.length - 2; i >= 0; i--) {
+                const nextDelta = deltas[i + 1];
+                const w = this.weights[i + 1];
+                const z = preActs[i + 1];
+                const delta = new Array(this.layers[i + 1]).fill(0);
+                
+                for (let j = 0; j < this.layers[i + 1]; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < this.layers[i + 2]; k++) {
+                        sum += w[j][k] * nextDelta[k];
+                    }
+                    delta[j] = sum * this.reluDeriv(z[j]);
+                }
+                deltas[i] = delta;
+            }
+            
+            // Update weights and biases
+            for (let i = 0; i < this.weights.length; i++) {
+                const a = activations[i];
+                const d = deltas[i];
+                
+                for (let j = 0; j < this.layers[i]; j++) {
+                    for (let k = 0; k < this.layers[i + 1]; k++) {
+                        this.weights[i][j][k] -= lr * a[j] * d[k];
+                    }
+                }
+                for (let j = 0; j < this.layers[i + 1]; j++) {
+                    this.biases[i][j] -= lr * d[j];
+                }
+            }
+        }
+        
+        return totalLoss / inputs.length;
+    }
+}
+
+// Audio Feature Extractor
+class AudioFeatureExtractor {
+    constructor() {
+        this.numMelBands = NUM_MEL_BANDS;
+        this.numFrames = NUM_FRAMES;
+    }
+    
+    // Trim silence from beginning and end of audio
+    trimSilence(audioData, minSamples = 2000) {
+        const windowSize = 256;
+        const data = Array.from(audioData);
+        
+        // Calculate RMS energy for each window
+        const getEnergy = (start, end) => {
+            let sum = 0;
+            const len = Math.min(end, data.length) - start;
+            for (let i = start; i < start + len; i++) {
+                sum += data[i] * data[i];
+            }
+            return Math.sqrt(sum / len);
+        };
+        
+        // Calculate energies for all windows
+        const energies = [];
+        for (let i = 0; i < data.length - windowSize; i += windowSize / 2) {
+            energies.push({ idx: i, energy: getEnergy(i, i + windowSize) });
+        }
+        
+        if (energies.length === 0) return data;
+        
+        // Find noise floor (lower 20% of energy values)
+        const sortedEnergies = [...energies].sort((a, b) => a.energy - b.energy);
+        const noiseFloorIdx = Math.floor(sortedEnergies.length * 0.2);
+        const noiseFloor = sortedEnergies[noiseFloorIdx]?.energy || 0;
+        
+        // Find max energy
+        const maxEnergy = Math.max(...energies.map(e => e.energy));
+        
+        // Threshold is 3x noise floor, but at least 10% of max
+        const threshold = Math.max(noiseFloor * 3, maxEnergy * 0.1);
+        
+        console.log(`Noise floor: ${noiseFloor.toFixed(4)}, Max: ${maxEnergy.toFixed(4)}, Threshold: ${threshold.toFixed(4)}`);
+        
+        // Find start (first window significantly above noise)
+        let startIdx = 0;
+        for (let i = 0; i < energies.length; i++) {
+            if (energies[i].energy > threshold) {
+                startIdx = Math.max(0, energies[i].idx - windowSize);
+                break;
+            }
+        }
+        
+        // Find end (last window significantly above noise)
+        let endIdx = data.length;
+        for (let i = energies.length - 1; i >= 0; i--) {
+            if (energies[i].energy > threshold) {
+                endIdx = Math.min(data.length, energies[i].idx + windowSize * 2);
+                break;
+            }
+        }
+        
+        // Ensure minimum length
+        if (endIdx - startIdx < minSamples) {
+            const center = Math.floor((startIdx + endIdx) / 2);
+            startIdx = Math.max(0, center - minSamples / 2);
+            endIdx = Math.min(data.length, center + minSamples / 2);
+        }
+        
+        const trimmed = data.slice(startIdx, endIdx);
+        console.log(`Trimmed: ${data.length} → ${trimmed.length} samples (removed ${((1 - trimmed.length/data.length) * 100).toFixed(0)}%)`);
+        return trimmed;
+    }
+    
+    async extractFeatures(audioBuffer) {
+        const rawData = audioBuffer.getChannelData(0);
+        const sampleRate = audioBuffer.sampleRate;
+        
+        // Trim silence
+        const trimmed = this.trimSilence(rawData);
+        
+        // Normalize
+        const maxVal = Math.max(...trimmed.map(Math.abs)) || 1;
+        const norm = trimmed.map(x => x / maxVal);
+        
+        const frameSize = 512;
+        const totalSamples = norm.length;
+        const hopSize = Math.max(1, Math.floor((totalSamples - frameSize) / (this.numFrames - 1)));
+        const allFrames = [];
+        for (let f = 0; f < this.numFrames; f++) {
+            const startIdx = Math.min(f * hopSize, totalSamples - frameSize);
+            const frame = norm.slice(startIdx, startIdx + frameSize);
+            while (frame.length < frameSize) frame.push(0);
+            const windowed = frame.map((x, i) => x * 0.5 * (1 - Math.cos(2 * Math.PI * i / (frameSize - 1))));
+            const spectrum = this.fft(windowed);
+            allFrames.push(this.melFilter(spectrum, sampleRate));
+        }
+        const features = [];
+        for (let b = 0; b < this.numMelBands; b++) {
+            for (let f = 0; f < this.numFrames; f++) {
+                features.push(allFrames[f][b]);
+            }
+        }
+        const mean = features.reduce((a, b) => a + b, 0) / features.length;
+        const std = Math.sqrt(features.reduce((a, b) => a + (b - mean) ** 2, 0) / features.length) + 1e-10;
+        return features.map(x => (x - mean) / std);
+    }
+    fft(signal) {
+        const n = signal.length, spectrum = new Array(n / 2).fill(0);
+        for (let k = 0; k < n / 2; k++) {
+            let real = 0, imag = 0;
+            for (let t = 0; t < n; t++) {
+                const angle = (2 * Math.PI * k * t) / n;
+                real += signal[t] * Math.cos(angle);
+                imag -= signal[t] * Math.sin(angle);
+            }
+            spectrum[k] = Math.sqrt(real * real + imag * imag);
+        }
+        return spectrum;
+    }
+    melFilter(spectrum, sampleRate) {
+        const bands = new Array(this.numMelBands).fill(0);
+        const len = spectrum.length;
+        const maxFreq = sampleRate / 2;
+        const melMax = 2595 * Math.log10(1 + maxFreq / 700);
+        for (let i = 0; i < this.numMelBands; i++) {
+            const melCenter = (i + 1) * melMax / (this.numMelBands + 1);
+            const melLeft = i * melMax / (this.numMelBands + 1);
+            const melRight = (i + 2) * melMax / (this.numMelBands + 1);
+            const fCenter = 700 * (Math.pow(10, melCenter / 2595) - 1);
+            const fLeft = 700 * (Math.pow(10, melLeft / 2595) - 1);
+            const fRight = 700 * (Math.pow(10, melRight / 2595) - 1);
+            const binCenter = Math.floor(fCenter / maxFreq * len);
+            const binLeft = Math.floor(fLeft / maxFreq * len);
+            const binRight = Math.floor(fRight / maxFreq * len);
+            let sum = 0;
+            for (let j = binLeft; j <= binRight && j < len; j++) {
+                let weight = j < binCenter ? (j - binLeft) / (binCenter - binLeft + 1e-10) : (binRight - j) / (binRight - binCenter + 1e-10);
+                sum += spectrum[j] * Math.max(0, weight);
+            }
+            bands[i] = Math.log(sum + 1e-10);
+        }
+        return bands;
+    }
+}
+
+// Audio Recorder
+class AudioRecorder {
+    constructor() { this.chunks = []; this.isRecording = false; this.rawData = null; this.lastBlob = null; }
+    async init() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = this.audioContext.createMediaStreamSource(stream);
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 2048;
+            source.connect(this.analyser);
+            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder.ondataavailable = e => this.chunks.push(e.data);
+            return true;
+        } catch (e) { return false; }
+    }
+    start() { this.chunks = []; this.mediaRecorder.start(); this.isRecording = true; }
+    async stop() {
+        return new Promise(resolve => {
+            this.mediaRecorder.onstop = async () => {
+                const blob = new Blob(this.chunks, { type: 'audio/webm' });
+                this.lastBlob = blob;
+                const buffer = await this.audioContext.decodeAudioData(await blob.arrayBuffer());
+                this.rawData = buffer.getChannelData(0);
+                this.isRecording = false;
+                resolve({ buffer, blob });
+            };
+            this.mediaRecorder.stop();
+        });
+    }
+    getWaveform() { if (this.analyser) { this.analyser.getByteTimeDomainData(this.dataArray); return this.dataArray; } return null; }
+    getRawData() { return this.rawData; }
+}
+
+// Visualizer
+class Visualizer {
+    constructor() {
+        this.waveCanvas = document.getElementById('waveformCanvas');
+        this.waveCtx = this.waveCanvas.getContext('2d');
+        this.lossCanvas = document.getElementById('lossChart');
+        this.lossCtx = this.lossCanvas.getContext('2d');
+        this.nnCanvas = document.getElementById('nnDiagram');
+        this.lossHistory = [];
+        // Track ALL neuron values for visualization
+        // Input: 3 samples, Hidden1: all 128, Hidden2: all 64, Output: all 3
+        this.neuronHistory = {
+            input: Array(3).fill(null).map(() => []),
+            hidden1: Array(128).fill(null).map(() => []),
+            hidden2: Array(64).fill(null).map(() => []),
+            output: Array(3).fill(null).map(() => [])
+        };
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+    }
+    resize() {
+        const dpr = window.devicePixelRatio || 1;
+        [this.waveCanvas, this.lossCanvas].forEach(c => {
+            if (!c) return;
+            const r = c.getBoundingClientRect();
+            c.width = r.width * dpr; c.height = r.height * dpr;
+            c.getContext('2d').scale(dpr, dpr);
+        });
+    }
+    
+    // Track neuron values for visualization
+    trackNeurons(network, sampleInput, allInputs, allTargets) {
+        if (!network || !network.weights) return;
+        
+        // Get activations from a forward pass
+        const { activations } = network.forward(sampleInput);
+        
+        const maxHistory = 40; // Keep last 40 values for mini charts
+        
+        // Track 3 sample input neurons
+        for (let i = 0; i < 3; i++) {
+            const idx = Math.floor(i * sampleInput.length / 3);
+            this.neuronHistory.input[i].push(sampleInput[idx] || 0);
+            if (this.neuronHistory.input[i].length > maxHistory) this.neuronHistory.input[i].shift();
+        }
+        
+        // Track ALL 128 hidden1 neurons
+        const h1 = activations[1];
+        for (let i = 0; i < 128; i++) {
+            this.neuronHistory.hidden1[i].push(h1[i] || 0);
+            if (this.neuronHistory.hidden1[i].length > maxHistory) this.neuronHistory.hidden1[i].shift();
+        }
+        
+        // Track ALL 64 hidden2 neurons
+        const h2 = activations[2];
+        for (let i = 0; i < 64; i++) {
+            this.neuronHistory.hidden2[i].push(h2[i] || 0);
+            if (this.neuronHistory.hidden2[i].length > maxHistory) this.neuronHistory.hidden2[i].shift();
+        }
+        
+        // Track AVERAGE CONFIDENCE per class across all samples
+        // This shows how well the network learns to recognize each class
+        if (allInputs && allTargets) {
+            const classConfidence = [0, 0, 0];
+            const classCounts = [0, 0, 0];
+            
+            for (let i = 0; i < allInputs.length; i++) {
+                const pred = network.predict(allInputs[i]);
+                const targetClass = allTargets[i].indexOf(1);
+                // Track confidence for the CORRECT class (should go UP for all)
+                classConfidence[targetClass] += pred[targetClass];
+                classCounts[targetClass]++;
+            }
+            
+            // Average confidence per class
+            for (let i = 0; i < 3; i++) {
+                const avgConf = classCounts[i] > 0 ? classConfidence[i] / classCounts[i] : 0;
+                this.neuronHistory.output[i].push(avgConf);
+                if (this.neuronHistory.output[i].length > maxHistory) this.neuronHistory.output[i].shift();
+            }
+        } else {
+            // Fallback: track single sample output
+            const out = activations[3];
+            for (let i = 0; i < 3; i++) {
+                this.neuronHistory.output[i].push(out[i] || 0);
+                if (this.neuronHistory.output[i].length > maxHistory) this.neuronHistory.output[i].shift();
+            }
+        }
+    }
+    
+    // Draw mini line chart inside a square (use layer color)
+    drawMiniChart(ctx, x, y, size, data, color) {
+        if (!data || data.length < 2) return;
+        
+        const chartSize = size * 0.8;
+        const half = chartSize / 2;
+        let min = Math.min(...data);
+        let max = Math.max(...data);
+        if (max - min < 0.0001) { min -= 0.5; max += 0.5; }
+        const range = max - min;
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x - half, y - half, chartSize, chartSize);
+        ctx.clip();
+        
+        ctx.strokeStyle = color; // Use the layer color
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        
+        for (let i = 0; i < data.length; i++) {
+            const px = x - half + (i / (data.length - 1)) * chartSize;
+            const py = y + half - ((data[i] - min) / range) * chartSize;
+            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    // Draw neurons in a grid and return positions (squares) - transparent background
+    drawNeuronGrid(ctx, neurons, startX, startY, cols, neuronSize, spacing, color) {
+        const positions = [];
+        const count = neurons.length;
+        const half = neuronSize / 2;
+        
+        for (let i = 0; i < count; i++) {
+            const row = Math.floor(i / cols);
+            const col = i % cols;
+            const x = startX + col * spacing;
+            const y = startY + row * spacing;
+            
+            // Draw square neuron - no fill, just subtle border
+            ctx.beginPath();
+            ctx.rect(x - half, y - half, neuronSize, neuronSize);
+            ctx.strokeStyle = color + '30'; // Very subtle border
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            const data = neurons[i];
+            if (data && data.length > 1) {
+                this.drawMiniChart(ctx, x, y, neuronSize, data, color);
+            }
+            
+            positions.push({ x, y });
+        }
+        
+        return positions;
+    }
+    
+    // Draw the neural network diagram with neurons in grid layout (squares)
+    drawNNDiagram(network) {
+        const canvas = this.nnCanvas;
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const r = canvas.getBoundingClientRect();
+        canvas.width = r.width * dpr;
+        canvas.height = r.height * dpr;
+        ctx.scale(dpr, dpr);
+        const w = r.width, h = r.height;
+        
+        // Theme-aware background
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        ctx.fillStyle = isLight ? '#f0f0f4' : '#0a0a10';
+        ctx.fillRect(0, 0, w, h);
+        
+        const padTop = 55;
+        const padBottom = 45;
+        
+        // Neuron size - square size
+        const neuronSize = 26;
+        const spacing = neuronSize + 3;
+        const half = neuronSize / 2;
+        
+        // Grid layouts:
+        // Hidden1: 128 neurons = 16 cols x 8 rows
+        // Hidden2: 64 neurons = 8 cols x 8 rows
+        const h1Cols = 16, h1Rows = 8;
+        const h2Cols = 8, h2Rows = 8;
+        
+        const h1GridW = h1Cols * spacing;
+        const h2GridW = h2Cols * spacing;
+        const inputColW = spacing;
+        const outputColW = spacing + 50;
+        
+        // Calculate positions
+        const gap = 30;
+        const totalW = inputColW + gap + h1GridW + gap + h2GridW + gap + outputColW;
+        const startX = (w - totalW) / 2;
+        
+        const inputX = startX + half;
+        const h1X = inputX + inputColW + gap;
+        const h2X = h1X + h1GridW + gap;
+        const outputX = h2X + h2GridW + gap;
+        
+        // Vertical centering
+        const maxGridH = h1Rows * spacing;
+        const contentH = h - padTop - padBottom;
+        const baseY = padTop + (contentH - maxGridH) / 2 + half;
+        
+        // ============ Draw Input Layer ============
+        // Theme-aware color palette
+        const inputColor = isLight ? '#c78c20' : '#e8a838';    // Warm amber
+        const h1Color = isLight ? '#3a9a82' : '#66c2a5';       // Teal/seafoam  
+        const h2Color = isLight ? '#6878a8' : '#8da0cb';       // Soft blue-purple
+        const outputColor = isLight ? '#7cb030' : '#a6d854';   // Lime green
+        const textSecondary = isLight ? '#666' : '#888';
+        
+        ctx.fillStyle = inputColor;
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('Input', inputX, padTop - 30);
+        ctx.fillStyle = textSecondary;
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('(2000)', inputX, padTop - 15);
+        
+        const inputPositions = [];
+        const inputStartY = baseY + (maxGridH - 3 * spacing * 1.5) / 2;
+        for (let i = 0; i < 3; i++) {
+            const y = inputStartY + i * spacing * 1.5;
+            ctx.beginPath();
+            ctx.rect(inputX - half, y - half, neuronSize, neuronSize);
+            ctx.strokeStyle = inputColor + '40';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            const data = this.neuronHistory.input[i];
+            if (data && data.length > 1) {
+                this.drawMiniChart(ctx, inputX, y, neuronSize, data, inputColor);
+            }
+            inputPositions.push({ x: inputX, y });
+        }
+        ctx.fillStyle = textSecondary;
+        ctx.font = '14px JetBrains Mono';
+        ctx.fillText('⋮', inputX, inputStartY + 3.5 * spacing * 1.5);
+        
+        // ============ Draw Hidden 1 ============
+        const h1CenterX = h1X + (h1Cols - 1) * spacing / 2;
+        ctx.fillStyle = h1Color;
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('Hidden 1', h1CenterX, padTop - 30);
+        ctx.fillStyle = textSecondary;
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('(128)', h1CenterX, padTop - 15);
+        
+        const h1Positions = this.drawNeuronGrid(
+            ctx, this.neuronHistory.hidden1,
+            h1X, baseY, h1Cols, neuronSize, spacing, h1Color
+        );
+        
+        // ============ Draw Hidden 2 ============
+        const h2CenterX = h2X + (h2Cols - 1) * spacing / 2;
+        ctx.fillStyle = h2Color;
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('Hidden 2', h2CenterX, padTop - 30);
+        ctx.fillStyle = textSecondary;
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('(64)', h2CenterX, padTop - 15);
+        
+        const h2Positions = this.drawNeuronGrid(
+            ctx, this.neuronHistory.hidden2,
+            h2X, baseY, h2Cols, neuronSize, spacing, h2Color
+        );
+        
+        // ============ Draw Output Layer ============
+        ctx.fillStyle = outputColor;
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('Output', outputX, padTop - 30);
+        ctx.fillStyle = textSecondary;
+        ctx.font = '9px JetBrains Mono';
+        ctx.fillText('(avg conf)', outputX, padTop - 15);
+        
+        const outputPositions = [];
+        const outputStartY = baseY + (maxGridH - 3 * spacing * 1.5) / 2;
+        const outputLabels = ['"1"', '"2"', '"3"'];
+        for (let i = 0; i < 3; i++) {
+            const y = outputStartY + i * spacing * 1.5;
+            ctx.beginPath();
+            ctx.rect(outputX - half, y - half, neuronSize, neuronSize);
+            ctx.strokeStyle = outputColor + '30';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            const data = this.neuronHistory.output[i];
+            if (data && data.length > 1) {
+                this.drawMiniChart(ctx, outputX, y, neuronSize, data, outputColor);
+            }
+            
+            ctx.fillStyle = outputColor;
+            ctx.font = '10px JetBrains Mono';
+            ctx.textAlign = 'left';
+            ctx.fillText(outputLabels[i], outputX + half + 6, y + 4);
+            
+            outputPositions.push({ x: outputX, y });
+        }
+        
+        // ============ Draw Connections (sparse, faint) ============
+        ctx.globalAlpha = 0.06;
+        ctx.lineWidth = 0.5;
+        
+        // Input → H1 (sample)
+        for (const inp of inputPositions) {
+            for (let i = 0; i < h1Positions.length; i += 8) {
+                ctx.strokeStyle = inputColor;
+                ctx.beginPath();
+                ctx.moveTo(inp.x + half, inp.y);
+                ctx.lineTo(h1Positions[i].x - half, h1Positions[i].y);
+                ctx.stroke();
+            }
+        }
+        
+        // H1 → H2 (sample)
+        for (let i = 0; i < h1Positions.length; i += 16) {
+            for (let j = 0; j < h2Positions.length; j += 8) {
+                ctx.strokeStyle = h1Color;
+                ctx.beginPath();
+                ctx.moveTo(h1Positions[i].x + half, h1Positions[i].y);
+                ctx.lineTo(h2Positions[j].x - half, h2Positions[j].y);
+                ctx.stroke();
+            }
+        }
+        
+        // H2 → Output (sample)
+        for (let i = 0; i < h2Positions.length; i += 8) {
+            for (const out of outputPositions) {
+                ctx.strokeStyle = h2Color;
+                ctx.beginPath();
+                ctx.moveTo(h2Positions[i].x + half, h2Positions[i].y);
+                ctx.lineTo(out.x - half, out.y);
+                ctx.stroke();
+            }
+        }
+        
+        ctx.globalAlpha = 1;
+        
+        // ============ Weight/bias info ============
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillStyle = textSecondary;
+        ctx.textAlign = 'center';
+        ctx.fillText('256k weights', (inputX + h1CenterX) / 2, h - 25);
+        ctx.fillText('128 biases', (inputX + h1CenterX) / 2, h - 10);
+        ctx.fillText('8k weights', (h1CenterX + h2CenterX) / 2, h - 25);
+        ctx.fillText('64 biases', (h1CenterX + h2CenterX) / 2, h - 10);
+        ctx.fillText('192 weights', (h2CenterX + outputX) / 2, h - 25);
+        ctx.fillText('3 biases', (h2CenterX + outputX) / 2, h - 10);
+    }
+    
+    resetParamHistory() {
+        this.neuronHistory = {
+            input: Array(3).fill(null).map(() => []),
+            hidden1: Array(128).fill(null).map(() => []),
+            hidden2: Array(64).fill(null).map(() => []),
+            output: Array(3).fill(null).map(() => [])
+        };
+    }
+    drawWaveform(data) {
+        const w = this.waveCanvas.width / (window.devicePixelRatio || 1);
+        const h = this.waveCanvas.height / (window.devicePixelRatio || 1);
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        this.waveCtx.fillStyle = isLight ? '#e8e8ec' : '#1a1a25';
+        this.waveCtx.fillRect(0, 0, w, h);
+        if (!data) return;
+        this.waveCtx.lineWidth = 2;
+        this.waveCtx.strokeStyle = isLight ? '#0099aa' : '#00f0ff';
+        this.waveCtx.beginPath();
+        const slice = w / data.length;
+        for (let i = 0; i < data.length; i++) {
+            const y = (data[i] / 128.0) * h / 2;
+            i === 0 ? this.waveCtx.moveTo(i * slice, y) : this.waveCtx.lineTo(i * slice, y);
+        }
+        this.waveCtx.stroke();
+    }
+    drawSampleWave(canvas, audioData) {
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const r = canvas.getBoundingClientRect();
+        canvas.width = r.width * dpr;
+        canvas.height = r.height * dpr;
+        ctx.scale(dpr, dpr);
+        const w = r.width, h = r.height;
+        
+        // Theme-aware background
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        ctx.fillStyle = isLight ? '#f0f0f4' : '#0a0a10';
+        ctx.fillRect(0, 0, w, h);
+        
+        if (!audioData || !audioData.length) return;
+        
+        // Fixed number of bars - crisp and clear
+        const numBars = 50;
+        const blockSize = Math.floor(audioData.length / numBars) || 1;
+        const bars = [];
+        
+        for (let i = 0; i < numBars; i++) {
+            // Use peak value for punch
+            let peak = 0;
+            for (let j = 0; j < blockSize; j++) {
+                const val = Math.abs(audioData[i * blockSize + j] || 0);
+                if (val > peak) peak = val;
+            }
+            bars.push(peak);
+        }
+        
+        // Normalize
+        const maxVal = Math.max(...bars, 0.01);
+        
+        // Draw solid bars - no gaps, centered vertically
+        const barW = w / numBars;
+        const centerY = h / 2;
+        
+        for (let i = 0; i < numBars; i++) {
+            const normalized = bars[i] / maxVal;
+            const barH = Math.max(2, normalized * h * 0.85);
+            const x = i * barW;
+            const y = centerY - barH / 2;
+            
+            // Vertical gradient cyan to magenta
+            const grad = ctx.createLinearGradient(x, y, x, y + barH);
+            if (isLight) {
+                grad.addColorStop(0, '#0099aa');
+                grad.addColorStop(0.5, '#0077cc');
+                grad.addColorStop(1, '#aa0088');
+            } else {
+                grad.addColorStop(0, '#00ffff');
+                grad.addColorStop(0.5, '#00ccff');
+                grad.addColorStop(1, '#ff00ff');
+            }
+            
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, y, barW - 0.5, barH);
+        }
+    }
+    drawSpectrogram(canvas, features) {
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const r = canvas.getBoundingClientRect();
+        canvas.width = r.width * dpr;
+        canvas.height = r.height * dpr;
+        ctx.scale(dpr, dpr);
+        const w = r.width, h = r.height;
+        const cellW = w / NUM_FRAMES, cellH = h / NUM_MEL_BANDS;
+        let min = Infinity, max = -Infinity;
+        for (const v of features) { if (v < min) min = v; if (v > max) max = v; }
+        const range = max - min || 1;
+        for (let b = 0; b < NUM_MEL_BANDS; b++) {
+            for (let f = 0; f < NUM_FRAMES; f++) {
+                const val = (features[b * NUM_FRAMES + f] - min) / range;
+                const hue = 240 - val * 240;
+                ctx.fillStyle = `hsl(${hue}, 100%, ${20 + val * 50}%)`;
+                ctx.fillRect(f * cellW, (NUM_MEL_BANDS - 1 - b) * cellH, cellW + 1, cellH + 1);
+            }
+        }
+    }
+    drawLoss(loss, epoch = null, totalEpochs = 300) {
+        this.lossHistory.push(loss);
+        if (this.lossHistory.length > totalEpochs) this.lossHistory.shift();
+        const w = this.lossCanvas.width / (window.devicePixelRatio || 1);
+        const h = this.lossCanvas.height / (window.devicePixelRatio || 1);
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        this.lossCtx.fillStyle = isLight ? '#e8e8ec' : '#1a1a25';
+        this.lossCtx.fillRect(0, 0, w, h);
+        if (this.lossHistory.length < 2) return;
+        const max = Math.max(...this.lossHistory), min = Math.min(...this.lossHistory), range = max - min || 1;
+        const currentLoss = this.lossHistory[this.lossHistory.length - 1];
+        this.lossCtx.strokeStyle = isLight ? '#d0d0d8' : '#2a2a3a';
+        this.lossCtx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = 15 + (h - 35) * (i / 4);
+            this.lossCtx.beginPath();
+            this.lossCtx.moveTo(40, y);
+            this.lossCtx.lineTo(w - 10, y);
+            this.lossCtx.stroke();
+        }
+        const pad = 40, gw = w - pad - 10, gh = h - 35;
+        this.lossCtx.beginPath();
+        this.lossCtx.moveTo(pad, h - 20);
+        for (let i = 0; i < this.lossHistory.length; i++) {
+            const x = pad + (i / (totalEpochs - 1)) * gw;
+            const y = 15 + (1 - (this.lossHistory[i] - min) / range) * gh;
+            this.lossCtx.lineTo(x, y);
+        }
+        const lastX = pad + ((this.lossHistory.length - 1) / (totalEpochs - 1)) * gw;
+        this.lossCtx.lineTo(lastX, h - 20);
+        this.lossCtx.closePath();
+        const areaGrad = this.lossCtx.createLinearGradient(0, 0, 0, h);
+        areaGrad.addColorStop(0, isLight ? 'rgba(0, 153, 170, 0.3)' : 'rgba(0, 240, 255, 0.3)');
+        areaGrad.addColorStop(1, isLight ? 'rgba(170, 0, 136, 0.05)' : 'rgba(255, 0, 170, 0.05)');
+        this.lossCtx.fillStyle = areaGrad;
+        this.lossCtx.fill();
+        const lineGrad = this.lossCtx.createLinearGradient(0, 0, w, 0);
+        lineGrad.addColorStop(0, isLight ? '#0099aa' : '#00f0ff');
+        lineGrad.addColorStop(1, isLight ? '#aa0088' : '#ff00aa');
+        this.lossCtx.strokeStyle = lineGrad;
+        this.lossCtx.lineWidth = 2;
+        this.lossCtx.beginPath();
+        for (let i = 0; i < this.lossHistory.length; i++) {
+            const x = pad + (i / (totalEpochs - 1)) * gw;
+            const y = 15 + (1 - (this.lossHistory[i] - min) / range) * gh;
+            i === 0 ? this.lossCtx.moveTo(x, y) : this.lossCtx.lineTo(x, y);
+        }
+        this.lossCtx.stroke();
+        const lastY = 15 + (1 - (currentLoss - min) / range) * gh;
+        this.lossCtx.beginPath();
+        this.lossCtx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+        this.lossCtx.fillStyle = isLight ? '#aa0088' : '#ff00aa';
+        this.lossCtx.fill();
+        this.lossCtx.fillStyle = isLight ? '#666680' : '#8888aa';
+        this.lossCtx.font = '10px JetBrains Mono';
+        this.lossCtx.textAlign = 'right';
+        this.lossCtx.fillText(max.toFixed(2), 38, 18);
+        this.lossCtx.fillText(min.toFixed(2), 38, h - 22);
+        this.lossCtx.textAlign = 'left';
+        this.lossCtx.fillStyle = isLight ? '#0099aa' : '#00f0ff';
+        this.lossCtx.font = 'bold 11px JetBrains Mono';
+        this.lossCtx.fillText(`Loss: ${currentLoss.toFixed(4)}`, pad + 5, 12);
+        if (epoch !== null) {
+            this.lossCtx.fillStyle = isLight ? '#aa0088' : '#ff00aa';
+            this.lossCtx.textAlign = 'right';
+            this.lossCtx.fillText(`Epoch ${epoch}/${totalEpochs}`, w - 10, 12);
+        }
+    }
+}
+
+// Main App
+class App {
+    constructor() {
+        this.recorder = new AudioRecorder();
+        this.extractor = new AudioFeatureExtractor();
+        this.viz = new Visualizer();
+        this.network = new NeuralNetwork([INPUT_SIZE, 128, 64, 3]);
+        this.samples = { 1: [], 2: [], 3: [] };
+        this.rawAudio = { 1: [], 2: [], 3: [] };
+        this.audioBlobs = { 1: [], 2: [], 3: [] };
+        this.currentlyPlaying = null;
+        this.isRecording = false;
+        this.recordingNumber = null;
+        this.isTraining = false;
+        this.isTrained = false;
+        this.init();
+    }
+    async init() {
+        const ok = await this.recorder.init();
+        if (!ok) { this.log('Microphone access denied!', 'error'); return; }
+        this.log('Ready - Click a number to start recording', 'success');
+        
+        // Record buttons - click to record immediately
+        document.querySelectorAll('.record-btn-large').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const num = parseInt(btn.dataset.number);
+                this.startRecording(num);
+            });
+        });
+        
+        document.getElementById('trainBtn').addEventListener('click', () => this.train());
+        document.getElementById('testBtn').addEventListener('click', () => this.testRecord());
+        document.getElementById('clearBtn').addEventListener('click', () => this.clear());
+        
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+        
+        this.animate();
+    }
+    
+    toggleTheme() {
+        const html = document.documentElement;
+        const isLight = html.getAttribute('data-theme') === 'light';
+        html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+        
+        // Update toggle icon
+        const icon = document.querySelector('.theme-icon');
+        icon.textContent = isLight ? '🌙' : '☀️';
+        
+        // Redraw NN diagram with new colors
+        this.viz.drawNNDiagram(this.network);
+    }
+    
+    async startRecording(num) {
+        if (this.isRecording || this.isTraining) return;
+        
+        this.isRecording = true;
+        this.recordingNumber = num;
+        
+        const btn = document.querySelector(`.record-btn-large[data-number="${num}"]`);
+        btn.classList.add('recording');
+        btn.textContent = '🔴 Recording...';
+        
+        this.recorder.start();
+        this.log(`Recording "${num}"...`, 'warning');
+        
+        // Auto-stop after 1.5 seconds
+        setTimeout(() => this.stopRecording(), 1500);
+    }
+    
+    async stopRecording() {
+        if (!this.isRecording) return;
+        
+        const num = this.recordingNumber;
+        const btn = document.querySelector(`.record-btn-large[data-number="${num}"]`);
+        btn.classList.remove('recording');
+        btn.textContent = `🎤 Click to Record "${['One', 'Two', 'Three'][num-1]}"`;
+        
+        const { buffer, blob } = await this.recorder.stop();
+        const features = await this.extractor.extractFeatures(buffer);
+        
+        // Store trimmed audio for waveform display
+        const rawData = buffer.getChannelData(0);
+        const trimmed = this.extractor.trimSilence(rawData);
+        
+        this.samples[num].push(features);
+        this.rawAudio[num].push(trimmed);
+        this.audioBlobs[num].push(blob);
+        
+        this.isRecording = false;
+        this.recordingNumber = null;
+        
+        this.updateUI();
+        this.log(`Added sample #${this.samples[num].length} for "${num}"`, 'success');
+        this.checkReady();
+    }
+    
+    updateUI() {
+        // Update counts
+        let total = 0;
+        for (let n = 1; n <= 3; n++) {
+            const count = this.samples[n].length;
+            total += count;
+            document.getElementById(`count-${n}`).textContent = `${count} sample${count !== 1 ? 's' : ''}`;
+            this.renderSamplesForNumber(n);
+        }
+        document.getElementById('totalSamples').textContent = total;
+    }
+    
+    renderSamplesForNumber(num) {
+        const container = document.getElementById(`samples-${num}`);
+        const samps = this.samples[num];
+        const raws = this.rawAudio[num];
+        
+        if (!samps.length) {
+            container.innerHTML = '<div class="no-samples-msg">No samples yet</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        samps.forEach((f, i) => {
+            const row = document.createElement('div');
+            row.className = 'sample-row';
+            row.innerHTML = `
+                <span class="sample-index">#${i + 1}</span>
+                <div class="sample-wave"><canvas id="wave-${num}-${i}"></canvas></div>
+                <div class="sample-actions">
+                    <button class="play-btn" data-num="${num}" data-idx="${i}" title="Play">▶</button>
+                    <button class="delete-btn" data-num="${num}" data-idx="${i}" title="Delete">×</button>
+                </div>
+            `;
+            container.appendChild(row);
+            
+            // Draw waveform
+            setTimeout(() => {
+                const canvas = document.getElementById(`wave-${num}-${i}`);
+                if (canvas && raws[i]) this.viz.drawSampleWave(canvas, raws[i]);
+            }, 10);
+        });
+        
+        // Event listeners
+        container.querySelectorAll('.play-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const n = parseInt(e.target.dataset.num);
+                const idx = parseInt(e.target.dataset.idx);
+                this.playSample(n, idx, e.target);
+            });
+        });
+        container.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const n = parseInt(e.target.dataset.num);
+                const idx = parseInt(e.target.dataset.idx);
+                this.deleteSample(n, idx);
+            });
+        });
+    }
+    
+    deleteSample(num, idx) {
+        this.samples[num].splice(idx, 1);
+        this.rawAudio[num].splice(idx, 1);
+        this.audioBlobs[num].splice(idx, 1);
+        this.updateUI();
+        this.checkReady();
+        this.log(`Deleted sample #${idx + 1} from "${num}"`, 'warning');
+    }
+    
+    checkReady() {
+        const min = Math.min(this.samples[1].length, this.samples[2].length, this.samples[3].length);
+        document.getElementById('trainBtn').disabled = min < 2;
+        if (min >= 2 && !this.isTrained) this.log('Ready to train!', 'success');
+    }
+    
+    async train() {
+        if (this.isTraining) return;
+        this.isTraining = true;
+        this.isTrained = false;
+        const btn = document.getElementById('trainBtn');
+        btn.disabled = true;
+        btn.textContent = 'Preparing...';
+        
+        const inputs = [], targets = [];
+        for (let n = 1; n <= 3; n++) {
+            for (const s of this.samples[n]) {
+                inputs.push(s);
+                const t = [0, 0, 0]; t[n - 1] = 1;
+                targets.push(t);
+            }
+        }
+        
+        // Shuffle
+        for (let i = inputs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [inputs[i], inputs[j]] = [inputs[j], inputs[i]];
+            [targets[i], targets[j]] = [targets[j], targets[i]];
+        }
+        
+        console.log('Training with', inputs.length, 'samples, input size:', inputs[0].length);
+        this.log(`Training with ${inputs.length} samples...`);
+        
+        this.network = new NeuralNetwork([INPUT_SIZE, 128, 64, 3]);
+        this.viz.lossHistory = [];
+        this.viz.resetParamHistory();
+        
+        // Store a sample input for visualization
+        const sampleInput = inputs[0];
+        
+        const epochs = 300;
+        const bar = document.getElementById('progressBar');
+        let lr = 0.01;
+        
+        const runEpoch = (e) => {
+            return new Promise(resolve => {
+                // Learning rate decay
+                if (e === 100) lr = 0.005;
+                if (e === 200) lr = 0.001;
+                
+                // Train one epoch
+                const loss = this.network.train(inputs, targets, lr);
+                
+                // Update UI
+                const progress = ((e + 1) / epochs) * 100;
+                document.getElementById('currentEpoch').textContent = e + 1;
+                document.getElementById('currentLoss').textContent = loss.toFixed(4);
+                bar.style.width = `${progress}%`;
+                btn.textContent = `Training ${progress.toFixed(0)}%`;
+                
+                // Update charts
+                this.viz.drawLoss(loss, e + 1, epochs);
+                
+                // Track and draw NN diagram every 3 epochs
+                if (e % 3 === 0) {
+                    this.viz.trackNeurons(this.network, sampleInput, inputs, targets);
+                    this.viz.drawNNDiagram(this.network);
+                }
+                
+                if (e % 50 === 0) {
+                    console.log(`Epoch ${e + 1}: loss = ${loss.toFixed(4)}`);
+                }
+                
+                // Use setTimeout to yield to browser
+                setTimeout(() => resolve(loss), 0);
+            });
+        };
+        
+        // Run epochs with early stopping
+        const minLoss = 0.001;
+        let finalEpoch = 0;
+        let lastLoss = 0;
+        
+        for (let e = 0; e < epochs; e++) {
+            lastLoss = await runEpoch(e);
+            finalEpoch = e + 1;
+            
+            // Early stopping if loss is small enough
+            if (lastLoss < minLoss) {
+                console.log(`Early stopping at epoch ${finalEpoch}: loss ${lastLoss.toFixed(6)} < ${minLoss}`);
+                this.log(`Early stop at epoch ${finalEpoch} (loss < ${minLoss})`, 'success');
+                break;
+            }
+        }
+        
+        // Training complete
+        this.isTraining = false;
+        this.isTrained = true;
+        btn.disabled = false;
+        btn.textContent = 'Retrain';
+        document.getElementById('testBtn').disabled = false;
+        
+        // Calculate accuracy
+        let correct = 0;
+        for (let i = 0; i < inputs.length; i++) {
+            const pred = this.network.predict(inputs[i]);
+            const predIdx = pred.indexOf(Math.max(...pred));
+            const targetIdx = targets[i].indexOf(1);
+            if (predIdx === targetIdx) correct++;
+        }
+        const acc = ((correct / inputs.length) * 100).toFixed(1);
+        document.getElementById('accuracy').textContent = acc + '%';
+        console.log('Training complete! Accuracy:', acc + '%');
+        this.log(`Done! Accuracy: ${acc}%`, 'success');
+    }
+    
+    async testRecord() {
+        if (!this.isTrained || this.isRecording) return;
+        const btn = document.getElementById('testBtn');
+        btn.disabled = true;
+        btn.classList.add('recording');
+        btn.textContent = '🔴 Recording...';
+        this.log('Recording test sample...', 'warning');
+        
+        this.recorder.start();
+        await new Promise(r => setTimeout(r, 1500));
+        const { buffer, blob } = await this.recorder.stop();
+        
+        btn.classList.remove('recording');
+        btn.textContent = 'Analyzing...';
+        
+        const features = await this.extractor.extractFeatures(buffer);
+        
+        // Draw spectrogram
+        const specCanvas = document.getElementById('testSpectrogram');
+        this.viz.drawSpectrogram(specCanvas, features);
+        
+        const pred = this.network.predict(features);
+        const idx = pred.indexOf(Math.max(...pred));
+        const num = idx + 1;
+        
+        document.getElementById('predictedNumber').textContent = num;
+        for (let i = 1; i <= 3; i++) {
+            const conf = pred[i - 1] * 100;
+            const bar = document.getElementById(`conf-${i}`);
+            bar.style.width = `${conf}%`;
+            bar.textContent = `${conf.toFixed(1)}%`;
+        }
+        
+        btn.disabled = false;
+        btn.textContent = '🎤 Click to Record & Predict';
+        this.log(`Predicted: ${num} (${(pred[idx] * 100).toFixed(1)}%)`, pred[idx] > 0.7 ? 'success' : 'warning');
+    }
+    
+    clear() {
+        this.samples = { 1: [], 2: [], 3: [] };
+        this.rawAudio = { 1: [], 2: [], 3: [] };
+        this.audioBlobs = { 1: [], 2: [], 3: [] };
+        this.isTrained = false;
+        this.updateUI();
+        document.getElementById('trainBtn').disabled = true;
+        document.getElementById('testBtn').disabled = true;
+        document.getElementById('predictedNumber').textContent = '?';
+        document.getElementById('accuracy').textContent = '-';
+        for (let i = 1; i <= 3; i++) {
+            const b = document.getElementById(`conf-${i}`);
+            b.style.width = '0%';
+            b.textContent = '';
+        }
+        this.viz.lossHistory = [];
+        this.log('Cleared all samples', 'warning');
+    }
+    
+    playSample(num, idx, btnEl) {
+        const blob = this.audioBlobs[num][idx];
+        if (!blob) return;
+        this.playAudioBlob(blob, btnEl);
+    }
+    
+    playAudioBlob(blob, btnEl) {
+        if (this.currentlyPlaying) {
+            this.currentlyPlaying.pause();
+            document.querySelectorAll('.play-btn.playing').forEach(b => {
+                b.classList.remove('playing');
+                b.textContent = '▶';
+            });
+        }
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        this.currentlyPlaying = audio;
+        if (btnEl) {
+            btnEl.classList.add('playing');
+            if (btnEl.classList.contains('play-btn')) btnEl.textContent = '■';
+            else btnEl.textContent = '■ Playing...';
+        }
+        audio.onended = () => {
+            this.currentlyPlaying = null;
+            URL.revokeObjectURL(url);
+            if (btnEl) {
+                btnEl.classList.remove('playing');
+                if (btnEl.classList.contains('play-btn')) btnEl.textContent = '▶';
+                else btnEl.textContent = '▶ Play Last Test';
+            }
+        };
+        audio.play();
+    }
+    
+    animate() {
+        this.viz.drawWaveform(this.recorder.getWaveform());
+        requestAnimationFrame(() => this.animate());
+    }
+    
+    log(msg, type = '') {
+        const c = document.getElementById('logContainer');
+        const e = document.createElement('div');
+        e.className = `log-entry ${type}`;
+        e.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        c.appendChild(e);
+        c.scrollTop = c.scrollHeight;
+    }
+}
+
+new App();
+</script>
+</body>
+</html>
