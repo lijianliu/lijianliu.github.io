@@ -74,6 +74,13 @@
             background: rgba(247, 37, 133, 0.15);
         }
 
+        .hit-counter {
+            position: absolute;
+            left: 70px;
+            top: 3px;
+            height: 20px;
+        }
+
         .help-panel {
             display: none;
             background: var(--bg-secondary);
@@ -881,6 +888,7 @@
         </div>
         <header>
             <button class="help-btn" id="help-btn">Help</button>
+            <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Flijianliu.github.io%2Fnn-weight-bias-transform-demo.html&label=&icon=person-walking&color=%23cff4fc&message=&style=social&tz=UTC" alt="Hit Counter" class="hit-counter">
             <h1>How Neural Networks Transform Shapes</h1>
             <p class="subtitle" id="formula-subtitle">y = σ(W₂ · σ(W₁x + b₁) + b₂)  |  σ = Tanh  |  27 params</p>
         </header>
