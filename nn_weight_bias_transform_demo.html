@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Neural Networks Transform Shapes</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #080810;
+            --bg-secondary: #0f0f1a;
+            --bg-panel: #14142a;
+            --accent-cyan: #00f5d4;
+            --accent-magenta: #f72585;
+            --accent-orange: #ff6b35;
+            --accent-yellow: #fee440;
+            --text-primary: #e8e8f0;
+            --text-secondary: #6b6b80;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 245, 212, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(247, 37, 133, 0.03) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0.75rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .help-btn {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--accent-cyan);
+            background: rgba(0, 245, 212, 0.1);
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .help-btn:hover, .help-btn.active {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+            background: rgba(247, 37, 133, 0.15);
+        }
+
+        .help-panel {
+            display: none;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.7rem;
+            line-height: 1.6;
+            color: #a8a8b8;
+        }
+
+        .help-panel.visible {
+            display: block;
+        }
+
+        .help-content b {
+            color: var(--accent-cyan);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-magenta) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--accent-yellow);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .canvas-wrapper {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 8px;
+            background: var(--bg-primary);
+            flex: 1;
+            min-height: 0;
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: 1;
+            margin: 0 auto;
+        }
+
+        .legend {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-dot {
+            width: 30px;
+            height: 10px;
+            border-radius: 5px;
+        }
+
+        .legend-dot.original { 
+            background: linear-gradient(90deg, #005064, #32f5ff);
+        }
+        .legend-dot.transformed { 
+            background: linear-gradient(90deg, #50143c, #ff50c8);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border-radius: 10px;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title .badge {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+        }
+
+        .panel-title .badge.layer2 {
+            background: var(--accent-magenta);
+        }
+
+        .layer-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .activation-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            align-items: center;
+        }
+
+        .toggle-label-small {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .toggle-label-small input {
+            display: none;
+        }
+
+        .toggle-switch-small {
+            width: 28px;
+            height: 16px;
+            background: #2a2a4a;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch-small::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #666;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .toggle-label-small input:checked + .toggle-switch-small {
+            background: var(--accent-cyan);
+        }
+
+        .toggle-label-small input:checked + .toggle-switch-small::after {
+            left: 14px;
+            background: white;
+        }
+
+        .activation-select-small {
+            width: 70px;
+            padding: 0.2rem 0.25rem;
+            background: #1e1e3a;
+            border: 1px solid #4a4a6a;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .activation-select-small.enabled {
+            opacity: 1;
+            border-color: var(--accent-cyan);
+        }
+
+        .activation-select-small:focus {
+            outline: none;
+        }
+
+        .matrices-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .matrix-section {
+            margin-bottom: 0;
+        }
+
+        .matrix-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent-cyan);
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .matrix-label.layer2 {
+            color: var(--accent-magenta);
+        }
+
+        .matrix-label .dim {
+            color: var(--text-secondary);
+            font-size: 0.6rem;
+        }
+
+        .matrix-container {
+            position: relative;
+            padding: 0 10px;
+            display: inline-block;
+        }
+
+        .matrix-container::before,
+        .matrix-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+        }
+
+        .matrix-container.layer2::before,
+        .matrix-container.layer2::after {
+            background: var(--accent-magenta);
+        }
+
+        .matrix-container::before { left: 0; }
+        .matrix-container::after { right: 0; }
+
+        .matrix-grid {
+            display: grid;
+            gap: 3px;
+        }
+
+        .matrix-grid.w1 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .matrix-grid.b1 {
+            grid-template-columns: 1fr;
+        }
+
+        .matrix-grid.w2 {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .matrix-grid.b2 {
+            grid-template-columns: 1fr;
+        }
+
+        .matrix-cell input {
+            width: 44px;
+            height: 24px;
+            padding: 2px;
+            background: #1e1e3a;
+            border: 2px solid #4a4a6a;
+            border-radius: 4px;
+            color: #22ff88;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .matrix-cell input:hover {
+            border-color: var(--accent-cyan);
+            background: #252550;
+        }
+
+        .matrix-cell input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            background: #252550;
+        }
+
+        .matrix-cell input.active {
+            border-color: var(--accent-cyan);
+            background: #252550;
+            box-shadow: 0 0 8px rgba(0, 245, 212, 0.4);
+        }
+
+        .matrices-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 0 3px rgba(0,245,212,0.3);
+            }
+            to {
+                box-shadow: 0 0 8px rgba(247,37,133,0.4);
+            }
+        }
+
+        .auto-toggle-compact:has(input:checked) .toggle-switch-tiny {
+            animation: pulse-glow 0.5s ease-in-out infinite alternate;
+        }
+
+        .history-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .auto-toggle-compact {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .auto-toggle-compact input {
+            display: none;
+        }
+
+        .toggle-switch-tiny {
+            width: 24px;
+            height: 14px;
+            background: var(--bg-secondary);
+            border-radius: 7px;
+            position: relative;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-switch-tiny::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+            transition: all 0.2s;
+        }
+
+        .auto-toggle-compact input:checked + .toggle-switch-tiny {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            border-color: var(--accent-cyan);
+        }
+
+        .auto-toggle-compact input:checked + .toggle-switch-tiny::after {
+            left: 11px;
+            background: white;
+        }
+
+        .auto-label {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .history-divider {
+            width: 1px;
+            height: 16px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .history-slider {
+            flex: 1;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .history-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .history-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .history-btn {
+            width: 24px;
+            height: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .history-btn:hover:not(:disabled) {
+            background: rgba(0, 245, 212, 0.2);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .history-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .history-info {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            min-width: 45px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .floating-slider {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            background: rgba(20, 20, 35, 0.98);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 245, 212, 0.3);
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            user-select: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .floating-slider.apply-mode {
+            border-color: var(--accent-magenta);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(247, 37, 133, 0.4);
+        }
+
+        .floating-slider.paused {
+            border-color: var(--text-secondary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 8px rgba(0, 245, 212, 0.1);
+        }
+
+        .floating-slider.visible {
+            display: flex;
+        }
+
+        .floating-slider input[type="range"] {
+            width: 150px;
+            height: 20px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+        }
+
+        .floating-slider input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-magenta), rgba(255,255,255,0.3) 50%, var(--accent-cyan));
+            border-radius: 3px;
+        }
+
+        .floating-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 245, 212, 0.6);
+            margin-top: -6px;
+        }
+
+        .floating-slider input[type="range"]::-moz-range-track {
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-magenta), rgba(255,255,255,0.3) 50%, var(--accent-cyan));
+            border-radius: 3px;
+        }
+
+        .floating-slider input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 8px rgba(0, 245, 212, 0.6);
+        }
+
+        .floating-slider .slider-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            min-width: 45px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .apply-toggle {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            transition: all 0.2s;
+        }
+
+        .apply-toggle:hover {
+            border-color: var(--accent-magenta);
+        }
+
+        .apply-toggle input {
+            display: none;
+        }
+
+        .apply-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .apply-toggle input:checked ~ .apply-label {
+            color: var(--accent-magenta);
+        }
+
+        .apply-toggle input:checked {
+            /* Parent styling handled by sibling selector */
+        }
+
+        .apply-toggle:has(input:checked) {
+            border-color: var(--accent-magenta);
+            background: rgba(247, 37, 133, 0.2);
+        }
+
+        .shape-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.25rem;
+        }
+
+        .shape-btn {
+            padding: 0.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shape-btn.active {
+            background: rgba(0, 245, 212, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .shape-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .animation-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .animate-btn-small {
+            width: 32px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            border: none;
+            border-radius: 4px;
+            color: var(--bg-primary);
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .animate-btn-small:hover {
+            transform: scale(1.05);
+        }
+
+        .reset-btn-small {
+            width: 32px;
+            height: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .reset-btn-small:hover {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        .animation-row input[type="range"] {
+            flex: 1;
+            height: 5px;
+        }
+
+        .interp-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent-cyan);
+            min-width: 35px;
+            text-align: right;
+        }
+
+        .neuron-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+            padding: 0.3rem 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .neuron-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .neuron-row input[type="range"] {
+            flex: 1;
+            height: 5px;
+        }
+
+        .neuron-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent-magenta);
+            font-weight: bold;
+            min-width: 20px;
+            text-align: right;
+        }
+
+        .slider-container {
+            margin-top: 0.3rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .slider-label span:last-child {
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .animate-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            border: none;
+            border-radius: 5px;
+            color: var(--bg-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .animate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.3);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 0.4rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.3rem;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        @media (max-width: 850px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            .container {
+                height: auto;
+            }
+            .canvas-wrapper {
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="floating-slider" id="floating-slider">
+            <input type="range" id="value-slider" min="-3" max="3" step="0.01" value="0">
+            <span class="slider-value" id="slider-value">0.00</span>
+            <label class="apply-toggle" title="Keep value when clicking away">
+                <input type="checkbox" id="apply-slider-toggle">
+                <span class="apply-label">Apply</span>
+            </label>
+        </div>
+        <header>
+            <button class="help-btn" id="help-btn">Help</button>
+            <h1>How Neural Networks Transform Shapes</h1>
+            <p class="subtitle" id="formula-subtitle">y = σ(W₂ · σ(W₁x + b₁) + b₂)  |  σ = Tanh  |  27 params</p>
+        </header>
+
+        <div class="help-panel" id="help-panel">
+            <div class="help-content">
+                <b>Purpose:</b> Visualize how neural networks transform 2D shapes. Page starts with auto-random mode updating weights/biases continuously. <b>Learn:</b> Weights control rotation/scale/shear, biases control translation, activations add non-linear warping, more neurons = more expressive power. <b>Controls:</b> Click any weight/bias value to auto-animate its effect, click again to pause, drag slider for manual control, check "Apply" to keep changes.
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="canvas-wrapper">
+                <div class="history-bar">
+                    <label class="auto-toggle-compact">
+                        <input type="checkbox" id="auto-random-toggle" checked>
+                        <span class="toggle-switch-tiny"></span>
+                        <span class="auto-label">Auto Random</span>
+                    </label>
+                    <div class="history-divider"></div>
+                    <button class="history-btn" id="history-prev" disabled>◀</button>
+                    <input type="range" id="history-slider" min="0" max="0" value="0" class="history-slider">
+                    <button class="history-btn" id="history-next" disabled>▶</button>
+                    <span class="history-info" id="history-info">0/0</span>
+                </div>
+                <canvas id="canvas"></canvas>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot original"></div>
+                        <span>Original (100 points)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot transformed"></div>
+                        <span>Transformed</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <!-- Shape & Animation -->
+                <div class="panel">
+                    <div class="shape-selector">
+                        <button class="shape-btn" data-shape="line">Line</button>
+                        <button class="shape-btn" data-shape="sine">Sine</button>
+                        <button class="shape-btn" data-shape="circle">Circle</button>
+                        <button class="shape-btn" data-shape="square">Square</button>
+                        <button class="shape-btn" data-shape="triangle">Triangle</button>
+                        <button class="shape-btn active" data-shape="grid">Grid</button>
+                        <button class="shape-btn" data-shape="trigrid">TriGrid</button>
+                        <button class="shape-btn" data-shape="spiral">Spiral</button>
+                    </div>
+                    <div class="animation-row">
+                        <button class="animate-btn-small" id="animate-btn">▶</button>
+                        <button class="reset-btn-small" id="reset-btn">↺</button>
+                        <input type="range" id="interpolation" min="0" max="100" value="100">
+                        <span class="interp-value" id="interp-value">100%</span>
+                    </div>
+                    <div class="neuron-row">
+                        <span class="neuron-label">Neurons:</span>
+                        <input type="range" id="neuron-slider" min="2" max="20" value="5">
+                        <span class="neuron-value" id="neuron-value">5</span>
+                    </div>
+                </div>
+
+                <!-- Layer 1 -->
+                <div class="panel">
+                    <div class="panel-title">
+                        <span class="badge">Layer 1</span>
+                        <span id="layer1-desc">Expand 2 → 5</span>
+                    </div>
+                    <div class="layer-row">
+                        <div class="activation-compact">
+                            <label class="toggle-label-small">
+                                <input type="checkbox" id="act1-toggle" checked>
+                                <span class="toggle-switch-small"></span>
+                            </label>
+                            <select id="act1-select" class="activation-select-small enabled">
+                                <option value="relu">ReLU</option>
+                                <option value="sigmoid">Sigmoid</option>
+                                <option value="tanh" selected>Tanh</option>
+                                <option value="leaky">Leaky</option>
+                                <option value="elu">ELU</option>
+                                <option value="softplus">Softplus</option>
+                            </select>
+                        </div>
+                        <div class="matrices-row">
+                            <div class="matrix-section">
+                                <div class="matrix-label">W₁ <span class="dim" id="w1-dim">(5×2)</span></div>
+                                <div class="matrix-container">
+                                    <div class="matrix-grid w1" id="w1-grid">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="matrix-section">
+                                <div class="matrix-label">b₁ <span class="dim" id="b1-dim">(5×1)</span></div>
+                                <div class="matrix-container">
+                                    <div class="matrix-grid b1" id="b1-grid">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer 2 -->
+                <div class="panel">
+                    <div class="panel-title">
+                        <span class="badge layer2">Layer 2</span>
+                        <span id="layer2-desc">Compress 5 → 2</span>
+                    </div>
+                    <div class="layer-row">
+                        <div class="activation-compact">
+                            <label class="toggle-label-small">
+                                <input type="checkbox" id="act2-toggle" checked>
+                                <span class="toggle-switch-small"></span>
+                            </label>
+                            <select id="act2-select" class="activation-select-small enabled">
+                                <option value="relu">ReLU</option>
+                                <option value="sigmoid">Sigmoid</option>
+                                <option value="tanh" selected>Tanh</option>
+                                <option value="leaky">Leaky</option>
+                                <option value="elu">ELU</option>
+                                <option value="softplus">Softplus</option>
+                            </select>
+                        </div>
+                        <div class="matrices-row">
+                            <div class="matrix-section">
+                                <div class="matrix-label layer2">W₂ <span class="dim" id="w2-dim">(2×5)</span></div>
+                                <div class="matrix-container layer2">
+                                    <div class="matrix-grid w2" id="w2-grid">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="matrix-section">
+                                <div class="matrix-label layer2">b₂ <span class="dim">(2×1)</span></div>
+                                <div class="matrix-container layer2">
+                                    <div class="matrix-grid b2" id="b2-grid">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Controls
+        const interpolationSlider = document.getElementById('interpolation');
+        const interpValueEl = document.getElementById('interp-value');
+        const animateBtn = document.getElementById('animate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        // Activation controls
+        const act1Toggle = document.getElementById('act1-toggle');
+        const act1Select = document.getElementById('act1-select');
+        const act2Toggle = document.getElementById('act2-toggle');
+        const act2Select = document.getElementById('act2-select');
+        
+        let currentShape = 'grid';
+        let points = [];
+        let isAnimating = false;
+        let animationId = null;
+        let autoRandomInterval = null;
+        let isAutoRandom = true; // Start with auto-random enabled
+        
+        // Target matrices for animation interpolation
+        let targetW1, targetB1, targetW2, targetB2;
+        
+        // Number of neurons in hidden layer (configurable 1-20)
+        let numNeurons = 5;
+        
+        // History for stepping back through random configurations
+        const maxHistoryLength = 200;
+        let history = [];
+        let historyIndex = -1;
+        
+        function saveToHistory() {
+            const state = {
+                W1: JSON.parse(JSON.stringify(W1)),
+                b1: [...b1],
+                W2: JSON.parse(JSON.stringify(W2)),
+                b2: [...b2],
+                numNeurons: numNeurons,
+                act1Enabled: act1Toggle.checked,
+                act1Value: act1Select.value,
+                act2Enabled: act2Toggle.checked,
+                act2Value: act2Select.value,
+                shape: currentShape
+            };
+            
+            history.push(state);
+            
+            // Keep only last maxHistoryLength entries
+            if (history.length > maxHistoryLength) {
+                history.shift();
+            }
+            
+            historyIndex = history.length - 1;
+            updateHistoryUI();
+        }
+        
+        function loadFromHistory(index) {
+            if (index < 0 || index >= history.length) return;
+            
+            const state = history[index];
+            historyIndex = index;
+            
+            // Check if neuron count changed
+            if (state.numNeurons !== numNeurons) {
+                numNeurons = Math.max(2, state.numNeurons); // Ensure minimum of 2
+                identityW1 = getIdentityW1();
+                identityB1 = getIdentityB1();
+                identityW2 = getIdentityW2();
+                identityB2 = getIdentityB2();
+                initInputs();
+                document.getElementById('layer1-desc').textContent = `Expand 2 → ${numNeurons}`;
+                document.getElementById('layer2-desc').textContent = `Compress ${numNeurons} → 2`;
+                document.getElementById('neuron-slider').value = numNeurons;
+                document.getElementById('neuron-value').textContent = numNeurons;
+            }
+            
+            // Restore matrices
+            W1 = JSON.parse(JSON.stringify(state.W1));
+            b1 = [...state.b1];
+            W2 = JSON.parse(JSON.stringify(state.W2));
+            b2 = [...state.b2];
+            
+            // Restore activations
+            act1Toggle.checked = state.act1Enabled;
+            act1Select.value = state.act1Value;
+            act2Toggle.checked = state.act2Enabled;
+            act2Select.value = state.act2Value;
+            
+            // Restore shape
+            if (state.shape && state.shape !== currentShape) {
+                currentShape = state.shape;
+                points = generatePoints(currentShape);
+                // Update shape button UI
+                document.querySelectorAll('.shape-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.shape === currentShape);
+                });
+            }
+            
+            // Update targets
+            targetW1 = JSON.parse(JSON.stringify(W1));
+            targetB1 = [...b1];
+            targetW2 = JSON.parse(JSON.stringify(W2));
+            targetB2 = [...b2];
+            
+            // Update UI
+            setMatrixInputs(w1Inputs, W1);
+            setMatrixInputs(b1Inputs, b1.map(v => [v]));
+            setMatrixInputs(w2Inputs, W2);
+            setMatrixInputs(b2Inputs, b2.map(v => [v]));
+            updateActivationUI();
+            updateSubtitle();
+            updateHistoryUI();
+            draw();
+        }
+        
+        function updateHistoryUI() {
+            const historyInfo = document.getElementById('history-info');
+            const prevBtn = document.getElementById('history-prev');
+            const nextBtn = document.getElementById('history-next');
+            const historySlider = document.getElementById('history-slider');
+            
+            if (historyInfo) {
+                historyInfo.textContent = `${historyIndex + 1}/${history.length}`;
+            }
+            if (prevBtn) {
+                prevBtn.disabled = historyIndex <= 0;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = historyIndex >= history.length - 1;
+            }
+            if (historySlider) {
+                historySlider.max = Math.max(0, history.length - 1);
+                historySlider.value = historyIndex >= 0 ? historyIndex : 0;
+            }
+        }
+        
+        // Forward declaration for user interaction handler
+        function onUserInteraction() {
+            const toggle = document.getElementById('auto-random-toggle');
+            if (toggle) toggle.checked = false;
+            if (autoRandomInterval) {
+                clearInterval(autoRandomInterval);
+                autoRandomInterval = null;
+                // Only sync UI with current values if not actively editing with float slider
+                // Check typeof to avoid reference error before activeInput is declared
+                const isEditing = typeof activeInput !== 'undefined' && activeInput !== null;
+                if (!isEditing && w1Inputs && w2Inputs && W1 && b1 && W2 && b2) {
+                    setMatrixInputs(w1Inputs, W1);
+                    setMatrixInputs(b1Inputs, b1.map(v => [v]));
+                    setMatrixInputs(w2Inputs, W2);
+                    setMatrixInputs(b2Inputs, b2.map(v => [v]));
+                }
+            }
+            isAutoRandom = false;
+        }
+        
+        // Activation functions
+        const activations = {
+            relu: x => Math.max(0, x),
+            sigmoid: x => 1 / (1 + Math.exp(-x)),
+            tanh: x => Math.tanh(x),
+            leaky: x => x > 0 ? x : 0.01 * x,
+            elu: x => x > 0 ? x : Math.exp(x) - 1,
+            softplus: x => Math.log(1 + Math.exp(x))
+        };
+        
+        // Apply activation to vector
+        function applyActivation(vec, actName) {
+            if (!vec || !vec.length) return vec || [];
+            const fn = activations[actName] || (x => x);
+            return vec.map(v => fn(v || 0));
+        }
+        
+        // Matrix storage
+        let W1 = []; // 5x2
+        let b1 = []; // 5x1
+        let W2 = []; // 2x5
+        let b2 = []; // 2x1
+        
+        // Dynamic identity matrices based on neuron count
+        function getIdentityW1() {
+            const w = [];
+            for (let i = 0; i < numNeurons; i++) {
+                if (i === 0) w.push([1, 0]);
+                else if (i === 1) w.push([0, 1]);
+                else w.push([0, 0]);
+            }
+            return w;
+        }
+        
+        function getIdentityB1() {
+            return Array(numNeurons).fill(0);
+        }
+        
+        function getIdentityW2() {
+            const w = [[], []];
+            for (let j = 0; j < numNeurons; j++) {
+                w[0].push(j === 0 ? 1 : 0);
+                w[1].push(j === 1 ? 1 : 0);
+            }
+            return w;
+        }
+        
+        function getIdentityB2() {
+            return [0, 0];
+        }
+        
+        // Current identity matrices (updated when neuron count changes)
+        let identityW1 = getIdentityW1();
+        let identityB1 = getIdentityB1();
+        let identityW2 = getIdentityW2();
+        let identityB2 = getIdentityB2();
+        
+        // Generate identity preset for reset
+        function getIdentityPreset() {
+            const n = numNeurons;
+            const W1 = [];
+            for (let i = 0; i < n; i++) {
+                if (i === 0) W1.push([1, 0]);
+                else if (i === 1) W1.push([0, 1]);
+                else W1.push([0, 0]);
+            }
+            const b1 = Array(n).fill(0);
+            const W2 = [[], []];
+            for (let j = 0; j < n; j++) {
+                W2[0].push(j === 0 ? 1 : 0);
+                W2[1].push(j === 1 ? 1 : 0);
+            }
+            return { W1, b1, W2, b2: [0, 0] };
+        }
+        
+        // Floating slider state
+        let activeInput = null;
+        let activeInputInitialValue = null;
+        let sliderJustShown = false;
+        let sliderAnimationId = null;
+        let sliderAnimationDirection = 1;
+        let isSliderAnimating = false;
+        let userInteractedWithSlider = false; // Track if user manually changed slider
+        let sliderAnimationPaused = false; // Track if animation is paused
+        const floatingSlider = document.getElementById('floating-slider');
+        const valueSlider = document.getElementById('value-slider');
+        const sliderValueDisplay = document.getElementById('slider-value');
+        const applySliderToggle = document.getElementById('apply-slider-toggle');
+        
+        function startSliderAnimation() {
+            if (sliderAnimationId) cancelAnimationFrame(sliderAnimationId);
+            isSliderAnimating = true;
+            sliderAnimationDirection = 1;
+            
+            function animateSlider() {
+                if (!isSliderAnimating || !activeInput) {
+                    sliderAnimationId = null;
+                    return;
+                }
+                
+                let currentVal = parseFloat(valueSlider.value);
+                const speed = 0.03;
+                
+                currentVal += speed * sliderAnimationDirection;
+                
+                // Reverse direction at bounds
+                if (currentVal >= 3) {
+                    currentVal = 3;
+                    sliderAnimationDirection = -1;
+                } else if (currentVal <= -3) {
+                    currentVal = -3;
+                    sliderAnimationDirection = 1;
+                }
+                
+                valueSlider.value = currentVal;
+                const displayValue = currentVal.toFixed(2);
+                sliderValueDisplay.textContent = displayValue;
+                activeInput.value = displayValue;
+                
+                // Update matrices and redraw
+                updateMatricesFromInputs();
+                targetW1 = JSON.parse(JSON.stringify(W1));
+                targetB1 = [...b1];
+                targetW2 = JSON.parse(JSON.stringify(W2));
+                targetB2 = [...b2];
+                draw();
+                
+                sliderAnimationId = requestAnimationFrame(animateSlider);
+            }
+            
+            sliderAnimationId = requestAnimationFrame(animateSlider);
+        }
+        
+        function stopSliderAnimation() {
+            isSliderAnimating = false;
+            if (sliderAnimationId) {
+                cancelAnimationFrame(sliderAnimationId);
+                sliderAnimationId = null;
+            }
+        }
+        
+        function showFloatSlider(input) {
+            // If clicking on the same input that's already active
+            if (activeInput === input) {
+                // Toggle animation pause/resume
+                if (isSliderAnimating) {
+                    // Pause animation
+                    stopSliderAnimation();
+                    sliderAnimationPaused = true;
+                    floatingSlider.classList.add('paused');
+                } else if (sliderAnimationPaused) {
+                    // Resume animation
+                    sliderAnimationPaused = false;
+                    floatingSlider.classList.remove('paused');
+                    startSliderAnimation();
+                }
+                return;
+            }
+            
+            // If there's a different active input, handle it first
+            if (activeInput && activeInput !== input) {
+                // Remove active class from previous input
+                activeInput.classList.remove('active');
+                
+                const shouldKeepValue = userInteractedWithSlider || applySliderToggle.checked;
+                
+                if (!shouldKeepValue && activeInputInitialValue !== null) {
+                    // Preview mode, restore previous value
+                    activeInput.value = activeInputInitialValue;
+                    updateMatricesFromInputs();
+                    targetW1 = JSON.parse(JSON.stringify(W1));
+                    targetB1 = [...b1];
+                    targetW2 = JSON.parse(JSON.stringify(W2));
+                    targetB2 = [...b2];
+                    draw();
+                } else if (shouldKeepValue && activeInputInitialValue !== activeInput.value) {
+                    // Apply mode or manual interaction, save to history
+                    saveToHistory();
+                }
+            }
+            
+            stopSliderAnimation();
+            
+            activeInput = input;
+            activeInputInitialValue = input.value;
+            userInteractedWithSlider = false; // Reset interaction flag
+            sliderAnimationPaused = false; // Reset pause state
+            sliderJustShown = true;
+            setTimeout(() => { sliderJustShown = false; }, 200);
+            
+            const rect = input.getBoundingClientRect();
+            const value = parseFloat(input.value) || 0;
+            
+            // Position above the input, or below if not enough space
+            const sliderHeight = 40;
+            let top = rect.top - sliderHeight;
+            if (top < 10) {
+                top = rect.bottom + 5;
+            }
+            
+            floatingSlider.style.left = `${Math.max(10, rect.left - 50)}px`;
+            floatingSlider.style.top = `${top}px`;
+            
+            // Set slider value directly (-3 to 3 range)
+            valueSlider.value = Math.max(-3, Math.min(3, value));
+            sliderValueDisplay.textContent = value.toFixed(2);
+            
+            floatingSlider.classList.add('visible');
+            floatingSlider.classList.remove('paused');
+            floatingSlider.classList.toggle('apply-mode', applySliderToggle.checked);
+            
+            // Add active class to input
+            input.classList.add('active');
+            
+            // Start auto-animation
+            startSliderAnimation();
+        }
+        
+        function hideFloatSlider() {
+            stopSliderAnimation();
+            floatingSlider.classList.remove('visible');
+            floatingSlider.classList.remove('apply-mode');
+            floatingSlider.classList.remove('paused');
+            
+            // Remove active class from input
+            if (activeInput) {
+                activeInput.classList.remove('active');
+            }
+            
+            // Determine if we should keep the value
+            // Keep if: user manually interacted OR apply toggle is checked
+            const shouldKeepValue = userInteractedWithSlider || applySliderToggle.checked;
+            
+            if (activeInput && activeInputInitialValue !== null) {
+                if (shouldKeepValue) {
+                    // User made a change or apply mode is on, save to history if different
+                    if (activeInputInitialValue !== activeInput.value) {
+                        saveToHistory();
+                    }
+                } else {
+                    // Preview mode only, restore original value
+                    activeInput.value = activeInputInitialValue;
+                    updateMatricesFromInputs();
+                    targetW1 = JSON.parse(JSON.stringify(W1));
+                    targetB1 = [...b1];
+                    targetW2 = JSON.parse(JSON.stringify(W2));
+                    targetB2 = [...b2];
+                    draw();
+                }
+            }
+            
+            activeInput = null;
+            activeInputInitialValue = null;
+            userInteractedWithSlider = false;
+            sliderAnimationPaused = false;
+        }
+        
+        function updateFromSlider() {
+            if (!activeInput) return;
+            const value = parseFloat(valueSlider.value).toFixed(2);
+            activeInput.value = value;
+            sliderValueDisplay.textContent = value;
+            
+            // Update matrices and redraw
+            updateMatricesFromInputs();
+            targetW1 = JSON.parse(JSON.stringify(W1));
+            targetB1 = [...b1];
+            targetW2 = JSON.parse(JSON.stringify(W2));
+            targetB2 = [...b2];
+            draw();
+        }
+        
+        // Stop animation and mark as user interaction when user touches slider
+        valueSlider.addEventListener('mousedown', () => {
+            stopSliderAnimation();
+            sliderAnimationPaused = true;
+            floatingSlider.classList.add('paused');
+            userInteractedWithSlider = true;
+        });
+        
+        valueSlider.addEventListener('touchstart', () => {
+            stopSliderAnimation();
+            sliderAnimationPaused = true;
+            floatingSlider.classList.add('paused');
+            userInteractedWithSlider = true;
+        }, { passive: true });
+        
+        valueSlider.addEventListener('input', updateFromSlider);
+        
+        // Toggle apply mode visual
+        applySliderToggle.addEventListener('change', () => {
+            floatingSlider.classList.toggle('apply-mode', applySliderToggle.checked);
+        });
+        
+        // Keep slider visible when interacting with it
+        floatingSlider.addEventListener('mousedown', (e) => {
+            // Only prevent default if NOT clicking on the slider or apply toggle
+            // This allows the slider and toggle to work while preventing focus loss
+            const isSlider = e.target === valueSlider;
+            const isToggle = e.target.closest('.apply-toggle');
+            if (!isSlider && !isToggle) {
+                e.preventDefault();
+            }
+            e.stopPropagation();
+        });
+        
+        floatingSlider.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+        
+        // Ensure slider works by preventing any blur-related hiding
+        let sliderHovering = false;
+        floatingSlider.addEventListener('mouseenter', () => {
+            sliderHovering = true;
+        });
+        floatingSlider.addEventListener('mouseleave', () => {
+            sliderHovering = false;
+        });
+        
+        // Global click handler to hide slider when clicking outside
+        document.addEventListener('click', (e) => {
+            // Use a small delay to let other handlers process first
+            setTimeout(() => {
+                if (!activeInput) return;
+                if (sliderHovering) return;
+                if (sliderJustShown) return;
+                
+                // Check if click is on the floating slider or its children
+                if (floatingSlider.contains(e.target)) return;
+                
+                // Check if click is on a matrix input (handled by input's click handler)
+                const isMatrixInput = e.target.closest('.matrix-cell input');
+                if (isMatrixInput) {
+                    return;
+                }
+                
+                // Click was elsewhere, hide the slider (it will handle restoring/saving)
+                hideFloatSlider();
+            }, 50);
+        }, true);
+        
+        // Create input grids
+        function createInputGrid(containerId, rows, cols, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const inputs = [];
+            
+            for (let r = 0; r < rows; r++) {
+                const rowInputs = [];
+                for (let c = 0; c < cols; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `${prefix}_${r}_${c}`;
+                    input.value = '0';
+                    input.readOnly = true; // Make read-only - values only changed by slider
+                    input.style.cursor = 'pointer';
+                    input.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        // Stop auto-random if running
+                        if (autoRandomInterval) {
+                            onUserInteraction();
+                        }
+                        showFloatSlider(input);
+                    });
+                    // Prevent focus outline since it's read-only
+                    input.addEventListener('focus', (e) => {
+                        e.target.blur();
+                    });
+                    cell.appendChild(input);
+                    container.appendChild(cell);
+                    rowInputs.push(input);
+                }
+                inputs.push(rowInputs);
+            }
+            return inputs;
+        }
+        
+        // Input element references
+        let w1Inputs, b1Inputs, w2Inputs, b2Inputs;
+        
+        function initInputs() {
+            w1Inputs = createInputGrid('w1-grid', numNeurons, 2, 'w1');
+            b1Inputs = createInputGrid('b1-grid', numNeurons, 1, 'b1');
+            w2Inputs = createInputGrid('w2-grid', 2, numNeurons, 'w2');
+            b2Inputs = createInputGrid('b2-grid', 2, 1, 'b2');
+            
+            // Update dimension labels
+            document.getElementById('w1-dim').textContent = `(${numNeurons}×2)`;
+            document.getElementById('b1-dim').textContent = `(${numNeurons}×1)`;
+            document.getElementById('w2-dim').textContent = `(2×${numNeurons})`;
+        }
+        
+        function changeNeuronCount(newCount) {
+            numNeurons = Math.max(2, newCount); // Ensure minimum of 2
+            
+            // Update identity matrices
+            identityW1 = getIdentityW1();
+            identityB1 = getIdentityB1();
+            identityW2 = getIdentityW2();
+            identityB2 = getIdentityB2();
+            
+            // Reinitialize inputs
+            initInputs();
+            
+            // Update layer description labels
+            document.getElementById('layer1-desc').textContent = `Expand 2 → ${numNeurons}`;
+            document.getElementById('layer2-desc').textContent = `Compress ${numNeurons} → 2`;
+            
+            // Set to random preset
+            const preset = generateRandomPreset();
+            setPreset(preset);
+        }
+        
+        function setMatrixInputs(inputs, matrix) {
+            if (!inputs || !matrix) return;
+            for (let r = 0; r < matrix.length && r < inputs.length; r++) {
+                if (Array.isArray(matrix[r])) {
+                    for (let c = 0; c < matrix[r].length && inputs[r] && c < inputs[r].length; c++) {
+                        if (inputs[r][c]) inputs[r][c].value = matrix[r][c];
+                    }
+                } else {
+                    if (inputs[r] && inputs[r][0]) inputs[r][0].value = matrix[r];
+                }
+            }
+        }
+        
+        function getMatrixFromInputs(inputs, rows, cols) {
+            if (!inputs) return Array(rows).fill().map(() => Array(cols).fill(0));
+            const matrix = [];
+            for (let r = 0; r < rows; r++) {
+                const row = [];
+                for (let c = 0; c < cols; c++) {
+                    const val = (inputs[r] && inputs[r][c]) ? (parseFloat(inputs[r][c].value) || 0) : 0;
+                    row.push(val);
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+        
+        function updateMatricesFromInputs() {
+            W1 = getMatrixFromInputs(w1Inputs, numNeurons, 2);
+            const b1Matrix = getMatrixFromInputs(b1Inputs, numNeurons, 1);
+            b1 = b1Matrix.map(row => row[0]); // Flatten to 1D array
+            W2 = getMatrixFromInputs(w2Inputs, 2, numNeurons);
+            const b2Matrix = getMatrixFromInputs(b2Inputs, 2, 1);
+            b2 = b2Matrix.map(row => row[0]); // Flatten to 1D array
+        }
+        
+        function setPreset(preset) {
+            setMatrixInputs(w1Inputs, preset.W1);
+            setMatrixInputs(b1Inputs, preset.b1.map(v => [v]));
+            setMatrixInputs(w2Inputs, preset.W2);
+            setMatrixInputs(b2Inputs, preset.b2.map(v => [v]));
+            updateMatricesFromInputs();
+            // Also set as target for slider interpolation
+            targetW1 = JSON.parse(JSON.stringify(W1));
+            targetB1 = [...b1];
+            targetW2 = JSON.parse(JSON.stringify(W2));
+            targetB2 = [...b2];
+            draw();
+        }
+        
+        function generateRandomPreset() {
+            // Generate random values with good scaling for visible effects
+            const randW = () => (Math.random() * 2 - 1).toFixed(2) * 1;
+            const randB = () => (Math.random() * 1 - 0.5).toFixed(2) * 1;
+            
+            return {
+                W1: Array(numNeurons).fill().map(() => Array(2).fill().map(randW)),
+                b1: Array(numNeurons).fill().map(randB),
+                W2: Array(2).fill().map(() => Array(numNeurons).fill().map(randW)),
+                b2: Array(2).fill().map(randB)
+            };
+        }
+        
+        // Generate 100 points for different shapes
+        function generatePoints(shape) {
+            const pts = [];
+            const n = 100;
+            
+            switch(shape) {
+                case 'line':
+                    for (let i = 0; i < n; i++) {
+                        const t = (i / (n - 1)) * 2 - 1;
+                        pts.push([t, t]);
+                    }
+                    break;
+                    
+                case 'circle':
+                    for (let i = 0; i < n; i++) {
+                        const angle = (i / n) * Math.PI * 2;
+                        pts.push([Math.cos(angle), Math.sin(angle)]);
+                    }
+                    break;
+                    
+                case 'square':
+                    const side = n / 4;
+                    for (let i = 0; i < side; i++) {
+                        const t = (i / side) * 2 - 1;
+                        pts.push([t, -1]);
+                    }
+                    for (let i = 0; i < side; i++) {
+                        const t = (i / side) * 2 - 1;
+                        pts.push([1, t]);
+                    }
+                    for (let i = 0; i < side; i++) {
+                        const t = (i / side) * 2 - 1;
+                        pts.push([-t, 1]);
+                    }
+                    for (let i = 0; i < side; i++) {
+                        const t = (i / side) * 2 - 1;
+                        pts.push([-1, -t]);
+                    }
+                    break;
+                    
+                case 'triangle':
+                    const triSide = n / 3;
+                    // Bottom edge: (-1, -0.7) to (1, -0.7)
+                    for (let i = 0; i < triSide; i++) {
+                        const t = (i / triSide) * 2 - 1;
+                        pts.push([t, -0.7]);
+                    }
+                    // Right edge: (1, -0.7) to (0, 1)
+                    for (let i = 0; i < triSide; i++) {
+                        const t = i / triSide;
+                        pts.push([1 - t, -0.7 + t * 1.7]);
+                    }
+                    // Left edge: (0, 1) to (-1, -0.7)
+                    for (let i = 0; i < triSide; i++) {
+                        const t = i / triSide;
+                        pts.push([-t, 1 - t * 1.7]);
+                    }
+                    break;
+                    
+                case 'grid':
+                    const gridSize = Math.floor(Math.sqrt(n));
+                    for (let i = 0; i < gridSize; i++) {
+                        for (let j = 0; j < gridSize; j++) {
+                            const x = (i / (gridSize - 1)) * 2 - 1;
+                            const y = (j / (gridSize - 1)) * 2 - 1;
+                            pts.push([x, y]);
+                        }
+                    }
+                    break;
+                
+                case 'trigrid':
+                    // Triangular grid pattern
+                    const rows = 10;
+                    let idx = 0;
+                    for (let row = 0; row < rows && idx < n; row++) {
+                        const y = (row / (rows - 1)) * 2 - 1;
+                        const cols = rows - row;
+                        for (let col = 0; col < cols && idx < n; col++) {
+                            const x = (col / (cols - 1 || 1)) * (1 - row/(rows-1)) * 2 - (1 - row/(rows-1));
+                            pts.push([x, y]);
+                            idx++;
+                        }
+                    }
+                    // Fill remaining points
+                    while (pts.length < n) {
+                        pts.push([0, 0]);
+                    }
+                    break;
+                    
+                case 'spiral':
+                    for (let i = 0; i < n; i++) {
+                        const t = i / n;
+                        const angle = t * Math.PI * 6;
+                        const r = t;
+                        pts.push([Math.cos(angle) * r, Math.sin(angle) * r]);
+                    }
+                    break;
+                    
+                case 'sine':
+                    // 3 full waves of sine
+                    for (let i = 0; i < n; i++) {
+                        const t = i / (n - 1);
+                        const x = t * 2 - 1; // -1 to 1
+                        const y = Math.sin(t * Math.PI * 6) * 0.7; // 3 full waves
+                        pts.push([x, y]);
+                    }
+                    break;
+            }
+            
+            return pts;
+        }
+        
+        // Matrix-vector multiplication
+        function matVec(M, v) {
+            if (!M || !v) return [];
+            const result = [];
+            for (let i = 0; i < M.length; i++) {
+                let sum = 0;
+                if (M[i]) {
+                    for (let j = 0; j < v.length && j < M[i].length; j++) {
+                        sum += (M[i][j] || 0) * (v[j] || 0);
+                    }
+                }
+                result.push(sum);
+            }
+            return result;
+        }
+        
+        // Vector addition
+        function vecAdd(a, b) {
+            if (!a || !b) return a || b || [];
+            return a.map((v, i) => (v || 0) + (b[i] || 0));
+        }
+        
+        // Transform a point through the 2-layer network
+        function transformPoint(point, t = 1) {
+            const [x, y] = point;
+            
+            // Safety check - ensure matrices match current neuron count
+            if (!W1 || !W2 || W1.length !== numNeurons || W2[0].length !== numNeurons) {
+                return [x, y]; // Return unchanged if matrices not ready
+            }
+            
+            // Interpolate matrices from identity
+            const interpW1 = W1.map((row, i) => 
+                row.map((val, j) => {
+                    const idVal = identityW1[i] && identityW1[i][j] !== undefined ? identityW1[i][j] : 0;
+                    return idVal + (val - idVal) * t;
+                })
+            );
+            const interpB1 = b1.map((val, i) => {
+                const idVal = identityB1[i] !== undefined ? identityB1[i] : 0;
+                return idVal + (val - idVal) * t;
+            });
+            const interpW2 = W2.map((row, i) => 
+                row.map((val, j) => {
+                    const idVal = identityW2[i] && identityW2[i][j] !== undefined ? identityW2[i][j] : 0;
+                    return idVal + (val - idVal) * t;
+                })
+            );
+            const interpB2 = b2.map((val, i) => {
+                const idVal = identityB2[i] !== undefined ? identityB2[i] : 0;
+                return idVal + (val - idVal) * t;
+            });
+            
+            // Layer 1: h = W1*x + b1
+            let h = vecAdd(matVec(interpW1, [x, y]), interpB1);
+            
+            // Apply activation 1 if enabled
+            if (act1Toggle.checked) {
+                h = applyActivation(h, act1Select.value);
+            }
+            
+            // Layer 2: y = W2*h + b2
+            let output = vecAdd(matVec(interpW2, h), interpB2);
+            
+            // Apply activation 2 if enabled
+            if (act2Toggle.checked) {
+                output = applyActivation(output, act2Select.value);
+            }
+            
+            return output;
+        }
+        
+        // Draw everything
+        function draw() {
+            const width = canvas.width;
+            const height = canvas.height;
+            if (width === 0 || height === 0) return;
+            
+            const scale = Math.min(width, height) / 5; // Zoomed in to show -2 to 2 range
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            // Clear
+            ctx.fillStyle = '#080810';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            
+            for (let i = -2; i <= 2; i++) {
+                ctx.beginPath();
+                ctx.moveTo(cx + i * scale, 0);
+                ctx.lineTo(cx + i * scale, height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, cy + i * scale);
+                ctx.lineTo(width, cy + i * scale);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(width, cy);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, height);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.font = '14px JetBrains Mono';
+            ctx.fillText('x', width - 20, cy - 10);
+            ctx.fillText('y', cx + 10, 20);
+            
+            // Draw scale labels on axes
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = '10px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            // X-axis labels
+            for (let i = -2; i <= 2; i++) {
+                if (i === 0) continue; // Skip 0
+                const px = cx + i * scale;
+                ctx.fillText(i.toString(), px, cy + 5);
+                
+                // Tick mark
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(px, cy - 3);
+                ctx.lineTo(px, cy + 3);
+                ctx.stroke();
+            }
+            
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let i = -2; i <= 2; i++) {
+                if (i === 0) continue; // Skip 0
+                const py = cy - i * scale;
+                ctx.fillText(i.toString(), cx - 6, py);
+                
+                // Tick mark
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx - 3, py);
+                ctx.lineTo(cx + 3, py);
+                ctx.stroke();
+            }
+            
+            // Origin label
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            ctx.fillText('0', cx - 6, cy + 5);
+            
+            // Get interpolation value
+            const t = interpolationSlider.value / 100;
+            
+            // Draw original points with gradient color (dark to bright cyan)
+            for (let i = 0; i < points.length; i++) {
+                const point = points[i];
+                const [x, y] = point;
+                const px = cx + x * scale;
+                const py = cy - y * scale;
+                
+                // Gradient from dark to bright cyan
+                const ti = i / points.length;
+                const r = Math.round(0 + ti * 50);
+                const g = Math.round(80 + ti * 175);
+                const b = Math.round(100 + ti * 155);
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                
+                ctx.beginPath();
+                ctx.arc(px, py, 1.56, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw transformed points with gradient color (dark to bright magenta)
+            for (let i = 0; i < points.length; i++) {
+                const point = points[i];
+                const [tx, ty] = transformPoint(point, t);
+                const px = cx + tx * scale;
+                const py = cy - ty * scale;
+                
+                // Gradient from dark to bright magenta/pink
+                const ti = i / points.length;
+                const r = Math.round(80 + ti * 175);
+                const g = Math.round(20 + ti * 60);
+                const b = Math.round(60 + ti * 140);
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                
+                // Clamp to visible area
+                if (px > -50 && px < width + 50 && py > -50 && py < height + 50) {
+                    ctx.beginPath();
+                    ctx.arc(px, py, 1.56, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Animation
+        function animate() {
+            if (!isAnimating) return;
+            
+            // Safety check for matching dimensions
+            if (!targetW1 || !targetB1 || !targetW2 || !targetB2 ||
+                targetW1.length !== numNeurons || targetW2[0].length !== numNeurons) {
+                isAnimating = false;
+                animateBtn.textContent = '▶';
+                return;
+            }
+            
+            let value = parseFloat(interpolationSlider.value);
+            value += 1.5;
+            
+            if (value > 100) {
+                value = 100;
+                isAnimating = false;
+                animateBtn.textContent = '▶';
+            }
+            
+            // Calculate interpolated values for display only
+            const t = value / 100;
+            const interpW1 = targetW1.map((row, i) => 
+                row.map((val, j) => {
+                    const idVal = identityW1[i] && identityW1[i][j] !== undefined ? identityW1[i][j] : 0;
+                    return (idVal + (val - idVal) * t).toFixed(2) * 1;
+                })
+            );
+            const interpB1 = targetB1.map((val, i) => {
+                const idVal = identityB1[i] !== undefined ? identityB1[i] : 0;
+                return (idVal + (val - idVal) * t).toFixed(2) * 1;
+            });
+            const interpW2 = targetW2.map((row, i) => 
+                row.map((val, j) => {
+                    const idVal = identityW2[i] && identityW2[i][j] !== undefined ? identityW2[i][j] : 0;
+                    return (idVal + (val - idVal) * t).toFixed(2) * 1;
+                })
+            );
+            const interpB2 = targetB2.map((val, i) => {
+                const idVal = identityB2[i] !== undefined ? identityB2[i] : 0;
+                return (idVal + (val - idVal) * t).toFixed(2) * 1;
+            });
+            
+            // Update UI with interpolated values (display only)
+            setMatrixInputs(w1Inputs, interpW1);
+            setMatrixInputs(b1Inputs, interpB1.map(v => [v]));
+            setMatrixInputs(w2Inputs, interpW2);
+            setMatrixInputs(b2Inputs, interpB2.map(v => [v]));
+            
+            interpolationSlider.value = value;
+            interpValueEl.textContent = Math.round(value) + '%';
+            draw();
+            
+            if (isAnimating) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // Event listeners
+        interpolationSlider.addEventListener('input', () => {
+            const value = parseFloat(interpolationSlider.value);
+            interpValueEl.textContent = Math.round(value) + '%';
+            
+            // If we have target values with matching dimensions, show interpolated W and B
+            if (targetW1 && targetB1 && targetW2 && targetB2 && 
+                targetW1.length === numNeurons && targetW2[0].length === numNeurons) {
+                const t = value / 100;
+                const interpW1 = targetW1.map((row, i) => 
+                    row.map((val, j) => {
+                        const idVal = identityW1[i] && identityW1[i][j] !== undefined ? identityW1[i][j] : 0;
+                        return (idVal + (val - idVal) * t).toFixed(2) * 1;
+                    })
+                );
+                const interpB1 = targetB1.map((val, i) => {
+                    const idVal = identityB1[i] !== undefined ? identityB1[i] : 0;
+                    return (idVal + (val - idVal) * t).toFixed(2) * 1;
+                });
+                const interpW2 = targetW2.map((row, i) => 
+                    row.map((val, j) => {
+                        const idVal = identityW2[i] && identityW2[i][j] !== undefined ? identityW2[i][j] : 0;
+                        return (idVal + (val - idVal) * t).toFixed(2) * 1;
+                    })
+                );
+                const interpB2 = targetB2.map((val, i) => {
+                    const idVal = identityB2[i] !== undefined ? identityB2[i] : 0;
+                    return (idVal + (val - idVal) * t).toFixed(2) * 1;
+                });
+                
+                // Update UI with interpolated values
+                setMatrixInputs(w1Inputs, interpW1);
+                setMatrixInputs(b1Inputs, interpB1.map(v => [v]));
+                setMatrixInputs(w2Inputs, interpW2);
+                setMatrixInputs(b2Inputs, interpB2.map(v => [v]));
+            }
+            
+            draw();
+        });
+        
+        animateBtn.addEventListener('click', () => {
+            onUserInteraction(); // Stop auto-random when animating
+            if (isAnimating) {
+                isAnimating = false;
+                cancelAnimationFrame(animationId);
+                animateBtn.textContent = '▶';
+                // Restore display to show target values
+                if (w1Inputs && W1 && b1 && W2 && b2) {
+                    setMatrixInputs(w1Inputs, W1);
+                    setMatrixInputs(b1Inputs, b1.map(v => [v]));
+                    setMatrixInputs(w2Inputs, W2);
+                    setMatrixInputs(b2Inputs, b2.map(v => [v]));
+                }
+            } else {
+                // Store current values as target for animation
+                if (W1 && b1 && W2 && b2) {
+                    targetW1 = JSON.parse(JSON.stringify(W1));
+                    targetB1 = [...b1];
+                    targetW2 = JSON.parse(JSON.stringify(W2));
+                    targetB2 = [...b2];
+                    
+                    interpolationSlider.value = 0;
+                    interpValueEl.textContent = '0%';
+                    isAnimating = true;
+                    animateBtn.textContent = '⏸';
+                    animate();
+                }
+            }
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            onUserInteraction();
+            setPreset(getIdentityPreset());
+            // Reset activations to tanh (default)
+            act1Toggle.checked = true;
+            act2Toggle.checked = true;
+            act1Select.value = 'tanh';
+            act2Select.value = 'tanh';
+            updateActivationUI();
+            updateSubtitle();
+            // Save to history
+            saveToHistory();
+        });
+        
+        // Shape buttons
+        document.querySelectorAll('.shape-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Don't stop auto-random when changing shapes - let it continue
+                document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentShape = btn.dataset.shape;
+                points = generatePoints(currentShape);
+                // Save to history when shape changes
+                saveToHistory();
+                draw();
+            });
+        });
+        
+        // Handle canvas resize
+        function resizeCanvas() {
+            const wrapper = canvas.parentElement;
+            const rect = wrapper.getBoundingClientRect();
+            const size = Math.floor(Math.min(rect.width - 20, rect.height - 40));
+            if (size > 0) {
+                canvas.width = size;
+                canvas.height = size;
+                draw();
+            }
+        }
+        
+        // Activation toggle handlers
+        function updateActivationUI() {
+            act1Select.classList.toggle('enabled', act1Toggle.checked);
+            act2Select.classList.toggle('enabled', act2Toggle.checked);
+            updateSubtitle();
+            draw();
+        }
+        
+        function updateSubtitle() {
+            const subtitle = document.getElementById('formula-subtitle');
+            const act1On = act1Toggle.checked;
+            const act2On = act2Toggle.checked;
+            const act1Name = act1Select.value.charAt(0).toUpperCase() + act1Select.value.slice(1);
+            const act2Name = act2Select.value.charAt(0).toUpperCase() + act2Select.value.slice(1);
+            
+            // Calculate parameter count: W1(n×2) + b1(n) + W2(2×n) + b2(2) = 5n + 2
+            const paramCount = 5 * numNeurons + 2;
+            
+            let formula, info;
+            
+            if (act1On && act2On) {
+                if (act1Select.value === act2Select.value) {
+                    formula = 'y = σ(W₂ · σ(W₁x + b₁) + b₂)';
+                    info = `σ = ${act1Name}`;
+                } else {
+                    formula = 'y = σ₂(W₂ · σ₁(W₁x + b₁) + b₂)';
+                    info = `σ₁ = ${act1Name}, σ₂ = ${act2Name}`;
+                }
+            } else if (act1On) {
+                formula = 'y = W₂ · σ(W₁x + b₁) + b₂';
+                info = `σ = ${act1Name}`;
+            } else if (act2On) {
+                formula = 'y = σ(W₂ · (W₁x + b₁) + b₂)';
+                info = `σ = ${act2Name}`;
+            } else {
+                formula = 'y = W₂(W₁x + b₁) + b₂';
+                info = 'No activation';
+            }
+            
+            subtitle.textContent = `${formula}  |  ${info}  |  ${paramCount} params`;
+        }
+        
+        act1Toggle.addEventListener('change', () => { 
+            onUserInteraction();
+            updateActivationUI(); 
+            saveToHistory(); 
+        });
+        act2Toggle.addEventListener('change', () => { 
+            onUserInteraction();
+            updateActivationUI(); 
+            saveToHistory(); 
+        });
+        act1Select.addEventListener('change', () => { 
+            onUserInteraction();
+            updateSubtitle(); 
+            draw(); 
+            saveToHistory(); 
+        });
+        act2Select.addEventListener('change', () => { 
+            onUserInteraction();
+            updateSubtitle(); 
+            draw(); 
+            saveToHistory(); 
+        });
+        
+        // Auto-random functionality
+        const autoRandomToggle = document.getElementById('auto-random-toggle');
+        
+        function updateAutoRandomUI() {
+            // Just update toggle state - no button to update
+        }
+        
+        function startAutoRandom() {
+            if (autoRandomInterval) clearInterval(autoRandomInterval);
+            autoRandomInterval = setInterval(() => {
+                const preset = generateRandomPreset();
+                // Update internal matrices directly
+                W1 = preset.W1;
+                b1 = preset.b1;
+                W2 = preset.W2;
+                b2 = preset.b2;
+                
+                // Save to history
+                saveToHistory();
+                
+                // Also set as target for slider interpolation
+                targetW1 = JSON.parse(JSON.stringify(W1));
+                targetB1 = [...b1];
+                targetW2 = JSON.parse(JSON.stringify(W2));
+                targetB2 = [...b2];
+                
+                // Update UI inputs every interval
+                setMatrixInputs(w1Inputs, W1);
+                setMatrixInputs(b1Inputs, b1.map(v => [v]));
+                setMatrixInputs(w2Inputs, W2);
+                setMatrixInputs(b2Inputs, b2.map(v => [v]));
+                
+                draw();
+            }, 400);
+            isAutoRandom = true;
+            autoRandomToggle.checked = true;
+            updateAutoRandomUI();
+            updateHistoryUI();
+        }
+        
+        function stopAutoRandom() {
+            if (autoRandomInterval) {
+                clearInterval(autoRandomInterval);
+                autoRandomInterval = null;
+                // Update UI with final values when stopping
+                if (w1Inputs && W1 && b1 && W2 && b2) {
+                    setMatrixInputs(w1Inputs, W1);
+                    setMatrixInputs(b1Inputs, b1.map(v => [v]));
+                    setMatrixInputs(w2Inputs, W2);
+                    setMatrixInputs(b2Inputs, b2.map(v => [v]));
+                }
+            }
+            isAutoRandom = false;
+            autoRandomToggle.checked = false;
+            updateAutoRandomUI();
+            updateHistoryUI();
+        }
+        
+        autoRandomToggle.addEventListener('change', () => {
+            if (autoRandomToggle.checked) {
+                startAutoRandom();
+            } else {
+                stopAutoRandom();
+            }
+        });
+        
+        // History navigation
+        const historyPrevBtn = document.getElementById('history-prev');
+        const historyNextBtn = document.getElementById('history-next');
+        const historySlider = document.getElementById('history-slider');
+        
+        historyPrevBtn.addEventListener('click', () => {
+            if (isAutoRandom) {
+                stopAutoRandom();
+            }
+            if (historyIndex > 0) {
+                loadFromHistory(historyIndex - 1);
+            }
+        });
+        
+        historyNextBtn.addEventListener('click', () => {
+            if (isAutoRandom) {
+                stopAutoRandom();
+            }
+            if (historyIndex < history.length - 1) {
+                loadFromHistory(historyIndex + 1);
+            }
+        });
+        
+        historySlider.addEventListener('input', () => {
+            // Stop auto-random when user interacts with history
+            if (isAutoRandom) {
+                stopAutoRandom();
+            }
+            const index = parseInt(historySlider.value);
+            if (index >= 0 && index < history.length && index !== historyIndex) {
+                loadFromHistory(index);
+            }
+        });
+        
+        // Neuron count slider
+        const neuronSlider = document.getElementById('neuron-slider');
+        const neuronValueEl = document.getElementById('neuron-value');
+        
+        neuronSlider.addEventListener('input', () => {
+            onUserInteraction();
+            const newCount = parseInt(neuronSlider.value);
+            neuronValueEl.textContent = newCount;
+            changeNeuronCount(newCount);
+            // Save to history after neuron count change
+            saveToHistory();
+        });
+        
+        // Help panel toggle
+        const helpBtn = document.getElementById('help-btn');
+        const helpPanel = document.getElementById('help-panel');
+        helpBtn.addEventListener('click', () => {
+            helpPanel.classList.toggle('visible');
+            helpBtn.classList.toggle('active');
+        });
+        
+        // Initialize
+        initInputs();
+        setPreset(getIdentityPreset());
+        points = generatePoints(currentShape);
+        updateActivationUI();
+        updateSubtitle();
+        
+        // Initialize target values for slider interpolation
+        targetW1 = JSON.parse(JSON.stringify(W1));
+        targetB1 = [...b1];
+        targetW2 = JSON.parse(JSON.stringify(W2));
+        targetB2 = [...b2];
+        
+        // Start auto-random by default
+        startAutoRandom();
+        updateAutoRandomUI();
+        updateHistoryUI();
+        
+        // Initial resize after DOM ready
+        setTimeout(resizeCanvas, 50);
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
