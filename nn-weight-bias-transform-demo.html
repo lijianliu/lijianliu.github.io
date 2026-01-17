@@ -114,6 +114,27 @@
             background-clip: text;
         }
 
+        h1 .author {
+            font-size: 0.75rem;
+            font-weight: 400;
+            background: none;
+            -webkit-text-fill-color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+
+        h1 .author a {
+            color: var(--accent-cyan);
+            -webkit-text-fill-color: var(--accent-cyan);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        h1 .author a:hover {
+            color: var(--accent-magenta);
+            -webkit-text-fill-color: var(--accent-magenta);
+            text-decoration: underline;
+        }
+
         .subtitle {
             color: var(--accent-yellow);
             font-family: 'JetBrains Mono', monospace;
@@ -145,11 +166,7 @@
             display: block;
             border-radius: 8px;
             background: var(--bg-primary);
-            flex: 1;
-            min-height: 0;
-            max-width: 100%;
-            max-height: 100%;
-            aspect-ratio: 1;
+            flex: 0 0 auto;
             margin: 0 auto;
         }
 
@@ -411,6 +428,7 @@
         .quick-btn.identity-btn {
             color: var(--accent-yellow);
             border-color: rgba(255, 214, 10, 0.4);
+            padding: 2px 8px;
         }
 
         .quick-btn.identity-btn:hover {
@@ -683,7 +701,7 @@
 
         .auto-label {
             font-size: 0.55rem;
-            color: var(--text-secondary);
+            color: var(--accent-cyan);
             font-family: 'JetBrains Mono', monospace;
         }
 
@@ -890,7 +908,7 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 4px;
-            color: var(--text-secondary);
+            color: var(--accent-cyan);
             font-size: 0.55rem;
             cursor: pointer;
             transition: all 0.2s;
@@ -1092,7 +1110,7 @@
         <header>
             <button class="help-btn" id="help-btn">Help</button>
             <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Flijianliu.github.io%2Fnn-weight-bias-transform-demo.html&label=&icon=person-walking&color=%23cff4fc&message=&style=social&tz=UTC" alt="Hit Counter" class="hit-counter">
-            <h1>How Neural Networks Transform Shapes</h1>
+            <h1>How Neural Networks Transform Shapes <span class="author">Built by <a href="https://lijianliu.github.io/" target="_blank">Lijian Liu</a></span></h1>
             <p class="subtitle" id="formula-subtitle">y = σ(W₂ · σ(W₁x + b₁) + b₂)  |  σ = Tanh  |  27 params</p>
         </header>
 
@@ -1170,10 +1188,10 @@
                         <span class="badge">Layer 1</span>
                         <span id="layer1-desc">Expand 2 → 5</span>
                         <div class="quick-set-btns">
-                            <button class="quick-btn" data-layer="1" data-value="0">0</button>
-                            <button class="quick-btn" data-layer="1" data-value="1">1</button>
-                            <button class="quick-btn" data-layer="1" data-value="-1">-1</button>
-                            <button class="quick-btn identity-btn" data-layer="1" data-value="id">Id</button>
+                            <button class="quick-btn" data-layer="1" data-value="0" title="Set all W₁ and b₁ to 0">0</button>
+                            <button class="quick-btn" data-layer="1" data-value="1" title="Set all W₁ and b₁ to 1">1</button>
+                            <button class="quick-btn" data-layer="1" data-value="-1" title="Set all W₁ and b₁ to -1">-1</button>
+                            <button class="quick-btn identity-btn" data-layer="1" data-value="id" title="Sets W₁ diagonal to 1, rest to 0, b₁ to 0, and disables activation. Input passes through unchanged.">PassThrough</button>
                         </div>
                     </div>
                     <div class="layer-row">
@@ -1216,10 +1234,10 @@
                         <span class="badge layer2">Layer 2</span>
                         <span id="layer2-desc">Compress 5 → 2</span>
                         <div class="quick-set-btns">
-                            <button class="quick-btn" data-layer="2" data-value="0">0</button>
-                            <button class="quick-btn" data-layer="2" data-value="1">1</button>
-                            <button class="quick-btn" data-layer="2" data-value="-1">-1</button>
-                            <button class="quick-btn identity-btn" data-layer="2" data-value="id">Id</button>
+                            <button class="quick-btn" data-layer="2" data-value="0" title="Set all W₂ and b₂ to 0">0</button>
+                            <button class="quick-btn" data-layer="2" data-value="1" title="Set all W₂ and b₂ to 1">1</button>
+                            <button class="quick-btn" data-layer="2" data-value="-1" title="Set all W₂ and b₂ to -1">-1</button>
+                            <button class="quick-btn identity-btn" data-layer="2" data-value="id" title="Sets W₂ diagonal to 1, rest to 0, b₂ to 0, and disables activation. Input passes through unchanged.">PassThrough</button>
                         </div>
                     </div>
                     <div class="layer-row">
@@ -2118,7 +2136,9 @@
             const height = canvas.height;
             if (width === 0 || height === 0) return;
             
-            const scale = Math.min(width, height) / 2.5; // Zoomed in to show -1.1 to 1.1 range
+            // Use same scale for both axes to maintain 1:1 aspect ratio
+            const size = Math.min(width, height);
+            const scale = size / 2.5; // Zoomed in to show -1.1 to 1.1 range
             const cx = width / 2;
             const cy = height / 2;
             
@@ -2223,7 +2243,7 @@
                 ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
                 
                 ctx.beginPath();
-                ctx.arc(px, py, 1.56, 0, Math.PI * 2);
+                ctx.arc(px, py, 1.95, 0, Math.PI * 2);
                 ctx.fill();
             }
             
@@ -2244,7 +2264,7 @@
                 // Clamp to visible area
                 if (px > -50 && px < width + 50 && py > -50 && py < height + 50) {
                     ctx.beginPath();
-                    ctx.arc(px, py, 1.56, 0, Math.PI * 2);
+                    ctx.arc(px, py, 1.95, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
@@ -2425,7 +2445,7 @@
                 const valueStr = btn.dataset.value;
                 
                 if (valueStr === 'id') {
-                    // Identity transformation
+                    // PassThrough transformation - also disable activation
                     if (layer === '1') {
                         // W1: [[1,0], [0,1], [0,0], ...]  b1: [0,0,0,...]
                         w1Inputs.forEach((row, r) => {
@@ -2436,6 +2456,9 @@
                             });
                         });
                         b1Inputs.forEach(row => row.forEach(input => input.value = 0));
+                        // Disable activation for true pass-through
+                        act1Toggle.checked = false;
+                        updateActivationUI();
                     } else {
                         // W2: [[1,0,0,...], [0,1,0,...]]  b2: [0,0]
                         w2Inputs.forEach((row, r) => {
@@ -2446,6 +2469,9 @@
                             });
                         });
                         b2Inputs.forEach(row => row.forEach(input => input.value = 0));
+                        // Disable activation for true pass-through
+                        act2Toggle.checked = false;
+                        updateActivationUI();
                     }
                 } else {
                     const value = parseFloat(valueStr);
@@ -2474,10 +2500,17 @@
         function resizeCanvas() {
             const wrapper = canvas.parentElement;
             const rect = wrapper.getBoundingClientRect();
-            const size = Math.floor(Math.min(rect.width - 20, rect.height - 40));
-            if (size > 0) {
+            // Calculate available space (account for history bar, legend, padding)
+            const availableWidth = rect.width - 20;
+            const availableHeight = rect.height - 80; // Space for history bar and legend
+            // Use smaller dimension to ensure square canvas
+            const size = Math.floor(Math.min(availableWidth, availableHeight));
+            if (size > 50) {
                 canvas.width = size;
                 canvas.height = size;
+                // Also set CSS size to match pixel size for crisp rendering
+                canvas.style.width = size + 'px';
+                canvas.style.height = size + 'px';
                 draw();
             }
         }
@@ -2525,23 +2558,19 @@
         }
         
         act1Toggle.addEventListener('change', () => { 
-            onUserInteraction();
             updateActivationUI(); 
             saveToHistory(); 
         });
         act2Toggle.addEventListener('change', () => { 
-            onUserInteraction();
             updateActivationUI(); 
             saveToHistory(); 
         });
         act1Select.addEventListener('change', () => { 
-            onUserInteraction();
             updateSubtitle(); 
             draw(); 
             saveToHistory(); 
         });
         act2Select.addEventListener('change', () => { 
-            onUserInteraction();
             updateSubtitle(); 
             draw(); 
             saveToHistory(); 
@@ -2699,7 +2728,8 @@
         function canvasToWorld(px, py) {
             const width = canvas.width;
             const height = canvas.height;
-            const scale = Math.min(width, height) / 2.5;
+            const size = Math.min(width, height);
+            const scale = size / 2.5;
             const cx = width / 2;
             const cy = height / 2;
             return {
@@ -3033,7 +3063,8 @@
             
             const width = canvas.width;
             const height = canvas.height;
-            const scale = Math.min(width, height) / 2.5;
+            const size = Math.min(width, height);
+            const scale = size / 2.5;
             const cx = width / 2;
             const cy = height / 2;
             
@@ -3060,7 +3091,7 @@
                 
                 // Draw marker on axis
                 ctx.beginPath();
-                ctx.arc(px, cy, 4, 0, Math.PI * 2);
+                ctx.arc(px, cy, 5, 0, Math.PI * 2);
                 ctx.fill();
             } else {
                 const py = cy - value * scale;
@@ -3078,7 +3109,7 @@
                 
                 // Draw marker on axis
                 ctx.beginPath();
-                ctx.arc(cx, py, 4, 0, Math.PI * 2);
+                ctx.arc(cx, py, 5, 0, Math.PI * 2);
                 ctx.fill();
             }
             
@@ -3093,7 +3124,8 @@
             
             const width = canvas.width;
             const height = canvas.height;
-            const scale = Math.min(width, height) / 2.5;
+            const size = Math.min(width, height);
+            const scale = size / 2.5;
             const cx = width / 2;
             const cy = height / 2;
             const t = interpolationSlider.value / 100;
@@ -3107,7 +3139,7 @@
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(opx, opy, 6, 0, Math.PI * 2);
+            ctx.arc(opx, opy, 7.5, 0, Math.PI * 2);
             ctx.stroke();
             
             // Draw highlighted transformed point
@@ -3115,7 +3147,7 @@
             const tpy = cy - ty * scale;
             ctx.strokeStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(tpx, tpy, 6, 0, Math.PI * 2);
+            ctx.arc(tpx, tpy, 7.5, 0, Math.PI * 2);
             ctx.stroke();
             
             // Draw line connecting them
