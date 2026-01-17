@@ -17,7 +17,9 @@
             --bg-secondary: #0f0f1a;
             --bg-panel: #14142a;
             --accent-cyan: #00f5d4;
+            --accent-cyan-dim: #00b89f;
             --accent-magenta: #f72585;
+            --accent-red: #ff3232;
             --accent-orange: #ff6b35;
             --accent-yellow: #fee440;
             --text-primary: #e8e8f0;
@@ -43,6 +45,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         header {
@@ -124,6 +127,7 @@
             gap: 1rem;
             flex: 1;
             min-height: 0;
+            overflow: hidden;
         }
 
         .canvas-wrapper {
@@ -178,6 +182,167 @@
             background: linear-gradient(90deg, #50143c, #ff50c8);
         }
 
+        .calc-pane {
+            display: none;
+            background: rgba(15, 15, 30, 0.98);
+            border: 2px solid var(--accent-cyan-dim);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin: 0 0 10px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-primary);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .calc-pane.visible {
+            display: block;
+        }
+
+        .calc-pane.locked {
+            border-color: var(--accent-magenta);
+        }
+
+        .calc-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .calc-close-btn:hover {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+            background: rgba(247, 37, 133, 0.1);
+        }
+
+        .calc-title {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            margin-right: 15px;
+        }
+
+        .calc-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 5px 15px;
+        }
+
+        .calc-io {
+            font-size: 0.65rem;
+        }
+
+        .calc-content {
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .calc-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 30px;
+            align-items: flex-start;
+        }
+
+        .calc-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .calc-step {
+            margin: 0;
+        }
+
+        .calc-label {
+            color: var(--text-secondary);
+        }
+
+        .calc-value {
+            color: #22ff88;
+        }
+
+        .calc-num {
+            cursor: pointer;
+            padding: 1px 2px;
+            border-radius: 2px;
+            transition: background 0.15s;
+        }
+
+        .calc-num:hover {
+            background: rgba(0, 245, 212, 0.3);
+        }
+
+        .calc-num.w1 { color: var(--accent-cyan); }
+        .calc-num.b1 { color: var(--accent-cyan); }
+        .calc-num.w2 { color: var(--accent-cyan); }
+        .calc-num.b2 { color: var(--accent-cyan); }
+        .calc-num.input-x, .calc-num.input-y { color: #32f5ff; }
+        .calc-num.output-x, .calc-num.output-y { color: #ff50c8; }
+        .calc-num.z1, .calc-num.z2 { color: #22ff88; }
+        .calc-num.h { color: #ffaa00; }
+
+        .calc-num.highlight-ref {
+            background: rgba(255, 170, 0, 0.4) !important;
+            border-radius: 2px;
+        }
+
+        .calc-num.input-x.highlight-ref,
+        .calc-num.input-y.highlight-ref {
+            background: rgba(50, 245, 255, 0.4) !important;
+        }
+
+        .calc-num.output-x.highlight-ref,
+        .calc-num.output-y.highlight-ref {
+            background: rgba(255, 80, 200, 0.4) !important;
+        }
+
+        .calc-num.w1.highlight-ref,
+        .calc-num.b1.highlight-ref,
+        .calc-num.w2.highlight-ref,
+        .calc-num.b2.highlight-ref {
+            background: rgba(0, 245, 212, 0.4) !important;
+        }
+
+        .calc-num[title] {
+            position: relative;
+        }
+
+        .calc-num[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            white-space: nowrap;
+            z-index: 1001;
+            margin-bottom: 5px;
+            border: 1px solid var(--accent-cyan-dim);
+        }
+
+        .matrix-cell input.highlight {
+            background: rgba(0, 245, 212, 0.4) !important;
+            border-color: var(--accent-cyan) !important;
+        }
+
         .controls {
             display: flex;
             flex-direction: column;
@@ -207,7 +372,7 @@
         }
 
         .panel-title .badge {
-            background: var(--accent-cyan);
+            background: var(--accent-cyan-dim);
             color: var(--bg-primary);
             padding: 2px 6px;
             border-radius: 4px;
@@ -215,7 +380,43 @@
         }
 
         .panel-title .badge.layer2 {
-            background: var(--accent-magenta);
+            background: var(--accent-cyan-dim);
+        }
+
+        .quick-set-btns {
+            display: flex;
+            gap: 0.25rem;
+            margin-left: auto;
+        }
+
+        .quick-btn {
+            padding: 2px 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: bold;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 245, 212, 0.1);
+        }
+
+        .quick-btn.identity-btn {
+            color: var(--accent-yellow);
+            border-color: rgba(255, 214, 10, 0.4);
+        }
+
+        .quick-btn.identity-btn:hover {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            background: rgba(255, 214, 10, 0.1);
         }
 
         .layer-row {
@@ -263,7 +464,7 @@
         }
 
         .toggle-label-small input:checked + .toggle-switch-small {
-            background: var(--accent-cyan);
+            background: var(--accent-cyan-dim);
         }
 
         .toggle-label-small input:checked + .toggle-switch-small::after {
@@ -308,7 +509,7 @@
         .matrix-label {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.65rem;
-            color: var(--accent-cyan);
+            color: var(--accent-cyan-dim);
             margin-bottom: 0.3rem;
             display: flex;
             align-items: center;
@@ -316,7 +517,7 @@
         }
 
         .matrix-label.layer2 {
-            color: var(--accent-magenta);
+            color: var(--accent-cyan-dim);
         }
 
         .matrix-label .dim {
@@ -337,13 +538,13 @@
             top: 0;
             bottom: 0;
             width: 3px;
-            background: var(--accent-cyan);
+            background: var(--accent-cyan-dim);
             border-radius: 2px;
         }
 
         .matrix-container.layer2::before,
         .matrix-container.layer2::after {
-            background: var(--accent-magenta);
+            background: var(--accent-cyan-dim);
         }
 
         .matrix-container::before { left: 0; }
@@ -396,6 +597,8 @@
             outline: none;
             border-color: var(--accent-cyan);
             background: #252550;
+            cursor: text;
+            user-select: auto;
         }
 
         .matrix-cell input.active {
@@ -469,8 +672,8 @@
         }
 
         .auto-toggle-compact input:checked + .toggle-switch-tiny {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
-            border-color: var(--accent-cyan);
+            background: linear-gradient(135deg, var(--accent-cyan-dim), var(--accent-magenta));
+            border-color: var(--accent-cyan-dim);
         }
 
         .auto-toggle-compact input:checked + .toggle-switch-tiny::after {
@@ -895,8 +1098,17 @@
 
         <div class="help-panel" id="help-panel">
             <div class="help-content">
-                <b>Purpose:</b> Visualize how neural networks transform 2D shapes. Page starts with auto-random mode updating weights/biases continuously. <b>Learn:</b> Weights control rotation/scale/shear, biases control translation, activations add non-linear warping, more neurons = more expressive power. <b>Controls:</b> Click any weight/bias value to auto-animate its effect, click again to pause, drag slider for manual control, check "Apply" to keep changes.
+                <b>Purpose:</b> Visualize how neural networks transform 2D shapes. Page starts with auto-random mode updating weights/biases continuously. <b>Learn:</b> Weights control rotation/scale/shear, biases control translation, activations add non-linear warping, more neurons = more expressive power. <b>Controls:</b> Click any weight/bias value to auto-animate its effect, click again to pause, drag slider or type directly for manual control, check "Apply" to keep changes.
             </div>
+        </div>
+
+        <div class="calc-pane" id="calc-pane">
+            <button class="calc-close-btn" id="calc-close-btn">✕</button>
+            <div class="calc-header">
+                <span class="calc-title">Transformation Steps:</span>
+                <span class="calc-io" id="calc-io"></span>
+            </div>
+            <div class="calc-content" id="calc-content"></div>
         </div>
 
         <div class="main-content">
@@ -957,6 +1169,12 @@
                     <div class="panel-title">
                         <span class="badge">Layer 1</span>
                         <span id="layer1-desc">Expand 2 → 5</span>
+                        <div class="quick-set-btns">
+                            <button class="quick-btn" data-layer="1" data-value="0">0</button>
+                            <button class="quick-btn" data-layer="1" data-value="1">1</button>
+                            <button class="quick-btn" data-layer="1" data-value="-1">-1</button>
+                            <button class="quick-btn identity-btn" data-layer="1" data-value="id">Id</button>
+                        </div>
                     </div>
                     <div class="layer-row">
                         <div class="activation-compact">
@@ -997,6 +1215,12 @@
                     <div class="panel-title">
                         <span class="badge layer2">Layer 2</span>
                         <span id="layer2-desc">Compress 5 → 2</span>
+                        <div class="quick-set-btns">
+                            <button class="quick-btn" data-layer="2" data-value="0">0</button>
+                            <button class="quick-btn" data-layer="2" data-value="1">1</button>
+                            <button class="quick-btn" data-layer="2" data-value="-1">-1</button>
+                            <button class="quick-btn identity-btn" data-layer="2" data-value="id">Id</button>
+                        </div>
                     </div>
                     <div class="layer-row">
                         <div class="activation-compact">
@@ -1312,6 +1536,7 @@
                 const displayValue = currentVal.toFixed(2);
                 sliderValueDisplay.textContent = displayValue;
                 activeInput.value = displayValue;
+                activeInput.select(); // Select text so user can type to replace
                 
                 // Update matrices and redraw
                 updateMatricesFromInputs();
@@ -1407,6 +1632,8 @@
             
             // Add active class to input
             input.classList.add('active');
+            input.focus();
+            input.select(); // Select text so user can type to replace
             
             // Start auto-animation
             startSliderAnimation();
@@ -1455,6 +1682,7 @@
             if (!activeInput) return;
             const value = parseFloat(valueSlider.value).toFixed(2);
             activeInput.value = value;
+            activeInput.select(); // Select text so user can type to replace
             sliderValueDisplay.textContent = value;
             
             // Update matrices and redraw
@@ -1550,20 +1778,45 @@
                     input.type = 'text';
                     input.id = `${prefix}_${r}_${c}`;
                     input.value = '0';
-                    input.readOnly = true; // Make read-only - values only changed by slider
                     input.style.cursor = 'pointer';
+                    
+                    // Click to show slider
                     input.addEventListener('click', (e) => {
-                        e.preventDefault();
                         // Stop auto-random if running
                         if (autoRandomInterval) {
                             onUserInteraction();
                         }
                         showFloatSlider(input);
                     });
-                    // Prevent focus outline since it's read-only
-                    input.addEventListener('focus', (e) => {
-                        e.target.blur();
+                    
+                    // Keyboard input
+                    input.addEventListener('input', () => {
+                        // Stop slider animation if typing
+                        if (activeInput === input) {
+                            stopSliderAnimation();
+                            sliderAnimationPaused = true;
+                            floatingSlider.classList.add('paused');
+                            userInteractedWithSlider = true;
+                            // Update slider to match typed value
+                            const val = parseFloat(input.value) || 0;
+                            valueSlider.value = Math.max(-3, Math.min(3, val));
+                            sliderValueDisplay.textContent = val.toFixed(2);
+                        }
+                        updateMatricesFromInputs();
+                        targetW1 = JSON.parse(JSON.stringify(W1));
+                        targetB1 = [...b1];
+                        targetW2 = JSON.parse(JSON.stringify(W2));
+                        targetB2 = [...b2];
+                        draw();
                     });
+                    
+                    // Save to history on blur (when done editing)
+                    input.addEventListener('blur', () => {
+                        if (activeInput !== input) {
+                            saveToHistory();
+                        }
+                    });
+                    
                     cell.appendChild(input);
                     container.appendChild(cell);
                     rowInputs.push(input);
@@ -1603,6 +1856,9 @@
             // Update layer description labels
             document.getElementById('layer1-desc').textContent = `Expand 2 → ${numNeurons}`;
             document.getElementById('layer2-desc').textContent = `Compress ${numNeurons} → 2`;
+            
+            // Update subtitle with new param count
+            updateSubtitle();
             
             // Set to random preset
             const preset = generateRandomPreset();
@@ -1862,7 +2118,7 @@
             const height = canvas.height;
             if (width === 0 || height === 0) return;
             
-            const scale = Math.min(width, height) / 5; // Zoomed in to show -2 to 2 range
+            const scale = Math.min(width, height) / 2.5; // Zoomed in to show -1.1 to 1.1 range
             const cx = width / 2;
             const cy = height / 2;
             
@@ -1874,7 +2130,7 @@
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
             ctx.lineWidth = 1;
             
-            for (let i = -2; i <= 2; i++) {
+            for (let i = -1; i <= 1; i++) {
                 ctx.beginPath();
                 ctx.moveTo(cx + i * scale, 0);
                 ctx.lineTo(cx + i * scale, height);
@@ -1913,7 +2169,7 @@
             ctx.textBaseline = 'top';
             
             // X-axis labels
-            for (let i = -2; i <= 2; i++) {
+            for (let i = -1; i <= 1; i++) {
                 if (i === 0) continue; // Skip 0
                 const px = cx + i * scale;
                 ctx.fillText(i.toString(), px, cy + 5);
@@ -1930,7 +2186,7 @@
             // Y-axis labels
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
-            for (let i = -2; i <= 2; i++) {
+            for (let i = -1; i <= 1; i++) {
                 if (i === 0) continue; // Skip 0
                 const py = cy - i * scale;
                 ctx.fillText(i.toString(), cx - 6, py);
@@ -1991,6 +2247,16 @@
                     ctx.arc(px, py, 1.56, 0, Math.PI * 2);
                     ctx.fill();
                 }
+            }
+            
+            // Draw highlighted points if hovering/locked
+            if (typeof drawHighlightedPoints === 'function') {
+                drawHighlightedPoints();
+            }
+            
+            // Draw axis marker if active
+            if (typeof renderAxisMarker === 'function') {
+                renderAxisMarker();
             }
         }
         
@@ -2146,6 +2412,59 @@
                 currentShape = btn.dataset.shape;
                 points = generatePoints(currentShape);
                 // Save to history when shape changes
+                saveToHistory();
+                draw();
+            });
+        });
+        
+        // Quick-set buttons for layers
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                onUserInteraction();
+                const layer = btn.dataset.layer;
+                const valueStr = btn.dataset.value;
+                
+                if (valueStr === 'id') {
+                    // Identity transformation
+                    if (layer === '1') {
+                        // W1: [[1,0], [0,1], [0,0], ...]  b1: [0,0,0,...]
+                        w1Inputs.forEach((row, r) => {
+                            row.forEach((input, c) => {
+                                if (r === 0 && c === 0) input.value = 1;
+                                else if (r === 1 && c === 1) input.value = 1;
+                                else input.value = 0;
+                            });
+                        });
+                        b1Inputs.forEach(row => row.forEach(input => input.value = 0));
+                    } else {
+                        // W2: [[1,0,0,...], [0,1,0,...]]  b2: [0,0]
+                        w2Inputs.forEach((row, r) => {
+                            row.forEach((input, c) => {
+                                if (r === 0 && c === 0) input.value = 1;
+                                else if (r === 1 && c === 1) input.value = 1;
+                                else input.value = 0;
+                            });
+                        });
+                        b2Inputs.forEach(row => row.forEach(input => input.value = 0));
+                    }
+                } else {
+                    const value = parseFloat(valueStr);
+                    if (layer === '1') {
+                        // Set W1 and b1
+                        w1Inputs.forEach(row => row.forEach(input => input.value = value));
+                        b1Inputs.forEach(row => row.forEach(input => input.value = value));
+                    } else {
+                        // Set W2 and b2
+                        w2Inputs.forEach(row => row.forEach(input => input.value = value));
+                        b2Inputs.forEach(row => row.forEach(input => input.value = value));
+                    }
+                }
+                
+                updateMatricesFromInputs();
+                targetW1 = JSON.parse(JSON.stringify(W1));
+                targetB1 = [...b1];
+                targetW2 = JSON.parse(JSON.stringify(W2));
+                targetB2 = [...b2];
                 saveToHistory();
                 draw();
             });
@@ -2347,6 +2666,544 @@
         helpBtn.addEventListener('click', () => {
             helpPanel.classList.toggle('visible');
             helpBtn.classList.toggle('active');
+        });
+        
+        // Calculation popup functionality
+        const calcPane = document.getElementById('calc-pane');
+        const calcContent = document.getElementById('calc-content');
+        const calcIO = document.getElementById('calc-io');
+        const calcCloseBtn = document.getElementById('calc-close-btn');
+        
+        // Close button handler
+        calcCloseBtn.addEventListener('click', () => {
+            isCalcLocked = false;
+            lockedPointIndex = -1;
+            hoveredPointIndex = -1;
+            calcPane.classList.remove('locked');
+            calcPane.classList.remove('visible');
+            clearMatrixHighlights();
+            clearAxisMarker();
+            draw();
+        });
+        let hoveredPointIndex = -1;
+        let lockedPointIndex = -1;
+        let isCalcLocked = false;
+        
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            return { x, y };
+        }
+        
+        function canvasToWorld(px, py) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const scale = Math.min(width, height) / 2.5;
+            const cx = width / 2;
+            const cy = height / 2;
+            return {
+                x: (px - cx) / scale,
+                y: (cy - py) / scale
+            };
+        }
+        
+        function findNearestPoint(worldX, worldY) {
+            let minDist = Infinity;
+            let nearestIdx = -1;
+            for (let i = 0; i < points.length; i++) {
+                const [px, py] = points[i];
+                const dist = Math.sqrt((px - worldX) ** 2 + (py - worldY) ** 2);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearestIdx = i;
+                }
+            }
+            // Only return if close enough (within 0.15 in world coords)
+            return minDist < 0.15 ? nearestIdx : -1;
+        }
+        
+        function formatNum(n, decimals = 3) {
+            return n.toFixed(decimals);
+        }
+        
+        function generateCalcHTML(pointIdx) {
+            const [x, y] = points[pointIdx];
+            const t = interpolationSlider.value / 100;
+            
+            // Get interpolated matrices (same logic as transformPoint)
+            const interpW1 = W1.map((row, i) => 
+                row.map((val, j) => {
+                    const idVal = identityW1[i] && identityW1[i][j] !== undefined ? identityW1[i][j] : 0;
+                    return idVal + (val - idVal) * t;
+                })
+            );
+            const interpB1 = b1.map((val, i) => {
+                const idVal = identityB1[i] !== undefined ? identityB1[i] : 0;
+                return idVal + (val - idVal) * t;
+            });
+            const interpW2 = W2.map((row, i) => 
+                row.map((val, j) => {
+                    const idVal = identityW2[i] && identityW2[i][j] !== undefined ? identityW2[i][j] : 0;
+                    return idVal + (val - idVal) * t;
+                })
+            );
+            const interpB2 = b2.map((val, i) => {
+                const idVal = identityB2[i] !== undefined ? identityB2[i] : 0;
+                return idVal + (val - idVal) * t;
+            });
+            
+            // Compute step by step
+            const input = [x, y];
+            const z1 = vecAdd(matVec(interpW1, input), interpB1);
+            let h = [...z1];
+            if (act1Toggle.checked) {
+                h = applyActivation(h, act1Select.value);
+            }
+            const z2 = vecAdd(matVec(interpW2, h), interpB2);
+            let output = [...z2];
+            if (act2Toggle.checked) {
+                output = applyActivation(output, act2Select.value);
+            }
+            
+            // Store h values for reference
+            window.calcState = { x, y, z1, h, z2, output, interpW1, interpB1, interpW2, interpB2 };
+            
+            // IO line (Input → Output)
+            let ioHtml = `<span class="calc-label">Input:</span> (<span class="calc-num input-x" data-type="input-x" data-val="${x}">${formatNum(x)}</span>, <span class="calc-num input-y" data-type="input-y" data-val="${y}">${formatNum(y)}</span>)`;
+            ioHtml += ` <span style="color: var(--text-secondary); margin: 0 10px;">→</span> `;
+            ioHtml += `<span class="calc-label">Output:</span> (<span class="calc-num output-x" data-type="output-x" data-val="${output[0]}">${formatNum(output[0])}</span>, <span class="calc-num output-y" data-type="output-y" data-val="${output[1]}">${formatNum(output[1])}</span>)`;
+            
+            let html = '';
+            
+            // Row 1: Layer 1 calculations
+            html += `<div class="calc-row">`;
+            html += `<div class="calc-section">`;
+            html += `<div class="calc-step"><span class="calc-label">Layer 1:</span> z₁ = W₁·x + b₁</div>`;
+            for (let i = 0; i < Math.min(numNeurons, 3); i++) {
+                const w1_i0 = interpW1[i][0];
+                const w1_i1 = interpW1[i][1];
+                const b1_i = interpB1[i];
+                html += `<div class="calc-step">z₁[${i}] = <span class="calc-num w1" data-type="w1" data-r="${i}" data-c="0">${formatNum(w1_i0)}</span>·<span class="calc-num input-x" data-type="input-x" data-val="${x}">${formatNum(x)}</span> + <span class="calc-num w1" data-type="w1" data-r="${i}" data-c="1">${formatNum(w1_i1)}</span>·<span class="calc-num input-y" data-type="input-y" data-val="${y}">${formatNum(y)}</span> + <span class="calc-num b1" data-type="b1" data-r="${i}">${formatNum(b1_i)}</span> = <span class="calc-num z1" data-type="z1" data-idx="${i}">${formatNum(z1[i])}</span></div>`;
+            }
+            if (numNeurons > 3) html += `<div class="calc-step"><span class="calc-label">... (${numNeurons - 3} more)</span></div>`;
+            html += `</div>`;
+            
+            // Activation 1 + h values
+            html += `<div class="calc-section">`;
+            if (act1Toggle.checked) {
+                html += `<div class="calc-step"><span class="calc-label">σ₁(${act1Select.value}):</span></div>`;
+                html += `<div class="calc-step">h = [${h.slice(0, 3).map((v, i) => {
+                    const w1_i0 = interpW1[i][0];
+                    const w1_i1 = interpW1[i][1];
+                    const b1_i = interpB1[i];
+                    const fullCalc = `h[${i}] = ${act1Select.value}(${formatNum(w1_i0)}·${formatNum(x)} + ${formatNum(w1_i1)}·${formatNum(y)} + ${formatNum(b1_i)}) = ${act1Select.value}(${formatNum(z1[i])}) = ${formatNum(v)}`;
+                    return `<span class="calc-num h" data-type="h" data-idx="${i}" title="${fullCalc}">${formatNum(v)}</span>`;
+                }).join(', ')}${numNeurons > 3 ? ', ...' : ''}]</div>`;
+            } else {
+                html += `<div class="calc-step"><span class="calc-label">h = z₁:</span></div>`;
+                html += `<div class="calc-step">[${h.slice(0, 3).map((v, i) => {
+                    const w1_i0 = interpW1[i][0];
+                    const w1_i1 = interpW1[i][1];
+                    const b1_i = interpB1[i];
+                    const fullCalc = `h[${i}] = ${formatNum(w1_i0)}·${formatNum(x)} + ${formatNum(w1_i1)}·${formatNum(y)} + ${formatNum(b1_i)} = ${formatNum(v)}`;
+                    return `<span class="calc-num h" data-type="h" data-idx="${i}" title="${fullCalc}">${formatNum(v)}</span>`;
+                }).join(', ')}${numNeurons > 3 ? ', ...' : ''}]</div>`;
+            }
+            html += `</div>`;
+            html += `</div>`; // end row 1
+            
+            // Row 2: Layer 2 calculations
+            html += `<div class="calc-row">`;
+            html += `<div class="calc-section">`;
+            html += `<div class="calc-step"><span class="calc-label">Layer 2:</span> z₂ = W₂·h + b₂</div>`;
+            for (let i = 0; i < 2; i++) {
+                let terms = [];
+                for (let j = 0; j < Math.min(numNeurons, 3); j++) {
+                    const w1_j0 = interpW1[j][0];
+                    const w1_j1 = interpW1[j][1];
+                    const b1_j = interpB1[j];
+                    let hTitle;
+                    if (act1Toggle.checked) {
+                        hTitle = `h[${j}] = ${act1Select.value}(${formatNum(w1_j0)}·${formatNum(x)} + ${formatNum(w1_j1)}·${formatNum(y)} + ${formatNum(b1_j)}) = ${act1Select.value}(${formatNum(z1[j])}) = ${formatNum(h[j])}`;
+                    } else {
+                        hTitle = `h[${j}] = ${formatNum(w1_j0)}·${formatNum(x)} + ${formatNum(w1_j1)}·${formatNum(y)} + ${formatNum(b1_j)} = ${formatNum(h[j])}`;
+                    }
+                    terms.push(`<span class="calc-num w2" data-type="w2" data-r="${i}" data-c="${j}">${formatNum(interpW2[i][j])}</span>·<span class="calc-num h" data-type="h" data-idx="${j}" title="${hTitle}">${formatNum(h[j])}</span>`);
+                }
+                if (numNeurons > 3) terms.push('...');
+                html += `<div class="calc-step">z₂[${i}] = ${terms.join(' + ')} + <span class="calc-num b2" data-type="b2" data-r="${i}">${formatNum(interpB2[i])}</span> = <span class="calc-num z2" data-type="z2" data-idx="${i}">${formatNum(z2[i])}</span></div>`;
+            }
+            html += `</div>`;
+            
+            // Activation 2
+            if (act2Toggle.checked) {
+                html += `<div class="calc-section">`;
+                html += `<div class="calc-step"><span class="calc-label">σ₂(${act2Select.value}):</span></div>`;
+                for (let i = 0; i < 2; i++) {
+                    html += `<div class="calc-step">out[${i}] = ${act2Select.value}(<span class="calc-num z2" data-type="z2" data-idx="${i}">${formatNum(z2[i])}</span>) = <span class="calc-num ${i === 0 ? 'output-x' : 'output-y'}" data-type="${i === 0 ? 'output-x' : 'output-y'}" data-val="${output[i]}">${formatNum(output[i])}</span></div>`;
+                }
+                html += `</div>`;
+            }
+            html += `</div>`; // end row 2
+            
+            return { ioHtml, html };
+        }
+        
+        function showCalcPane(pointIdx) {
+            if (pointIdx < 0) return;
+            const { ioHtml, html } = generateCalcHTML(pointIdx);
+            calcIO.innerHTML = ioHtml;
+            calcContent.innerHTML = html;
+            calcPane.classList.add('visible');
+            
+            // Add hover listeners for numbers in both IO and content
+            calcPane.querySelectorAll('.calc-num').forEach(el => {
+                el.addEventListener('mouseenter', () => highlightMatrixInput(el));
+                el.addEventListener('mouseleave', () => {
+                    clearMatrixHighlights();
+                    clearAxisMarker();
+                });
+            });
+        }
+        
+        function hideCalcPane() {
+            if (!isCalcLocked) {
+                calcPane.classList.remove('visible');
+                hoveredPointIndex = -1;
+            }
+        }
+        
+        function highlightMatrixInput(el) {
+            clearMatrixHighlights();
+            clearAxisMarker();
+            
+            const type = el.dataset.type;
+            if (!type) return;
+            
+            let firstHighlightedInput = null;
+            
+            if (type === 'w1' || type === 'b1' || type === 'w2' || type === 'b2') {
+                const r = parseInt(el.dataset.r);
+                const c = el.dataset.c !== undefined ? parseInt(el.dataset.c) : 0;
+                
+                let inputs;
+                if (type === 'w1') inputs = w1Inputs;
+                else if (type === 'b1') inputs = b1Inputs;
+                else if (type === 'w2') inputs = w2Inputs;
+                else if (type === 'b2') inputs = b2Inputs;
+                
+                if (inputs && inputs[r] && inputs[r][c]) {
+                    inputs[r][c].classList.add('highlight');
+                    firstHighlightedInput = inputs[r][c];
+                }
+                
+                // Also highlight all instances in calc pane
+                document.querySelectorAll(`.calc-num[data-type="${type}"][data-r="${r}"]${el.dataset.c !== undefined ? `[data-c="${c}"]` : ''}`).forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+            } else if (type === 'input-x') {
+                const val = parseFloat(el.dataset.val);
+                drawAxisMarker('x', val, '#32f5ff');
+                // Highlight all input-x references
+                document.querySelectorAll('.calc-num[data-type="input-x"]').forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+            } else if (type === 'input-y') {
+                const val = parseFloat(el.dataset.val);
+                drawAxisMarker('y', val, '#32f5ff');
+                // Highlight all input-y references
+                document.querySelectorAll('.calc-num[data-type="input-y"]').forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+            } else if (type === 'output-x') {
+                const val = parseFloat(el.dataset.val);
+                drawAxisMarker('x', val, '#ff50c8');
+                // Highlight all output-x references
+                document.querySelectorAll('.calc-num[data-type="output-x"]').forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+            } else if (type === 'output-y') {
+                const val = parseFloat(el.dataset.val);
+                drawAxisMarker('y', val, '#ff50c8');
+                // Highlight all output-y references
+                document.querySelectorAll('.calc-num[data-type="output-y"]').forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+            } else if (type === 'h') {
+                // Highlight the h value - trace back to z1
+                const idx = parseInt(el.dataset.idx);
+                // Highlight all h values with same index
+                document.querySelectorAll(`.calc-num.h[data-idx="${idx}"]`).forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+                // Always highlight corresponding z1 (h comes from z1 via activation or directly)
+                document.querySelectorAll(`.calc-num.z1[data-idx="${idx}"]`).forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+                // Also highlight the W1 row and b1 that produced z1
+                if (w1Inputs[idx]) {
+                    w1Inputs[idx].forEach(input => {
+                        input.classList.add('highlight');
+                        if (!firstHighlightedInput) firstHighlightedInput = input;
+                    });
+                }
+                if (b1Inputs[idx]) {
+                    b1Inputs[idx].forEach(input => {
+                        input.classList.add('highlight');
+                        if (!firstHighlightedInput) firstHighlightedInput = input;
+                    });
+                }
+            } else if (type === 'z1') {
+                const idx = parseInt(el.dataset.idx);
+                // Highlight all z1 values with same index
+                document.querySelectorAll(`.calc-num.z1[data-idx="${idx}"]`).forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+                // Highlight corresponding h values
+                document.querySelectorAll(`.calc-num.h[data-idx="${idx}"]`).forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+                // Highlight the W1 row and b1 that produced it
+                if (w1Inputs[idx]) {
+                    w1Inputs[idx].forEach(input => {
+                        input.classList.add('highlight');
+                        if (!firstHighlightedInput) firstHighlightedInput = input;
+                    });
+                }
+                if (b1Inputs[idx]) {
+                    b1Inputs[idx].forEach(input => {
+                        input.classList.add('highlight');
+                        if (!firstHighlightedInput) firstHighlightedInput = input;
+                    });
+                }
+            } else if (type === 'z2') {
+                const idx = parseInt(el.dataset.idx);
+                // Highlight all z2 values with same index
+                document.querySelectorAll(`.calc-num.z2[data-idx="${idx}"]`).forEach(e => {
+                    e.classList.add('highlight-ref');
+                });
+                // Highlight the W2 row and b2 that produced it
+                if (w2Inputs[idx]) {
+                    w2Inputs[idx].forEach(input => {
+                        input.classList.add('highlight');
+                        if (!firstHighlightedInput) firstHighlightedInput = input;
+                    });
+                }
+                if (b2Inputs[idx]) {
+                    b2Inputs[idx].forEach(input => {
+                        input.classList.add('highlight');
+                        if (!firstHighlightedInput) firstHighlightedInput = input;
+                    });
+                }
+            }
+            
+            // Scroll highlighted input into view if not visible
+            if (firstHighlightedInput) {
+                // Scroll within the controls panel
+                firstHighlightedInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        
+        function clearMatrixHighlights() {
+            document.querySelectorAll('.matrix-cell input.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+            document.querySelectorAll('.calc-num.highlight-ref').forEach(el => {
+                el.classList.remove('highlight-ref');
+            });
+        }
+        
+        let axisMarker = null;
+        
+        function drawAxisMarker(axis, value, color) {
+            axisMarker = { axis, value, color };
+            draw();
+        }
+        
+        function clearAxisMarker() {
+            if (axisMarker) {
+                axisMarker = null;
+                draw();
+            }
+        }
+        
+        function renderAxisMarker() {
+            if (!axisMarker) return;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const scale = Math.min(width, height) / 2.5;
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            const { axis, value, color } = axisMarker;
+            
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            
+            if (axis === 'x') {
+                const px = cx + value * scale;
+                ctx.beginPath();
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, height);
+                ctx.stroke();
+                
+                // Draw value label
+                ctx.setLineDash([]);
+                ctx.font = 'bold 11px JetBrains Mono';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(value.toFixed(3), px, cy - 8);
+                
+                // Draw marker on axis
+                ctx.beginPath();
+                ctx.arc(px, cy, 4, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                const py = cy - value * scale;
+                ctx.beginPath();
+                ctx.moveTo(0, py);
+                ctx.lineTo(width, py);
+                ctx.stroke();
+                
+                // Draw value label
+                ctx.setLineDash([]);
+                ctx.font = 'bold 11px JetBrains Mono';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(value.toFixed(3), cx + 8, py);
+                
+                // Draw marker on axis
+                ctx.beginPath();
+                ctx.arc(cx, py, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.setLineDash([]);
+        }
+        
+        function drawHighlightedPoints() {
+            if (hoveredPointIndex < 0 && lockedPointIndex < 0) return;
+            
+            const idx = isCalcLocked ? lockedPointIndex : hoveredPointIndex;
+            if (idx < 0) return;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const scale = Math.min(width, height) / 2.5;
+            const cx = width / 2;
+            const cy = height / 2;
+            const t = interpolationSlider.value / 100;
+            
+            const [ox, oy] = points[idx];
+            const [tx, ty] = transformPoint(points[idx], t);
+            
+            // Draw highlighted original point
+            const opx = cx + ox * scale;
+            const opy = cy - oy * scale;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(opx, opy, 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw highlighted transformed point
+            const tpx = cx + tx * scale;
+            const tpy = cy - ty * scale;
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(tpx, tpy, 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw line connecting them
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(opx, opy);
+            ctx.lineTo(tpx, tpy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        canvas.addEventListener('mousemove', (e) => {
+            // Only work when not animating
+            if (isAnimating || autoRandomInterval) return;
+            if (isCalcLocked) return;
+            
+            const { x, y } = getCanvasCoords(e);
+            const world = canvasToWorld(x, y);
+            const idx = findNearestPoint(world.x, world.y);
+            
+            if (idx !== hoveredPointIndex) {
+                hoveredPointIndex = idx;
+                draw();
+                drawHighlightedPoints();
+            }
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            if (!isCalcLocked) {
+                hoveredPointIndex = -1;
+                draw();
+            }
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            const { x, y } = getCanvasCoords(e);
+            const world = canvasToWorld(x, y);
+            const idx = findNearestPoint(world.x, world.y);
+            
+            // If already locked, clicking anywhere on canvas dismisses popup
+            if (isCalcLocked) {
+                isCalcLocked = false;
+                lockedPointIndex = -1;
+                hoveredPointIndex = -1;
+                calcPane.classList.remove('locked');
+                calcPane.classList.remove('visible');
+                clearMatrixHighlights();
+                clearAxisMarker();
+                draw();
+                return;
+            }
+            
+            if (idx >= 0) {
+                // Stop any running animation
+                if (isAnimating) {
+                    isAnimating = false;
+                    animateBtn.textContent = '▶';
+                }
+                if (autoRandomInterval) {
+                    stopAutoRandom();
+                    updateAutoRandomUI();
+                }
+                
+                // Lock to this point
+                isCalcLocked = true;
+                lockedPointIndex = idx;
+                hoveredPointIndex = idx;
+                calcPane.classList.add('locked');
+                showCalcPane(idx);
+                draw();
+                drawHighlightedPoints();
+            }
+        });
+        
+        // Click outside popup to unlock
+        document.addEventListener('click', (e) => {
+            if (isCalcLocked) {
+                if (!calcPane.contains(e.target) && e.target !== canvas) {
+                    isCalcLocked = false;
+                    lockedPointIndex = -1;
+                    calcPane.classList.remove('locked');
+                    calcPane.classList.remove('visible');
+                    clearMatrixHighlights();
+                    draw();
+                }
+            }
         });
         
         // Initialize
