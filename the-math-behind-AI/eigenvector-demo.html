@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eigenvalue & Eigenvector Visualizer</title>
+  <title>Eigenvalue & Eigenvector 特征值与特征向量</title>
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -69,7 +69,12 @@
       flex-direction: column;
       gap: 0.5rem;
       min-height: 0;
+      overflow-y: auto;
     }
+
+    .left-panel::-webkit-scrollbar { width: 4px; }
+    .left-panel::-webkit-scrollbar-track { background: var(--bg-dark); }
+    .left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .card {
       background: var(--bg-card);
@@ -88,63 +93,139 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .matrix-sliders {
+    .matrix-input-container {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      padding: 0.5rem;
+    }
+
+    .matrix-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      color: var(--text-primary);
+      margin-right: 0.3rem;
+    }
+
+    .matrix-bracket {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3rem;
+      color: var(--accent-cyan);
+      font-weight: 100;
+      line-height: 1;
+    }
+
+    .matrix-bracket.left {
+      margin-right: 0.2rem;
+    }
+
+    .matrix-bracket.right {
+      margin-left: 0.2rem;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
       gap: 0.4rem;
     }
 
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .slider-label-cell {
+    .matrix-cell {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      width: 24px;
-    }
-
-    .slider-row input[type="range"] {
-      flex: 1;
-      height: 4px;
-      -webkit-appearance: none;
-      background: var(--border);
-      border-radius: 2px;
-    }
-
-    .slider-row input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      background: var(--accent-cyan);
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    .slider-value-input {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
+      font-size: 1rem;
       color: var(--accent-yellow);
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border);
-      border-radius: 3px;
-      width: 50px;
-      padding: 0.2rem 0.3rem;
+      border-radius: 4px;
+      width: 60px;
+      height: 36px;
+      padding: 0.3rem;
       text-align: center;
     }
 
-    .slider-value-input:focus {
+    .matrix-cell:focus {
       outline: none;
       border-color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.1);
     }
 
-    .slider-value-input::-webkit-inner-spin-button,
-    .slider-value-input::-webkit-outer-spin-button {
+    .matrix-cell.selected {
+      border-color: var(--accent-magenta);
+      box-shadow: 0 0 0 1px var(--accent-magenta);
+    }
+
+    .matrix-cell::-webkit-inner-spin-button,
+    .matrix-cell::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
+    }
+
+    .matrix-slider-container {
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem 1rem 0.3rem;
+    }
+
+    .matrix-slider-container input[type="range"] {
+      width: 160px;
+      height: 6px;
+      -webkit-appearance: none;
+      background: var(--accent-magenta);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .matrix-slider-container input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--accent-yellow);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--bg-dark);
+    }
+
+    .matrix-slider-container input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      background: var(--accent-yellow);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--bg-dark);
+    }
+
+    .presets-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      padding: 0.4rem 0.5rem;
+      align-items: center;
+      border-top: 1px solid var(--border);
+    }
+
+    .presets-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-right: 0.2rem;
+    }
+
+    .preset-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      padding: 0.25rem 0.4rem;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-dark);
     }
 
     .results-compact {
@@ -277,16 +358,6 @@
       border-radius: 0 4px 4px 0;
     }
 
-    #steps-container {
-      flex: 1;
-      overflow-y: auto;
-      min-height: 0;
-    }
-
-    #steps-container::-webkit-scrollbar { width: 4px; }
-    #steps-container::-webkit-scrollbar-track { background: var(--bg-dark); }
-    #steps-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
     .step {
       background: rgba(255, 255, 255, 0.02);
       border-left: 2px solid var(--accent-cyan);
@@ -361,96 +432,102 @@
 <body>
   <div class="main-grid">
     <header>
-      <h1>Eigenvalue & Eigenvector</h1>
-      <span class="subtitle">Interactive 2×2 matrix computation</span>
+      <h1>Eigenvalue & Eigenvector 特征值与特征向量</h1>
+      <span class="subtitle">Interactive 2×2 matrix computation 交互式2×2矩阵计算</span>
     </header>
 
     <div class="left-panel">
       <div class="card">
-        <div class="card-title">Matrix A</div>
-        <div class="matrix-sliders">
-          <div class="slider-row">
-            <span class="slider-label-cell">a₁₁</span>
-            <input type="range" id="a11" min="-10" max="10" value="2" step="0.1" oninput="updateFromSlider('a11')">
-            <input type="number" class="slider-value-input" id="a11-val" value="2" step="0.1" oninput="updateFromInput('a11')">
+        <div class="card-title">Matrix A 矩阵</div>
+        <div class="matrix-input-container">
+          <span class="matrix-label">A =</span>
+          <div class="matrix-bracket left">[</div>
+          <div class="matrix-grid">
+            <input type="number" class="matrix-cell" id="a11-val" value="2.00" step="0.01" oninput="updateFromInput('a11')" onfocus="selectCell('a11')">
+            <input type="number" class="matrix-cell" id="a12-val" value="1.00" step="0.01" oninput="updateFromInput('a12')" onfocus="selectCell('a12')">
+            <input type="number" class="matrix-cell" id="a21-val" value="0.00" step="0.01" oninput="updateFromInput('a21')" onfocus="selectCell('a21')">
+            <input type="number" class="matrix-cell" id="a22-val" value="3.00" step="0.01" oninput="updateFromInput('a22')" onfocus="selectCell('a22')">
           </div>
-          <div class="slider-row">
-            <span class="slider-label-cell">a₁₂</span>
-            <input type="range" id="a12" min="-10" max="10" value="1" step="0.1" oninput="updateFromSlider('a12')">
-            <input type="number" class="slider-value-input" id="a12-val" value="1" step="0.1" oninput="updateFromInput('a12')">
-          </div>
-          <div class="slider-row">
-            <span class="slider-label-cell">a₂₁</span>
-            <input type="range" id="a21" min="-10" max="10" value="0" step="0.1" oninput="updateFromSlider('a21')">
-            <input type="number" class="slider-value-input" id="a21-val" value="0" step="0.1" oninput="updateFromInput('a21')">
-          </div>
-          <div class="slider-row">
-            <span class="slider-label-cell">a₂₂</span>
-            <input type="range" id="a22" min="-10" max="10" value="3" step="0.1" oninput="updateFromSlider('a22')">
-            <input type="number" class="slider-value-input" id="a22-val" value="3" step="0.1" oninput="updateFromInput('a22')">
-          </div>
+          <div class="matrix-bracket right">]</div>
+          <!-- Hidden range inputs for compatibility -->
+          <input type="range" id="a11" min="-10" max="10" value="2" step="0.01" style="display:none">
+          <input type="range" id="a12" min="-10" max="10" value="1" step="0.01" style="display:none">
+          <input type="range" id="a21" min="-10" max="10" value="0" step="0.01" style="display:none">
+          <input type="range" id="a22" min="-10" max="10" value="3" step="0.01" style="display:none">
+        </div>
+        <div class="matrix-slider-container">
+          <input type="range" id="matrix-slider" min="-10" max="10" value="2" step="0.01" oninput="updateFromMatrixSlider()">
+        </div>
+        <div class="presets-container">
+          <span class="presets-label">Presets 预设:</span>
+          <button class="preset-btn" onclick="loadPreset('triangular')">Triangular 三角</button>
+          <button class="preset-btn" onclick="loadPreset('singular')">Singular 奇异</button>
+          <button class="preset-btn" onclick="loadPreset('scalar')">Scalar 标量</button>
+          <button class="preset-btn" onclick="loadPreset('symmetric')">Symmetric 对称</button>
+          <button class="preset-btn" onclick="loadPreset('rotation')">Rotation 旋转</button>
         </div>
       </div>
 
       <div class="card" id="results-card">
-        <div class="card-title">Results</div>
+        <div class="card-title">Results 结果</div>
         <div class="results-compact" id="results-compact">
           <div class="result-item">
-            <div class="result-label">λ₁</div>
+            <div class="result-label">λ₁ 特征值</div>
             <div class="result-value" id="lambda1">—</div>
           </div>
           <div class="result-item">
-            <div class="result-label">v₁</div>
+            <div class="result-label">v₁ 特征向量</div>
             <div class="result-value" id="ev1">—</div>
           </div>
           <div class="result-item">
-            <div class="result-label">λ₂</div>
+            <div class="result-label">λ₂ 特征值</div>
             <div class="result-value" id="lambda2">—</div>
           </div>
           <div class="result-item">
-            <div class="result-label">v₂</div>
+            <div class="result-label">v₂ 特征向量</div>
             <div class="result-value" id="ev2">—</div>
           </div>
         </div>
       </div>
 
-      <div class="card" style="flex:1; display:flex; flex-direction:column; min-height:0;">
-        <div class="card-title">Steps</div>
+      <div class="card">
+        <div class="card-title">Steps 步骤</div>
         <div id="steps-container">
-          <p class="note">Computing...</p>
+          <p class="note">Computing... 计算中...</p>
         </div>
       </div>
     </div>
 
     <div class="viz-panel card">
-      <div class="card-title">Geometric Visualization</div>
+      <div class="card-title">Geometric Visualization 几何可视化</div>
       <div class="visualization">
         <canvas id="canvas"></canvas>
         <div class="legend">
           <div class="legend-item">
             <div class="legend-color" style="background: #ffffff;"></div>
-            <span>v (original vector)</span>
+            <span>v (original 原向量)</span>
           </div>
           <div class="legend-item">
             <div class="legend-color" style="background: #ffd000;"></div>
-            <span>Av (transformed)</span>
+            <span>Av (transformed 变换后)</span>
           </div>
           <div class="legend-item">
             <div class="legend-color" style="background: #00d4ff;"></div>
-            <span>Eigenvector v₁ direction</span>
+            <span>Eigenvector 特征向量 v₁</span>
           </div>
           <div class="legend-item">
             <div class="legend-color" style="background: #ff00aa;"></div>
-            <span>Eigenvector v₂ direction</span>
+            <span>Eigenvector 特征向量 v₂</span>
           </div>
         </div>
       </div>
       <div class="controls">
         <button class="btn-pause" id="pause-btn" onclick="togglePause()">⏸</button>
-        <span class="slider-label">Rotate Vector Mode</span>
+        <span class="slider-label">Rotate Vector Mode 旋转向量模式</span>
       </div>
       <div class="insight" id="insight-text">
-        Watch vector <strong>v</strong> rotate 360°. When <strong>v</strong> aligns with an eigenvector direction, <strong>v</strong> and <strong>Av</strong> become parallel (same color). The animation pauses briefly to highlight this!
+        Watch vector <strong>v</strong> rotate 360°. When <strong>v</strong> aligns with an eigenvector direction, <strong>v</strong> and <strong>Av</strong> become parallel (same color). The animation pauses briefly to highlight this!<br>
+        观察向量 <strong>v</strong> 旋转360°。当 <strong>v</strong> 与特征向量方向对齐时，<strong>v</strong> 和 <strong>Av</strong> 变为平行（同色）。动画会短暂暂停以突出显示！
       </div>
     </div>
   </div>
@@ -468,6 +545,7 @@
     let rotationAngle = 0; // Current angle for rotation mode
     let eigenPauseFrames = 0; // Counter for pausing at eigenvector
     let lastEigenHit = -1; // Track which eigenvector was last hit to avoid repeat pauses
+    let selectedCell = 'a11'; // Currently selected matrix cell
 
     // Generate points on a unit circle for the shape
     const numPoints = 48;
@@ -513,15 +591,29 @@
       if (!isPaused) animate();
     }
 
-    function updateMatrixValue(id) {
-      const val = parseFloat(document.getElementById(id).value);
-      document.getElementById(id + '-val').value = val.toFixed(1);
-      compute();
-    }
-
-    function updateFromSlider(id) {
-      const val = parseFloat(document.getElementById(id).value);
-      document.getElementById(id + '-val').value = val.toFixed(1);
+    function loadPreset(name) {
+      const presets = {
+        'triangular': { a11: 2, a12: 1, a21: 0, a22: 3 },      // Upper triangular, eigenvalues on diagonal
+        'singular': { a11: 0.5, a12: 0.15, a21: 1, a22: 0.3 }, // det=0, λ₂=0
+        'scalar': { a11: 3, a12: 0, a21: 0, a22: 3 },          // All vectors are eigenvectors
+        'symmetric': { a11: 2, a12: 1, a21: 1, a22: 2 },       // Symmetric, orthogonal eigenvectors
+        'rotation': { a11: 0, a12: -1, a21: 1, a22: 0 }        // 90° rotation, complex eigenvalues
+      };
+      
+      const p = presets[name];
+      if (!p) return;
+      
+      document.getElementById('a11-val').value = p.a11.toFixed(2);
+      document.getElementById('a12-val').value = p.a12.toFixed(2);
+      document.getElementById('a21-val').value = p.a21.toFixed(2);
+      document.getElementById('a22-val').value = p.a22.toFixed(2);
+      
+      document.getElementById('a11').value = p.a11;
+      document.getElementById('a12').value = p.a12;
+      document.getElementById('a21').value = p.a21;
+      document.getElementById('a22').value = p.a22;
+      
+      selectCell('a11');
       compute();
     }
 
@@ -529,21 +621,50 @@
       let val = parseFloat(document.getElementById(id + '-val').value);
       if (isNaN(val)) val = 0;
       document.getElementById(id).value = val;
+      document.getElementById('matrix-slider').value = val;
+      compute();
+    }
+
+    function selectCell(id) {
+      selectedCell = id;
+      const val = parseFloat(document.getElementById(id + '-val').value);
+      document.getElementById('matrix-slider').value = val;
+      
+      // Update visual selection
+      document.querySelectorAll('.matrix-cell').forEach(cell => cell.classList.remove('selected'));
+      document.getElementById(id + '-val').classList.add('selected');
+    }
+
+    function updateFromMatrixSlider() {
+      const val = parseFloat(document.getElementById('matrix-slider').value);
+      document.getElementById(selectedCell + '-val').value = val.toFixed(2);
+      document.getElementById(selectedCell).value = val;
       compute();
     }
 
     function setupKeyboardNav() {
-      const matrixOrder = ['a11', 'a12', 'a21', 'a22'];
-      matrixOrder.forEach((id, idx) => {
+      // Matrix layout: a11 a12
+      //                a21 a22
+      const matrixNav = {
+        'a11': { right: 'a12', down: 'a21', left: 'a12', up: 'a21' },
+        'a12': { right: 'a11', down: 'a22', left: 'a11', up: 'a22' },
+        'a21': { right: 'a22', down: 'a11', left: 'a22', up: 'a11' },
+        'a22': { right: 'a21', down: 'a12', left: 'a21', up: 'a12' }
+      };
+      
+      Object.keys(matrixNav).forEach(id => {
         document.getElementById(id + '-val').addEventListener('keydown', (e) => {
-          if (e.key === 'ArrowDown' || e.key === 'Down') {
+          const nav = matrixNav[id];
+          let targetId = null;
+          
+          if (e.key === 'ArrowRight' || e.key === 'Right') targetId = nav.right;
+          else if (e.key === 'ArrowLeft' || e.key === 'Left') targetId = nav.left;
+          else if (e.key === 'ArrowDown' || e.key === 'Down') targetId = nav.down;
+          else if (e.key === 'ArrowUp' || e.key === 'Up') targetId = nav.up;
+          
+          if (targetId) {
             e.preventDefault();
-            const nextIdx = (idx + 1) % matrixOrder.length;
-            document.getElementById(matrixOrder[nextIdx] + '-val').focus();
-          } else if (e.key === 'ArrowUp' || e.key === 'Up') {
-            e.preventDefault();
-            const prevIdx = (idx - 1 + matrixOrder.length) % matrixOrder.length;
-            document.getElementById(matrixOrder[prevIdx] + '-val').focus();
+            document.getElementById(targetId + '-val').focus();
           }
         });
       });
@@ -578,10 +699,10 @@
         const threshold = 0.99999;
         
         if (dot1 > threshold && lastEigenHit !== 1) {
-          eigenPauseFrames = 30; // Pause for ~0.5 second (30 frames)
+          eigenPauseFrames = 120; // Pause for ~2 seconds (120 frames)
           lastEigenHit = 1;
         } else if (dot2 > threshold && lastEigenHit !== 2) {
-          eigenPauseFrames = 30;
+          eigenPauseFrames = 120;
           lastEigenHit = 2;
         }
         
@@ -763,40 +884,36 @@
       ctx.fillStyle = '#ffd000';
       ctx.fillText('Av', transX + 10, transY - 10);
 
-      // Angle display
+      // Angle display - positioned below HTML legend
       const angleDeg = (rotationAngle * 180 / Math.PI).toFixed(0);
       ctx.fillStyle = '#888';
       ctx.font = '11px JetBrains Mono';
-      ctx.fillText(`Angle: ${angleDeg}°`, 10, 20);
+      ctx.fillText(`Angle 角度: ${angleDeg}°`, 10, 110);
       
       // Status message
       if (isEigenvector) {
         ctx.fillStyle = eigenvectorColor;
         ctx.font = 'bold 12px JetBrains Mono';
-        ctx.fillText(`✓ EIGENVECTOR! v and Av are parallel`, 10, 40);
+        ctx.fillText(`✓ EIGENVECTOR! v and Av are parallel`, 10, 130);
+        ctx.fillText(`✓ 特征向量！v 和 Av 平行`, 10, 148);
         const dot1 = Math.abs(v[0] * eigenData.ev1[0] + v[1] * eigenData.ev1[1]);
         const lambda = dot1 > 0.999 ? eigenData.l1 : eigenData.l2;
-        ctx.fillText(`Av = ${lambda.toFixed(2)} × v`, 10, 58);
+        ctx.fillText(`Av = ${lambda.toFixed(2)} × v`, 10, 166);
         
         // Show pause indicator
         if (eigenPauseFrames > 0) {
           ctx.fillStyle = eigenvectorColor;
-          ctx.globalAlpha = 0.3 + 0.7 * (eigenPauseFrames / 30);
+          ctx.globalAlpha = 0.3 + 0.7 * (eigenPauseFrames / 120);
           ctx.font = 'bold 14px JetBrains Mono';
-          ctx.fillText(`⏸ Paused to show alignment`, 10, 78);
+          ctx.fillText(`⏸ Paused 暂停`, 10, 186);
           ctx.globalAlpha = 1;
         }
       } else {
         ctx.fillStyle = '#888';
         ctx.font = '11px JetBrains Mono';
-        ctx.fillText(`v and Av point in different directions`, 10, 40);
+        ctx.fillText(`v and Av point in different directions`, 10, 130);
+        ctx.fillText(`v 和 Av 指向不同方向`, 10, 145);
       }
-
-      // Legend
-      ctx.fillStyle = '#888';
-      ctx.font = '10px JetBrains Mono';
-      ctx.fillText(`White = original v`, 10, height - 30);
-      ctx.fillText(`Yellow = transformed Av`, 10, height - 15);
     }
 
     function draw() {
@@ -1082,20 +1199,30 @@
       eigenPauseFrames = 0;
       lastEigenHit = -1;
 
-      const trace = a + d;
-      const det = a * d - b * c;
-      const discriminant = trace * trace - 4 * det;
+      // Helper to clean up floating point errors
+      const cleanFloat = (x) => {
+        // Round to various precision levels and check if close enough
+        for (const precision of [1, 10, 100, 1000]) {
+          const rounded = Math.round(x * precision) / precision;
+          if (Math.abs(x - rounded) < 1e-6) return rounded;
+        }
+        return x;
+      };
+
+      const trace = cleanFloat(a + d);
+      const det = cleanFloat(a * d - b * c);
+      const discriminant = cleanFloat(trace * trace - 4 * det);
 
       const container = document.getElementById('steps-container');
       let html = '';
 
       html += `<div class="step">
         <span class="step-number">1</span>
-        <span class="step-title">Characteristic equation</span>
+        <span class="step-title">Characteristic equation 特征方程</span>
         <div class="step-content">
           <span class="math">det(A - λI) = 0</span>
-          <div class="math-block">(${a.toFixed(1)}-λ)(${d.toFixed(1)}-λ) - (${b.toFixed(1)})(${c.toFixed(1)}) = 0
-λ² - ${trace.toFixed(1)}λ + ${det.toFixed(1)} = 0</div>
+          <div class="math-block">(${a.toFixed(2)}-λ)(${d.toFixed(2)}-λ) - (${b.toFixed(2)})(${c.toFixed(2)}) = 0
+λ² - ${trace.toFixed(2)}λ + ${det.toFixed(2)} = 0</div>
         </div>
       </div>`;
 
@@ -1103,30 +1230,30 @@
       
       if (discriminant < 0) {
         eigenData = { ev1: null, ev2: null, l1: null, l2: null };
-        document.getElementById('lambda1').textContent = `${(trace/2).toFixed(1)}+${(Math.sqrt(-discriminant)/2).toFixed(1)}i`;
-        document.getElementById('lambda2').textContent = `${(trace/2).toFixed(1)}-${(Math.sqrt(-discriminant)/2).toFixed(1)}i`;
+        document.getElementById('lambda1').textContent = `${(trace/2).toFixed(2)}+${(Math.sqrt(-discriminant)/2).toFixed(2)}i`;
+        document.getElementById('lambda2').textContent = `${(trace/2).toFixed(2)}-${(Math.sqrt(-discriminant)/2).toFixed(2)}i`;
         document.getElementById('ev1').textContent = 'complex';
         document.getElementById('ev2').textContent = 'complex';
         html += `<div class="step">
           <span class="step-number">2</span>
-          <span class="step-title">Complex eigenvalues</span>
-          <div class="step-content">Discriminant = ${discriminant.toFixed(2)} < 0<br>No real eigenvectors exist.</div>
+          <span class="step-title">Complex eigenvalues 复数特征值</span>
+          <div class="step-content">Discriminant 判别式 = ${discriminant.toFixed(2)} < 0<br>No real eigenvectors exist. 无实数特征向量。</div>
         </div>`;
         container.innerHTML = html;
         drawRotateMode();
         return;
       }
 
-      lambda1 = (trace + Math.sqrt(discriminant)) / 2;
-      lambda2 = (trace - Math.sqrt(discriminant)) / 2;
+      lambda1 = cleanFloat((trace + Math.sqrt(discriminant)) / 2);
+      lambda2 = cleanFloat((trace - Math.sqrt(discriminant)) / 2);
 
       html += `<div class="step">
         <span class="step-number">2</span>
-        <span class="step-title">Solve quadratic</span>
+        <span class="step-title">Solve quadratic 求解二次方程</span>
         <div class="step-content">
-          <div class="math-block">trace = ${trace.toFixed(1)}, det = ${det.toFixed(1)}
-discriminant = ${discriminant.toFixed(1)}
-λ = (${trace.toFixed(1)} ± √${discriminant.toFixed(1)}) / 2</div>
+          <div class="math-block">trace 迹 = ${trace.toFixed(2)}, det 行列式 = ${det.toFixed(2)}
+discriminant 判别式 = ${discriminant.toFixed(2)}
+λ = (${trace.toFixed(2)} ± √${discriminant.toFixed(2)}) / 2</div>
           <strong>λ₁ = ${lambda1.toFixed(2)}, λ₂ = ${lambda2.toFixed(2)}</strong>
         </div>
       </div>`;
@@ -1177,11 +1304,11 @@ discriminant = ${discriminant.toFixed(1)}
 
         html += `<div class="step">
           <span class="step-number">${3+idx}</span>
-          <span class="step-title">Eigenvector for λ${idx+1}=${lambda.toFixed(2)}</span>
+          <span class="step-title">Eigenvector 特征向量 λ${idx+1}=${lambda.toFixed(2)}</span>
           <div class="step-content">
-            <div class="math-block">(A - ${lambda.toFixed(1)}I)v = 0
-[${(a-lambda).toFixed(1)}, ${b.toFixed(1)}][x]   [0]
-[${c.toFixed(1)}, ${(d-lambda).toFixed(1)}][y] = [0]</div>
+            <div class="math-block">(A - ${lambda.toFixed(2)}I)v = 0
+[${(a-lambda).toFixed(2)}, ${b.toFixed(2)}][x]   [0]
+[${c.toFixed(2)}, ${(d-lambda).toFixed(2)}][y] = [0]</div>
             <strong>v${idx+1} = [${vx.toFixed(2)}, ${vy.toFixed(2)}]</strong>
           </div>
         </div>`;
@@ -1198,14 +1325,15 @@ discriminant = ${discriminant.toFixed(1)}
       document.getElementById('lambda2').textContent = lambda2.toFixed(2);
       
       if (isScalarMatrix) {
-        document.getElementById('ev1').textContent = 'ALL vectors!';
-        document.getElementById('ev2').textContent = 'ALL vectors!';
+        document.getElementById('ev1').textContent = 'ALL vectors! 所有向量!';
+        document.getElementById('ev2').textContent = 'ALL vectors! 所有向量!';
         html += `<div class="step">
           <span class="step-number">★</span>
-          <span class="step-title">Special case: Scalar matrix</span>
+          <span class="step-title">Special case 特殊情况: Scalar matrix 标量矩阵</span>
           <div class="step-content">
-            <strong>Every vector is an eigenvector!</strong><br>
-            This matrix scales all vectors by ${lambda1.toFixed(2)} without any rotation.
+            <strong>Every vector is an eigenvector! 每个向量都是特征向量！</strong><br>
+            This matrix scales all vectors by ${lambda1.toFixed(2)} without any rotation.<br>
+            此矩阵将所有向量缩放 ${lambda1.toFixed(2)} 倍，无旋转。
           </div>
         </div>`;
       } else {
@@ -1222,6 +1350,7 @@ discriminant = ${discriminant.toFixed(1)}
     compute();
     animate();
     setupKeyboardNav();
+    selectCell('a11'); // Select first cell by default
   </script>
 </body>
 </html>
