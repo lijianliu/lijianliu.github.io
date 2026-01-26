@@ -68,16 +68,13 @@
             border-radius: 8px;
             padding: 10px 12px;
             margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .input-group {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            gap: 10px;
         }
 
         .input-group label {
@@ -86,9 +83,11 @@
             letter-spacing: 0.5px;
             color: var(--text-secondary);
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .input-group input {
+            flex: 1;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -218,20 +217,26 @@
 
         .resource-header th {
             padding: 6px 4px;
+            height: 52px;
+            vertical-align: middle;
+            overflow: visible;
         }
 
         .resource-cell {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 2px;
+            overflow: visible;
         }
 
         .pie-chart {
-            width: 18px;
-            height: 18px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             flex-shrink: 0;
+            overflow: visible;
         }
 
         .pie-full {
@@ -239,20 +244,81 @@
         }
 
         .pie-overallocated {
-            box-shadow: 0 0 0 2px var(--accent-red);
+            box-shadow: 0 0 0 2px #991b1b;
         }
 
         .initiative-cell {
             text-align: left;
-            padding-left: 10px;
-            font-weight: 500;
+            padding: 0;
+        }
+
+        .initiative-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: left;
             color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            cursor: text;
+        }
+
+        .initiative-input:focus {
+            outline: none;
+            background: var(--cell-hover);
+        }
+
+        .add-initiative-row td {
+            background: var(--bg-tertiary);
+        }
+
+        .add-btn {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            border-radius: 4px;
+            padding: 4px 10px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .delete-btn:hover {
+            color: var(--accent-red);
+        }
+
+        .initiative-cell-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .initiative-cell-content .initiative-input {
+            flex: 1;
         }
 
         .total-cell {
             background: var(--bg-tertiary);
             font-weight: 600;
-            color: var(--accent-blue);
+            color: #0f2057;
         }
 
         .allocation-input {
@@ -332,7 +398,22 @@
 <body>
     <div class="container">
         <header>
-            <h1>Headcount Planner</h1>
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+                <h1>Headcount Planner</h1>
+                <input type="text" id="subheader-input" placeholder="e.g., FY27 Q1" style="
+                    background: transparent;
+                    border: 1px dashed var(--border-color);
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    color: var(--text-primary);
+                    font-family: 'Space Grotesk', sans-serif;
+                    font-size: 16px;
+                    font-weight: 600;
+                    width: 120px;
+                    outline: none;
+                    transition: border-color 0.2s;
+                " onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor=''">
+            </div>
             <p class="subtitle">Allocate resources across initiatives • Copy URL to save/share</p>
         </header>
 
@@ -340,10 +421,6 @@
             <div class="input-group">
                 <label>Resources (comma separated)</label>
                 <input type="text" id="resources-input" placeholder="e.g., Alice, Bob, Charlie, Diana">
-            </div>
-            <div class="input-group">
-                <label>Initiatives (comma separated)</label>
-                <input type="text" id="initiatives-input" placeholder="e.g., Q1 Product Launch, Platform Migration, Customer Support">
             </div>
         </div>
 
@@ -361,26 +438,30 @@
 
         <div class="legend">
             <div class="legend-item">
-                <svg width="16" height="16" viewBox="0 0 18 18">
-                    <circle cx="9" cy="9" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1"/>
+                <svg width="22" height="22" viewBox="0 0 28 28" style="overflow:visible">
+                    <circle cx="14" cy="14" r="13" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1"/>
+                    <text x="14" y="14" text-anchor="middle" dominant-baseline="central" fill="#666" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700">0</text>
                 </svg>
                 <span>Unallocated</span>
             </div>
             <div class="legend-item">
-                <svg width="16" height="16" viewBox="0 0 18 18">
-                    <circle cx="9" cy="9" r="8" fill="#2563eb"/>
+                <svg width="22" height="22" viewBox="0 0 28 28" style="overflow:visible">
+                    <circle cx="14" cy="14" r="13" fill="#0f2057"/>
+                    <text x="14" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700">50%</text>
                 </svg>
                 <span>Allocated</span>
             </div>
             <div class="legend-item">
-                <svg width="16" height="16" viewBox="0 0 18 18" style="box-shadow: 0 0 0 2px #16a34a; border-radius: 50%;">
-                    <circle cx="9" cy="9" r="8" fill="#2563eb"/>
+                <svg width="22" height="22" viewBox="0 0 28 28" style="box-shadow: 0 0 0 2px #16a34a; border-radius: 50%; overflow:visible">
+                    <circle cx="14" cy="14" r="13" fill="#0f2057"/>
+                    <text x="14" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700">100%</text>
                 </svg>
                 <span>Fully allocated</span>
             </div>
             <div class="legend-item">
-                <svg width="16" height="16" viewBox="0 0 18 18" style="box-shadow: 0 0 0 2px #dc2626; border-radius: 50%;">
-                    <circle cx="9" cy="9" r="8" fill="#dc2626"/>
+                <svg width="22" height="22" viewBox="0 0 28 28" style="box-shadow: 0 0 0 2px #991b1b; border-radius: 50%; overflow:visible">
+                    <circle cx="14" cy="14" r="13" fill="#991b1b"/>
+                    <text x="14" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="11" font-family="JetBrains Mono, monospace" font-weight="700">20%</text>
                 </svg>
                 <span>Over-allocated</span>
             </div>
@@ -392,12 +473,13 @@
         let state = {
             resources: [],
             initiatives: [],
-            allocations: {} // key: "initiative_resource", value: number
+            allocations: {}, // key: "initiative_resource", value: number
+            subheader: ''
         };
 
         // DOM elements
         const resourcesInput = document.getElementById('resources-input');
-        const initiativesInput = document.getElementById('initiatives-input');
+        const subheaderInput = document.getElementById('subheader-input');
         const tableContainer = document.getElementById('table-container');
         const urlOutput = document.getElementById('url-output');
         const copyBtn = document.getElementById('copy-btn');
@@ -409,6 +491,12 @@
             const resourcesParam = params.get('resources');
             const initiativesParam = params.get('initiatives');
             const allocationsParam = params.get('allocations');
+            const subheaderParam = params.get('subheader');
+
+            if (subheaderParam) {
+                state.subheader = decodeURIComponent(subheaderParam);
+                subheaderInput.value = state.subheader;
+            }
 
             if (resourcesParam) {
                 state.resources = resourcesParam.split(',').map(r => decodeURIComponent(r.trim())).filter(r => r);
@@ -421,11 +509,9 @@
 
             if (initiativesParam) {
                 state.initiatives = initiativesParam.split(',').map(i => decodeURIComponent(i.trim())).filter(i => i);
-                initiativesInput.value = state.initiatives.join(', ');
             } else {
                 // Default sample initiatives
                 state.initiatives = ['Q1 Product Launch', 'Platform Migration', 'Customer Support', 'Technical Debt Reduction'];
-                initiativesInput.value = state.initiatives.join(', ');
             }
 
             if (allocationsParam) {
@@ -454,6 +540,10 @@
                 }
             } catch (e) {
                 baseURL = 'https://yoursite.com/headcount-planner.html';
+            }
+            
+            if (state.subheader) {
+                params.set('subheader', encodeURIComponent(state.subheader));
             }
             
             if (state.resources.length > 0) {
@@ -545,6 +635,12 @@
                 }
             });
 
+            // Update grand total in header
+            const totalHeader = document.querySelector('.total-header');
+            if (totalHeader) {
+                totalHeader.textContent = `Total=${formatNumber(getGrandTotal())}`;
+            }
+
             // Update pie charts in header
             const headerCells = document.querySelectorAll('.resource-cell');
             state.resources.forEach((resource, idx) => {
@@ -577,12 +673,11 @@
 
         // Render the table
         function renderTable() {
-            if (state.resources.length === 0 || state.initiatives.length === 0) {
+            if (state.resources.length === 0) {
                 tableContainer.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📊</div>
-                        <p>Enter resources and initiatives above to start planning.<br>
-                        Copy the shareable URL to save or share your plan.</p>
+                        <p>Enter resources above to start planning.</p>
                     </div>
                 `;
                 return;
@@ -593,7 +688,8 @@
             // Header row - Resource names with pie charts
             html += '<thead><tr class="resource-header">';
             html += '<th>Initiative</th>';
-            html += '<th>Total</th>';
+            const grandTotal = getGrandTotal();
+            html += `<th class="total-header">Total=${formatNumber(grandTotal)}</th>`;
             for (const resource of state.resources) {
                 const allocated = getAllocatedForResource(resource);
                 const pieChart = createPieChart(allocated);
@@ -607,7 +703,7 @@
             for (let initIdx = 0; initIdx < state.initiatives.length; initIdx++) {
                 const initiative = state.initiatives[initIdx];
                 html += '<tr>';
-                html += `<td class="initiative-cell">${escapeHtml(initiative)}</td>`;
+                html += `<td class="initiative-cell"><div class="initiative-cell-content"><input type="text" class="initiative-input" data-init-idx="${initIdx}" value="${escapeHtml(initiative)}"><button class="delete-btn" data-init-idx="${initIdx}" title="Delete">×</button></div></td>`;
                 html += `<td class="total-cell">${formatNumber(getInitiativeTotal(initiative))}</td>`;
                 
                 for (let resIdx = 0; resIdx < state.resources.length; resIdx++) {
@@ -619,14 +715,33 @@
                 html += '</tr>';
             }
 
+            // Add initiative row
+            html += '<tr class="add-initiative-row">';
+            html += `<td colspan="${state.resources.length + 2}"><button class="add-btn" id="add-initiative-btn">+ Add Initiative</button></td>`;
+            html += '</tr>';
+
             html += '</tbody></table>';
             tableContainer.innerHTML = html;
 
-            // Add event listeners to inputs
+            // Add event listeners to allocation inputs
             document.querySelectorAll('.allocation-input').forEach(input => {
                 input.addEventListener('change', handleAllocationChange);
+                input.addEventListener('input', handleAllocationInput);
                 input.addEventListener('keydown', handleKeyNavigation);
             });
+
+            // Add event listeners to initiative inputs
+            document.querySelectorAll('.initiative-input').forEach(input => {
+                input.addEventListener('change', handleInitiativeRename);
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteInitiative);
+            });
+
+            // Add event listener to add button
+            document.getElementById('add-initiative-btn').addEventListener('click', handleAddInitiative);
         }
 
         // Handle arrow key navigation
@@ -677,9 +792,20 @@
             return Math.round(total * 1000) / 1000;
         }
 
-        // Create SVG pie chart
+        // Get grand total of all allocations
+        function getGrandTotal() {
+            let total = 0;
+            for (const initiative of state.initiatives) {
+                for (const resource of state.resources) {
+                    total += getAllocation(initiative, resource);
+                }
+            }
+            return Math.round(total * 1000) / 1000;
+        }
+
+        // Create SVG pie chart with text inside
         function createPieChart(allocated) {
-            const size = 18;
+            const size = 28;
             const radius = size / 2;
             const cx = radius;
             const cy = radius;
@@ -688,14 +814,30 @@
             const displayAllocated = Math.min(allocated, 1);
             const unallocated = Math.max(0, 1 - allocated);
             
-            // Colors
-            const allocatedColor = allocated > 1 ? '#dc2626' : '#2563eb';
+            // Colors - darker blue and red for white text readability
+            const allocatedColor = allocated > 1 ? '#991b1b' : '#0f2057';
             const unallocatedColor = '#e5e7eb';
+            
+            // Text to display
+            let displayText = '';
+            if (allocated === 0) {
+                displayText = '0';
+            } else if (allocated === 1) {
+                displayText = '100%';
+            } else if (allocated > 1) {
+                displayText = Math.round((allocated - 1) * 100) + '%';
+            } else {
+                displayText = Math.round(allocated * 100) + '%';
+            }
+            
+            const textColor = allocated === 0 ? '#666' : '#fff';
+            const fontSize = '11';
             
             // If fully unallocated
             if (allocated === 0) {
-                return `<svg class="pie-chart" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                return `<svg class="pie-chart" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible">
                     <circle cx="${cx}" cy="${cy}" r="${radius - 1}" fill="${unallocatedColor}" stroke="#d1d5db" stroke-width="1"/>
+                    <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" font-size="${fontSize}" font-family="JetBrains Mono, monospace" font-weight="700">${displayText}</text>
                 </svg>`;
             }
             
@@ -707,8 +849,9 @@
                 } else if (allocated === 1) {
                     extraClass = ' pie-full';
                 }
-                return `<svg class="pie-chart${extraClass}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                return `<svg class="pie-chart${extraClass}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible">
                     <circle cx="${cx}" cy="${cy}" r="${radius - 1}" fill="${allocatedColor}"/>
+                    <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" font-size="${fontSize}" font-family="JetBrains Mono, monospace" font-weight="700">${displayText}</text>
                 </svg>`;
             }
             
@@ -730,13 +873,14 @@
             
             const pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
             
-            return `<svg class="pie-chart" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+            return `<svg class="pie-chart" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible">
                 <circle cx="${cx}" cy="${cy}" r="${r}" fill="${unallocatedColor}"/>
                 <path d="${pathData}" fill="${allocatedColor}"/>
+                <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" font-size="${fontSize}" font-family="JetBrains Mono, monospace" font-weight="700">${displayText}</text>
             </svg>`;
         }
 
-        // Handle allocation input change
+        // Handle allocation input change (on blur/change - saves to state and URL)
         function handleAllocationChange(e) {
             const input = e.target;
             const row = parseInt(input.dataset.r, 10);
@@ -756,6 +900,35 @@
             setAllocation(initiative, resource, value);
         }
 
+        // Handle allocation input (real-time updates while typing)
+        function handleAllocationInput(e) {
+            const input = e.target;
+            const row = parseInt(input.dataset.r, 10);
+            const col = parseInt(input.dataset.c, 10);
+
+            const initiative = state.initiatives[row];
+            const resource = state.resources[col];
+            let value = input.value.trim();
+            
+            // Allow percentage input
+            if (value.endsWith('%')) {
+                value = parseFloat(value) / 100;
+            } else {
+                value = parseFloat(value) || 0;
+            }
+            
+            // Update state without URL update
+            const key = `${initiative}|||${resource}`;
+            if (value === 0) {
+                delete state.allocations[key];
+            } else {
+                state.allocations[key] = value;
+            }
+            
+            // Update visuals only
+            updateTotalsAndPies();
+        }
+
         // Handle resources input change
         function handleResourcesChange() {
             const value = resourcesInput.value;
@@ -764,12 +937,74 @@
             renderTable();
         }
 
-        // Handle initiatives input change
-        function handleInitiativesChange() {
-            const value = initiativesInput.value;
-            state.initiatives = value.split(',').map(i => i.trim()).filter(i => i);
+        // Handle initiative rename
+        function handleInitiativeRename(e) {
+            const input = e.target;
+            const initIdx = parseInt(input.dataset.initIdx, 10);
+            const oldName = state.initiatives[initIdx];
+            const newName = input.value.trim();
+
+            if (!newName || newName === oldName) {
+                input.value = oldName;
+                return;
+            }
+
+            // Update allocations to use new name
+            const newAllocations = {};
+            for (const [key, value] of Object.entries(state.allocations)) {
+                const [initiative, resource] = key.split('|||');
+                if (initiative === oldName) {
+                    newAllocations[`${newName}|||${resource}`] = value;
+                } else {
+                    newAllocations[key] = value;
+                }
+            }
+            state.allocations = newAllocations;
+
+            // Update initiative name
+            state.initiatives[initIdx] = newName;
+            
+            updateURLDisplay();
+            updateTotalsAndPies();
+        }
+
+        // Handle delete initiative
+        function handleDeleteInitiative(e) {
+            const btn = e.target;
+            const initIdx = parseInt(btn.dataset.initIdx, 10);
+            const initiative = state.initiatives[initIdx];
+
+            // Remove allocations for this initiative
+            const newAllocations = {};
+            for (const [key, value] of Object.entries(state.allocations)) {
+                const [init, resource] = key.split('|||');
+                if (init !== initiative) {
+                    newAllocations[key] = value;
+                }
+            }
+            state.allocations = newAllocations;
+
+            // Remove initiative
+            state.initiatives.splice(initIdx, 1);
+            
             updateURLDisplay();
             renderTable();
+        }
+
+        // Handle add initiative
+        function handleAddInitiative() {
+            const newName = `Initiative ${state.initiatives.length + 1}`;
+            state.initiatives.push(newName);
+            updateURLDisplay();
+            renderTable();
+
+            // Focus the new initiative input
+            const inputs = document.querySelectorAll('.initiative-input');
+            if (inputs.length > 0) {
+                const lastInput = inputs[inputs.length - 1];
+                lastInput.focus();
+                lastInput.select();
+            }
         }
 
         // Utility functions
@@ -798,9 +1033,15 @@
             };
         }
 
+        // Handle subheader change
+        function handleSubheaderChange() {
+            state.subheader = subheaderInput.value.trim();
+            updateURLDisplay();
+        }
+
         // Event listeners
         resourcesInput.addEventListener('input', debounce(handleResourcesChange, 300));
-        initiativesInput.addEventListener('input', debounce(handleInitiativesChange, 300));
+        subheaderInput.addEventListener('input', debounce(handleSubheaderChange, 300));
 
         // Initialize
         loadFromURL();
