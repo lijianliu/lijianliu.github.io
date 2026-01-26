@@ -72,7 +72,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 8px 12px;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
             display: flex;
             gap: 8px;
             align-items: center;
@@ -130,6 +130,13 @@
 
         .copy-btn.copied {
             background: var(--accent-green);
+        }
+
+        .url-note {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            margin-bottom: 10px;
         }
 
         .table-wrapper {
@@ -527,6 +534,7 @@
             <input type="text" id="url-output" readonly>
             <button class="copy-btn" id="copy-btn">Copy URL</button>
         </div>
+        <p class="url-note">Note: URL should be &lt;80,000 chars for most browsers. Microsoft Edge/IE has a shorter limit (~2,083 chars).</p>
 
         <div class="table-wrapper">
             <div class="table-scroll">
@@ -623,13 +631,10 @@
             }
 
             renderTable();
-            updateURLDisplay();
         }
 
         // Generate shareable URL
         function generateURL() {
-            const params = new URLSearchParams();
-            
             // Try to get current URL, fallback to placeholder
             let baseURL;
             try {
@@ -642,16 +647,18 @@
                 baseURL = 'https://yoursite.com/headcount-planner.html';
             }
             
+            const parts = [];
+            
             if (state.subheader) {
-                params.set('subheader', encodeURIComponent(state.subheader));
+                parts.push('subheader=' + encodeURIComponent(state.subheader));
             }
             
             if (state.resources.length > 0) {
-                params.set('resources', state.resources.map(r => encodeURIComponent(r)).join(','));
+                parts.push('resources=' + state.resources.map(r => encodeURIComponent(r)).join(','));
             }
             
             if (state.initiatives.length > 0) {
-                params.set('initiatives', state.initiatives.map(i => encodeURIComponent(i)).join(','));
+                parts.push('initiatives=' + state.initiatives.map(i => encodeURIComponent(i)).join(','));
             }
             
             if (Object.keys(state.allocations).length > 0) {
@@ -668,20 +675,41 @@
                 state.allocations = cleanAllocations;
                 
                 if (Object.keys(cleanAllocations).length > 0) {
-                    params.set('allocations', encodeURIComponent(JSON.stringify(cleanAllocations)));
+                    parts.push('allocations=' + encodeURIComponent(JSON.stringify(cleanAllocations)));
                 }
             }
 
-            const queryString = params.toString();
-            return queryString ? `${baseURL}?${queryString}` : baseURL;
+            return parts.length > 0 ? `${baseURL}?${parts.join('&')}` : baseURL;
         }
 
         // Update URL display
         function updateURLDisplay() {
             const url = generateURL();
             urlOutput.value = url;
-            const len = url.length.toLocaleString();
-            urlLabel.textContent = `Shareable URL (length=${len} chars)`;
+            const len = url.length;
+            const lenFormatted = len.toLocaleString();
+            
+            // Update label with length and color warning
+            urlLabel.textContent = `Shareable URL (length=${lenFormatted} chars)`;
+            
+            if (len > 80000) {
+                urlLabel.style.color = '#dc2626'; // Red - exceeds most browser limits
+            } else if (len > 2083) {
+                urlLabel.style.color = '#ca8a04'; // Yellow - exceeds MS Edge/IE limit
+            } else {
+                urlLabel.style.color = ''; // Default
+            }
+            
+            // Update browser address bar
+            try {
+                const hasErrors = document.querySelectorAll('.initiative-input.duplicate').length > 0 ||
+                                  document.querySelectorAll('.resource-name-input.duplicate').length > 0;
+                if (!hasErrors) {
+                    history.replaceState(null, '', url);
+                }
+            } catch (e) {
+                // Ignore errors in iframe or restricted environments
+            }
         }
 
         // Copy URL to clipboard
@@ -904,7 +932,7 @@
                 const resource = state.resources[resIdx];
                 const allocated = getAllocatedForResource(resource);
                 const pieChart = createPieChart(allocated);
-                html += `<th><div class="resource-cell"><span><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="left" title="Move left">◀</button><input type="text" class="resource-name-input" data-res-idx="${resIdx}" value="${escapeHtml(resource)}"><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="right" title="Move right">▶</button><button class="resource-delete-btn" data-res-idx="${resIdx}" title="Delete">×</button></span>${pieChart}</div></th>`;
+                html += `<th><div class="resource-cell"><span><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="left" title="Move left">◀</button><input type="text" class="resource-name-input" data-res-idx="${resIdx}" data-original-name="${escapeHtml(resource)}" value="${escapeHtml(resource)}"><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="right" title="Move right">▶</button><button class="resource-delete-btn" data-res-idx="${resIdx}" title="Delete">×</button></span>${pieChart}</div></th>`;
             }
             html += `<th class="add-resource-cell"><button class="add-resource-btn" id="add-resource-btn">+ Add</button></th>`;
             html += '</tr></thead>';
@@ -915,7 +943,7 @@
             for (let initIdx = 0; initIdx < state.initiatives.length; initIdx++) {
                 const initiative = state.initiatives[initIdx];
                 html += '<tr>';
-                html += `<td class="initiative-cell"><div class="initiative-cell-content"><input type="text" class="initiative-input" data-init-idx="${initIdx}" value="${escapeHtml(initiative)}"><div class="initiative-actions"><button class="move-btn" data-init-idx="${initIdx}" data-dir="up" title="Move up">▲</button><button class="move-btn" data-init-idx="${initIdx}" data-dir="down" title="Move down">▼</button><button class="clone-btn" data-init-idx="${initIdx}" title="Clone">⧉</button><button class="delete-btn" data-init-idx="${initIdx}" title="Delete">×</button></div></div></td>`;
+                html += `<td class="initiative-cell"><div class="initiative-cell-content"><input type="text" class="initiative-input" data-init-idx="${initIdx}" data-original-name="${escapeHtml(initiative)}" value="${escapeHtml(initiative)}"><div class="initiative-actions"><button class="move-btn" data-init-idx="${initIdx}" data-dir="up" title="Move up">▲</button><button class="move-btn" data-init-idx="${initIdx}" data-dir="down" title="Move down">▼</button><button class="clone-btn" data-init-idx="${initIdx}" title="Clone">⧉</button><button class="delete-btn" data-init-idx="${initIdx}" title="Delete">×</button></div></div></td>`;
                 html += `<td class="total-cell">${formatNumber(getInitiativeTotal(initiative))}</td>`;
                 
                 for (let resIdx = 0; resIdx < state.resources.length; resIdx++) {
@@ -951,7 +979,10 @@
             // Add event listeners to initiative inputs
             document.querySelectorAll('.initiative-input').forEach(input => {
                 input.addEventListener('change', handleInitiativeRename);
-                input.addEventListener('input', checkInitiativeDuplicates);
+                input.addEventListener('input', (e) => {
+                    checkInitiativeDuplicates();
+                    handleInitiativeInputRealtime(e);
+                });
             });
 
             // Add event listeners to delete buttons
@@ -985,7 +1016,10 @@
             // Add event listeners to resource name inputs
             document.querySelectorAll('.resource-name-input').forEach(input => {
                 input.addEventListener('change', handleResourceRename);
-                input.addEventListener('input', checkResourceDuplicates);
+                input.addEventListener('input', (e) => {
+                    checkResourceDuplicates();
+                    handleResourceInputRealtime(e);
+                });
             });
 
             // Add event listener to add resource button
@@ -994,6 +1028,9 @@
             // Run initial duplicate checks
             checkInitiativeDuplicates();
             checkResourceDuplicates();
+            
+            // Always update URL after rendering
+            updateURLDisplay();
         }
 
         // Handle arrow key navigation
@@ -1169,7 +1206,7 @@
                 value = parseFloat(value) || 0;
             }
             
-            // Update state without URL update
+            // Update state
             const key = `${initiative}|||${resource}`;
             if (value === 0) {
                 delete state.allocations[key];
@@ -1177,19 +1214,25 @@
                 state.allocations[key] = value;
             }
             
-            // Update visuals only
+            // Update visuals and URL
             updateTotalsAndPies();
+            updateURLDisplay();
         }
 
         // Handle initiative rename
         function handleInitiativeRename(e) {
             const input = e.target;
             const initIdx = parseInt(input.dataset.initIdx, 10);
-            const oldName = state.initiatives[initIdx];
+            const originalName = input.dataset.originalName;
             const newName = input.value.trim();
 
-            if (!newName || newName === oldName) {
-                input.value = oldName;
+            if (!newName) {
+                input.value = originalName;
+                checkInitiativeDuplicates();
+                return;
+            }
+
+            if (newName === originalName) {
                 return;
             }
 
@@ -1197,7 +1240,7 @@
             const newAllocations = {};
             for (const [key, value] of Object.entries(state.allocations)) {
                 const [initiative, resource] = key.split('|||');
-                if (initiative === oldName) {
+                if (initiative === originalName) {
                     newAllocations[`${newName}|||${resource}`] = value;
                 } else {
                     newAllocations[key] = value;
@@ -1207,9 +1250,72 @@
 
             // Update initiative name
             state.initiatives[initIdx] = newName;
+            input.dataset.originalName = newName;
             
             updateURLDisplay();
             updateTotalsAndPies();
+        }
+
+        // Handle initiative input in real-time (update URL while typing)
+        function handleInitiativeInputRealtime(e) {
+            const hasErrors = document.querySelectorAll('.initiative-input.duplicate').length > 0 ||
+                              document.querySelectorAll('.resource-name-input.duplicate').length > 0;
+            
+            if (!hasErrors) {
+                const input = e.target;
+                const initIdx = parseInt(input.dataset.initIdx, 10);
+                const originalName = input.dataset.originalName;
+                const newName = input.value.trim();
+
+                if (newName && newName !== originalName) {
+                    // Update allocations
+                    const newAllocs = {};
+                    for (const [key, value] of Object.entries(state.allocations)) {
+                        const [initiative, resource] = key.split('|||');
+                        if (initiative === originalName) {
+                            newAllocs[`${newName}|||${resource}`] = value;
+                        } else {
+                            newAllocs[key] = value;
+                        }
+                    }
+                    state.allocations = newAllocs;
+                    state.initiatives[initIdx] = newName;
+                    input.dataset.originalName = newName;
+                }
+                
+                updateURLDisplay();
+            }
+        }
+
+        // Handle resource input in real-time (update URL while typing)
+        function handleResourceInputRealtime(e) {
+            const hasErrors = document.querySelectorAll('.initiative-input.duplicate').length > 0 ||
+                              document.querySelectorAll('.resource-name-input.duplicate').length > 0;
+            
+            if (!hasErrors) {
+                const input = e.target;
+                const resIdx = parseInt(input.dataset.resIdx, 10);
+                const originalName = input.dataset.originalName;
+                const newName = input.value.trim();
+
+                if (newName && newName !== originalName) {
+                    // Update allocations
+                    const newAllocs = {};
+                    for (const [key, value] of Object.entries(state.allocations)) {
+                        const [initiative, resource] = key.split('|||');
+                        if (resource === originalName) {
+                            newAllocs[`${initiative}|||${newName}`] = value;
+                        } else {
+                            newAllocs[key] = value;
+                        }
+                    }
+                    state.allocations = newAllocs;
+                    state.resources[resIdx] = newName;
+                    input.dataset.originalName = newName;
+                }
+                
+                updateURLDisplay();
+            }
         }
 
         // Handle delete initiative
@@ -1231,7 +1337,6 @@
             // Remove initiative
             state.initiatives.splice(initIdx, 1);
             
-            updateURLDisplay();
             renderTable();
         }
 
@@ -1253,7 +1358,6 @@
             state.initiatives[initIdx] = state.initiatives[newIdx];
             state.initiatives[newIdx] = temp;
             
-            updateURLDisplay();
             renderTable();
         }
 
@@ -1283,7 +1387,6 @@
                 }
             }
             
-            updateURLDisplay();
             renderTable();
         }
 
@@ -1291,7 +1394,6 @@
         function handleAddInitiative() {
             const newName = `Initiative ${state.initiatives.length + 1}`;
             state.initiatives.push(newName);
-            updateURLDisplay();
             renderTable();
 
             // Focus the new initiative input
@@ -1321,7 +1423,6 @@
             state.resources[resIdx] = state.resources[newIdx];
             state.resources[newIdx] = temp;
             
-            updateURLDisplay();
             renderTable();
         }
 
@@ -1334,7 +1435,6 @@
                 newName = `Resource ${counter}`;
             }
             state.resources.push(newName);
-            updateURLDisplay();
             renderTable();
         }
 
@@ -1342,11 +1442,16 @@
         function handleResourceRename(e) {
             const input = e.target;
             const resIdx = parseInt(input.dataset.resIdx, 10);
-            const oldName = state.resources[resIdx];
+            const originalName = input.dataset.originalName;
             const newName = input.value.trim();
 
-            if (!newName || newName === oldName) {
-                input.value = oldName;
+            if (!newName) {
+                input.value = originalName;
+                checkResourceDuplicates();
+                return;
+            }
+
+            if (newName === originalName) {
                 return;
             }
 
@@ -1354,7 +1459,7 @@
             const newAllocations = {};
             for (const [key, value] of Object.entries(state.allocations)) {
                 const [initiative, resource] = key.split('|||');
-                if (resource === oldName) {
+                if (resource === originalName) {
                     newAllocations[`${initiative}|||${newName}`] = value;
                 } else {
                     newAllocations[key] = value;
@@ -1364,6 +1469,7 @@
 
             // Update resource name
             state.resources[resIdx] = newName;
+            input.dataset.originalName = newName;
             
             updateURLDisplay();
         }
@@ -1387,7 +1493,6 @@
             // Remove resource
             state.resources.splice(resIdx, 1);
             
-            updateURLDisplay();
             renderTable();
         }
 
@@ -1404,19 +1509,6 @@
             return num.toFixed(2).replace(/\.?0+$/, '');
         }
 
-        // Debounce function
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
         // Handle subheader change
         function handleSubheaderChange() {
             state.subheader = subheaderInput.value.trim();
@@ -1424,7 +1516,7 @@
         }
 
         // Event listeners
-        subheaderInput.addEventListener('input', debounce(handleSubheaderChange, 300));
+        subheaderInput.addEventListener('input', handleSubheaderChange);
 
         // Initialize
         loadFromURL();
