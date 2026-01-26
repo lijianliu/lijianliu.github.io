@@ -176,7 +176,7 @@
         th:nth-child(2) {
             text-align: left;
             padding-left: 10px;
-            min-width: 180px;
+            min-width: 100px;
         }
 
         .index-row th {
@@ -329,8 +329,6 @@
         }
 
         .initiative-input {
-            width: 100%;
-            height: 100%;
             border: none;
             background: transparent;
             text-align: left;
@@ -338,8 +336,9 @@
             font-family: 'Space Grotesk', sans-serif;
             font-size: 11px;
             font-weight: 500;
-            padding: 4px 10px;
+            padding: 0;
             cursor: text;
+            min-width: 80px;
         }
 
         .initiative-input:focus {
@@ -417,18 +416,20 @@
 
         .initiative-cell-content {
             display: flex;
+            flex-direction: row;
             align-items: center;
+            padding: 2px 4px;
         }
 
         .initiative-cell-content .initiative-input {
-            flex: 1;
+            flex: 0 0 auto;
         }
 
         .initiative-actions {
             display: flex;
             align-items: center;
             gap: 2px;
-            margin-left: 4px;
+            margin-right: 4px;
         }
 
         .total-cell {
@@ -436,16 +437,21 @@
             font-weight: 600;
             color: #0f2057;
             min-width: 40px !important;
+            text-align: left;
+            padding-left: 4px;
         }
 
         .total-header {
             line-height: 1.2;
             min-width: 40px !important;
+            text-align: left;
+            padding-left: 4px;
         }
 
         .total-header div:last-child {
             font-size: 12px;
             color: #0f2057;
+            text-align: left;
         }
 
         .allocation-input {
@@ -453,11 +459,11 @@
             height: 100%;
             border: none;
             background: transparent;
-            text-align: center;
+            text-align: left;
             color: var(--text-primary);
             font-family: 'Space Grotesk', sans-serif;
             font-size: 11px;
-            padding: 2px;
+            padding: 2px 4px;
             cursor: text;
         }
 
@@ -468,6 +474,18 @@
 
         td:has(.allocation-input:focus) {
             box-shadow: inset 0 0 0 2px var(--accent-blue);
+        }
+
+        tr.row-highlight td {
+            background: #e8f4fc !important;
+        }
+
+        td.col-highlight {
+            background: #e8f4fc !important;
+        }
+
+        th.col-highlight {
+            background: #dbeafe !important;
         }
 
         .empty-state {
@@ -661,6 +679,26 @@
                 } catch (e) {
                     state.allocations = {};
                 }
+            } else if (!resourcesParam && !initiativesParam) {
+                // Default sample allocations to demonstrate features
+                // Alice: 100% fully allocated
+                state.allocations['Q1 Product Launch|||Alice'] = 0.4;
+                state.allocations['Platform Migration|||Alice'] = 0.3;
+                state.allocations['Customer Support|||Alice'] = 0.2;
+                state.allocations['Technical Debt Reduction|||Alice'] = 0.1;
+                
+                // Bob: 120% over-allocated
+                state.allocations['Q1 Product Launch|||Bob'] = 0.4;
+                state.allocations['Platform Migration|||Bob'] = 0.4;
+                state.allocations['Customer Support|||Bob'] = 0.25;
+                state.allocations['Technical Debt Reduction|||Bob'] = 0.15;
+                
+                // Charlie: 45% under-allocated
+                state.allocations['Q1 Product Launch|||Charlie'] = 0.2;
+                state.allocations['Platform Migration|||Charlie'] = 0.15;
+                state.allocations['Customer Support|||Charlie'] = 0.1;
+                
+                // Diana: 0% unallocated (no entries needed)
             }
 
             renderTable();
@@ -993,7 +1031,7 @@
                 const initiative = state.initiatives[initIdx];
                 html += '<tr>';
                 html += `<td class="index-cell">${initIdx + 1}</td>`;
-                html += `<td class="initiative-cell"><div class="initiative-cell-content"><input type="text" class="initiative-input" data-init-idx="${initIdx}" data-original-name="${escapeHtml(initiative)}" value="${escapeHtml(initiative)}"><div class="initiative-actions"><button class="move-btn" data-init-idx="${initIdx}" data-dir="up" title="Move up">▲</button><button class="move-btn" data-init-idx="${initIdx}" data-dir="down" title="Move down">▼</button><button class="clone-btn" data-init-idx="${initIdx}" title="Clone">⧉</button><button class="delete-btn" data-init-idx="${initIdx}" title="Delete">×</button></div></div></td>`;
+                html += `<td class="initiative-cell"><div class="initiative-cell-content"><div class="initiative-actions"><button class="move-btn" data-init-idx="${initIdx}" data-dir="up" title="Move up">▲</button><button class="move-btn" data-init-idx="${initIdx}" data-dir="down" title="Move down">▼</button><button class="clone-btn" data-init-idx="${initIdx}" title="Clone">⧉</button><button class="delete-btn" data-init-idx="${initIdx}" title="Delete">×</button></div><input type="text" class="initiative-input" data-init-idx="${initIdx}" data-original-name="${escapeHtml(initiative)}" value="${escapeHtml(initiative)}"></div></td>`;
                 html += `<td class="total-cell">${formatNumber(getInitiativeTotal(initiative))}</td>`;
                 
                 for (let resIdx = 0; resIdx < state.resources.length; resIdx++) {
@@ -1025,6 +1063,8 @@
                 input.addEventListener('change', handleAllocationChange);
                 input.addEventListener('input', handleAllocationInput);
                 input.addEventListener('keydown', handleKeyNavigation);
+                input.addEventListener('focus', handleAllocationFocus);
+                input.addEventListener('blur', handleAllocationBlur);
             });
 
             // Add event listeners to initiative inputs
@@ -1033,7 +1073,9 @@
                 input.addEventListener('input', (e) => {
                     checkInitiativeDuplicates();
                     handleInitiativeInputRealtime(e);
+                    autoResizeInput(e.target);
                 });
+                autoResizeInput(input); // Initial resize
             });
 
             // Add event listeners to delete buttons
@@ -1239,6 +1281,9 @@
                 value = parseFloat(value) || 0;
             }
             
+            // Normalize displayed value
+            input.value = value === 0 ? '' : formatNumber(value);
+            
             setAllocation(initiative, resource, value);
         }
 
@@ -1270,6 +1315,39 @@
             // Update visuals and URL
             updateTotalsAndPies();
             updateURLDisplay();
+        }
+
+        // Handle allocation cell focus - highlight row and column
+        function handleAllocationFocus(e) {
+            const input = e.target;
+            const row = parseInt(input.dataset.r, 10);
+            const col = parseInt(input.dataset.c, 10);
+            
+            // Clear any existing highlights
+            clearHighlights();
+            
+            // Highlight the row
+            const rows = document.querySelectorAll('tbody tr');
+            if (rows[row]) {
+                rows[row].classList.add('row-highlight');
+            }
+            
+            // Highlight the column (col + 3 because of index, initiative, and total columns)
+            const colIndex = col + 4; // 1-based index + 3 for first columns
+            document.querySelectorAll(`tr th:nth-child(${colIndex}), tr td:nth-child(${colIndex})`).forEach(cell => {
+                cell.classList.add('col-highlight');
+            });
+        }
+
+        // Handle allocation cell blur - remove highlights
+        function handleAllocationBlur(e) {
+            clearHighlights();
+        }
+
+        // Clear all row/column highlights
+        function clearHighlights() {
+            document.querySelectorAll('.row-highlight').forEach(el => el.classList.remove('row-highlight'));
+            document.querySelectorAll('.col-highlight').forEach(el => el.classList.remove('col-highlight'));
         }
 
         // Handle initiative rename
