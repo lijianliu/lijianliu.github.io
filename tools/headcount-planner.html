@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Headcount Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --border-color: #dee2e6;
+            --border-highlight: #ced4da;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-muted: #868e96;
+            --accent-blue: #2563eb;
+            --accent-green: #16a34a;
+            --accent-red: #dc2626;
+            --accent-yellow: #ca8a04;
+            --cell-hover: #e9ecef;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 12px 16px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, #1e3a8a 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .input-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .input-group input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px 10px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .url-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .url-section label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .url-section input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 6px 10px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+        }
+
+        .url-section input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .copy-btn {
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background: #2563eb;
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-green);
+        }
+
+        .table-wrapper {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 400px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 0;
+            text-align: center;
+            height: 28px;
+            min-width: 70px;
+            font-size: 11px;
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-secondary);
+        }
+
+        th:first-child {
+            text-align: left;
+            padding-left: 10px;
+            min-width: 160px;
+        }
+
+        .resource-header {
+            background: linear-gradient(180deg, var(--bg-tertiary) 0%, #e9ecef 100%);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .resource-header th {
+            padding: 6px 4px;
+        }
+
+        .resource-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .pie-chart {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .pie-full {
+            box-shadow: 0 0 0 2px var(--accent-green);
+        }
+
+        .pie-overallocated {
+            box-shadow: 0 0 0 2px var(--accent-red);
+        }
+
+        .initiative-cell {
+            text-align: left;
+            padding-left: 10px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .total-cell {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .allocation-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 4px;
+            cursor: text;
+        }
+
+        .allocation-input:focus {
+            outline: none;
+            background: var(--cell-hover);
+        }
+
+        td:has(.allocation-input:focus) {
+            box-shadow: inset 0 0 0 2px var(--accent-blue);
+        }
+
+        .empty-state {
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item svg {
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .url-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            body {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Headcount Planner</h1>
+            <p class="subtitle">Allocate resources across initiatives • Copy URL to save/share</p>
+        </header>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label>Resources (comma separated)</label>
+                <input type="text" id="resources-input" placeholder="e.g., Alice, Bob, Charlie, Diana">
+            </div>
+            <div class="input-group">
+                <label>Initiatives (comma separated)</label>
+                <input type="text" id="initiatives-input" placeholder="e.g., Q1 Product Launch, Platform Migration, Customer Support">
+            </div>
+        </div>
+
+        <div class="url-section">
+            <label>Shareable URL</label>
+            <input type="text" id="url-output" readonly>
+            <button class="copy-btn" id="copy-btn">Copy URL</button>
+        </div>
+
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <div id="table-container"></div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <svg width="16" height="16" viewBox="0 0 18 18">
+                    <circle cx="9" cy="9" r="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1"/>
+                </svg>
+                <span>Unallocated</span>
+            </div>
+            <div class="legend-item">
+                <svg width="16" height="16" viewBox="0 0 18 18">
+                    <circle cx="9" cy="9" r="8" fill="#2563eb"/>
+                </svg>
+                <span>Allocated</span>
+            </div>
+            <div class="legend-item">
+                <svg width="16" height="16" viewBox="0 0 18 18" style="box-shadow: 0 0 0 2px #16a34a; border-radius: 50%;">
+                    <circle cx="9" cy="9" r="8" fill="#2563eb"/>
+                </svg>
+                <span>Fully allocated</span>
+            </div>
+            <div class="legend-item">
+                <svg width="16" height="16" viewBox="0 0 18 18" style="box-shadow: 0 0 0 2px #dc2626; border-radius: 50%;">
+                    <circle cx="9" cy="9" r="8" fill="#dc2626"/>
+                </svg>
+                <span>Over-allocated</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let state = {
+            resources: [],
+            initiatives: [],
+            allocations: {} // key: "initiative_resource", value: number
+        };
+
+        // DOM elements
+        const resourcesInput = document.getElementById('resources-input');
+        const initiativesInput = document.getElementById('initiatives-input');
+        const tableContainer = document.getElementById('table-container');
+        const urlOutput = document.getElementById('url-output');
+        const copyBtn = document.getElementById('copy-btn');
+
+        // Initialize from URL
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            
+            const resourcesParam = params.get('resources');
+            const initiativesParam = params.get('initiatives');
+            const allocationsParam = params.get('allocations');
+
+            if (resourcesParam) {
+                state.resources = resourcesParam.split(',').map(r => decodeURIComponent(r.trim())).filter(r => r);
+                resourcesInput.value = state.resources.join(', ');
+            } else {
+                // Default sample resources
+                state.resources = ['Alice', 'Bob', 'Charlie', 'Diana'];
+                resourcesInput.value = state.resources.join(', ');
+            }
+
+            if (initiativesParam) {
+                state.initiatives = initiativesParam.split(',').map(i => decodeURIComponent(i.trim())).filter(i => i);
+                initiativesInput.value = state.initiatives.join(', ');
+            } else {
+                // Default sample initiatives
+                state.initiatives = ['Q1 Product Launch', 'Platform Migration', 'Customer Support', 'Technical Debt Reduction'];
+                initiativesInput.value = state.initiatives.join(', ');
+            }
+
+            if (allocationsParam) {
+                try {
+                    state.allocations = JSON.parse(decodeURIComponent(allocationsParam));
+                } catch (e) {
+                    state.allocations = {};
+                }
+            }
+
+            renderTable();
+            updateURLDisplay();
+        }
+
+        // Generate shareable URL
+        function generateURL() {
+            const params = new URLSearchParams();
+            
+            // Try to get current URL, fallback to placeholder
+            let baseURL;
+            try {
+                baseURL = window.location.origin + window.location.pathname;
+                // If we're in an iframe with about:srcdoc, use fallback
+                if (baseURL.includes('about:srcdoc') || baseURL === 'null' || !baseURL || baseURL === 'null/') {
+                    baseURL = 'https://yoursite.com/headcount-planner.html';
+                }
+            } catch (e) {
+                baseURL = 'https://yoursite.com/headcount-planner.html';
+            }
+            
+            if (state.resources.length > 0) {
+                params.set('resources', state.resources.map(r => encodeURIComponent(r)).join(','));
+            }
+            
+            if (state.initiatives.length > 0) {
+                params.set('initiatives', state.initiatives.map(i => encodeURIComponent(i)).join(','));
+            }
+            
+            if (Object.keys(state.allocations).length > 0) {
+                // Clean up allocations - remove zero values and invalid keys
+                const cleanAllocations = {};
+                for (const [key, value] of Object.entries(state.allocations)) {
+                    if (value && value !== 0) {
+                        const [initiative, resource] = key.split('|||');
+                        if (state.initiatives.includes(initiative) && state.resources.includes(resource)) {
+                            cleanAllocations[key] = value;
+                        }
+                    }
+                }
+                state.allocations = cleanAllocations;
+                
+                if (Object.keys(cleanAllocations).length > 0) {
+                    params.set('allocations', encodeURIComponent(JSON.stringify(cleanAllocations)));
+                }
+            }
+
+            const queryString = params.toString();
+            return queryString ? `${baseURL}?${queryString}` : baseURL;
+        }
+
+        // Update URL display
+        function updateURLDisplay() {
+            urlOutput.value = generateURL();
+        }
+
+        // Copy URL to clipboard
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(urlOutput.value);
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy URL';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                urlOutput.select();
+                document.execCommand('copy');
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy URL';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }
+        });
+
+        // Get allocation value
+        function getAllocation(initiative, resource) {
+            const key = `${initiative}|||${resource}`;
+            return state.allocations[key] || 0;
+        }
+
+        // Set allocation value
+        function setAllocation(initiative, resource, value) {
+            const key = `${initiative}|||${resource}`;
+            const numValue = parseFloat(value) || 0;
+            
+            if (numValue === 0) {
+                delete state.allocations[key];
+            } else {
+                state.allocations[key] = numValue;
+            }
+            
+            updateURLDisplay();
+            updateTotalsAndPies();
+        }
+
+        // Update only totals and pie charts without re-rendering table
+        function updateTotalsAndPies() {
+            // Update initiative totals
+            const totalCells = document.querySelectorAll('.total-cell');
+            state.initiatives.forEach((initiative, idx) => {
+                if (totalCells[idx]) {
+                    totalCells[idx].textContent = formatNumber(getInitiativeTotal(initiative));
+                }
+            });
+
+            // Update pie charts in header
+            const headerCells = document.querySelectorAll('.resource-cell');
+            state.resources.forEach((resource, idx) => {
+                if (headerCells[idx]) {
+                    const allocated = getAllocatedForResource(resource);
+                    const nameSpan = headerCells[idx].querySelector('span');
+                    const name = nameSpan ? nameSpan.textContent : escapeHtml(resource);
+                    headerCells[idx].innerHTML = `<span>${name}</span>${createPieChart(allocated)}`;
+                }
+            });
+        }
+
+        // Calculate unallocated for a resource
+        function getUnallocated(resource) {
+            let total = 0;
+            for (const initiative of state.initiatives) {
+                total += getAllocation(initiative, resource);
+            }
+            return Math.round((1 - total) * 1000) / 1000; // Avoid floating point issues
+        }
+
+        // Calculate total allocation for an initiative
+        function getInitiativeTotal(initiative) {
+            let total = 0;
+            for (const resource of state.resources) {
+                total += getAllocation(initiative, resource);
+            }
+            return Math.round(total * 1000) / 1000;
+        }
+
+        // Render the table
+        function renderTable() {
+            if (state.resources.length === 0 || state.initiatives.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>Enter resources and initiatives above to start planning.<br>
+                        Copy the shareable URL to save or share your plan.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<table>';
+            
+            // Header row - Resource names with pie charts
+            html += '<thead><tr class="resource-header">';
+            html += '<th>Initiative</th>';
+            html += '<th>Total</th>';
+            for (const resource of state.resources) {
+                const allocated = getAllocatedForResource(resource);
+                const pieChart = createPieChart(allocated);
+                html += `<th><div class="resource-cell"><span>${escapeHtml(resource)}</span>${pieChart}</div></th>`;
+            }
+            html += '</tr></thead>';
+
+            html += '<tbody>';
+
+            // Initiative rows
+            for (let initIdx = 0; initIdx < state.initiatives.length; initIdx++) {
+                const initiative = state.initiatives[initIdx];
+                html += '<tr>';
+                html += `<td class="initiative-cell">${escapeHtml(initiative)}</td>`;
+                html += `<td class="total-cell">${formatNumber(getInitiativeTotal(initiative))}</td>`;
+                
+                for (let resIdx = 0; resIdx < state.resources.length; resIdx++) {
+                    const resource = state.resources[resIdx];
+                    const value = getAllocation(initiative, resource);
+                    const displayValue = value === 0 ? '' : formatNumber(value);
+                    html += `<td><input type="text" class="allocation-input" data-r="${initIdx}" data-c="${resIdx}" value="${displayValue}" placeholder="0"></td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+            tableContainer.innerHTML = html;
+
+            // Add event listeners to inputs
+            document.querySelectorAll('.allocation-input').forEach(input => {
+                input.addEventListener('change', handleAllocationChange);
+                input.addEventListener('keydown', handleKeyNavigation);
+            });
+        }
+
+        // Handle arrow key navigation
+        function handleKeyNavigation(e) {
+            if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Enter') {
+                return;
+            }
+
+            const input = e.target;
+            const row = parseInt(input.dataset.r, 10);
+            const col = parseInt(input.dataset.c, 10);
+            const numRows = state.initiatives.length;
+            const numCols = state.resources.length;
+
+            let newRow = row;
+            let newCol = col;
+
+            if (e.key === 'ArrowUp') {
+                newRow = row - 1;
+            } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                newRow = row + 1;
+            } else if (e.key === 'ArrowLeft') {
+                newCol = col - 1;
+            } else if (e.key === 'ArrowRight') {
+                newCol = col + 1;
+            }
+
+            // Check bounds
+            if (newRow < 0 || newRow >= numRows || newCol < 0 || newCol >= numCols) {
+                return;
+            }
+
+            // Find and focus the new cell
+            const newInput = document.querySelector(`input[data-r="${newRow}"][data-c="${newCol}"]`);
+            if (newInput) {
+                e.preventDefault();
+                newInput.focus();
+                newInput.select();
+            }
+        }
+
+        // Get total allocated for a resource
+        function getAllocatedForResource(resource) {
+            let total = 0;
+            for (const initiative of state.initiatives) {
+                total += getAllocation(initiative, resource);
+            }
+            return Math.round(total * 1000) / 1000;
+        }
+
+        // Create SVG pie chart
+        function createPieChart(allocated) {
+            const size = 18;
+            const radius = size / 2;
+            const cx = radius;
+            const cy = radius;
+            
+            // Clamp allocated for display purposes
+            const displayAllocated = Math.min(allocated, 1);
+            const unallocated = Math.max(0, 1 - allocated);
+            
+            // Colors
+            const allocatedColor = allocated > 1 ? '#dc2626' : '#2563eb';
+            const unallocatedColor = '#e5e7eb';
+            
+            // If fully unallocated
+            if (allocated === 0) {
+                return `<svg class="pie-chart" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                    <circle cx="${cx}" cy="${cy}" r="${radius - 1}" fill="${unallocatedColor}" stroke="#d1d5db" stroke-width="1"/>
+                </svg>`;
+            }
+            
+            // If fully allocated or over
+            if (allocated >= 1) {
+                let extraClass = '';
+                if (allocated > 1) {
+                    extraClass = ' pie-overallocated';
+                } else if (allocated === 1) {
+                    extraClass = ' pie-full';
+                }
+                return `<svg class="pie-chart${extraClass}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                    <circle cx="${cx}" cy="${cy}" r="${radius - 1}" fill="${allocatedColor}"/>
+                </svg>`;
+            }
+            
+            // Partial allocation - draw pie slice
+            const angle = displayAllocated * 360;
+            const startAngle = -90; // Start from top
+            const endAngle = startAngle + angle;
+            
+            const startRad = (startAngle * Math.PI) / 180;
+            const endRad = (endAngle * Math.PI) / 180;
+            
+            const r = radius - 1;
+            const x1 = cx + r * Math.cos(startRad);
+            const y1 = cy + r * Math.sin(startRad);
+            const x2 = cx + r * Math.cos(endRad);
+            const y2 = cy + r * Math.sin(endRad);
+            
+            const largeArc = angle > 180 ? 1 : 0;
+            
+            const pathData = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+            
+            return `<svg class="pie-chart" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="${unallocatedColor}"/>
+                <path d="${pathData}" fill="${allocatedColor}"/>
+            </svg>`;
+        }
+
+        // Handle allocation input change
+        function handleAllocationChange(e) {
+            const input = e.target;
+            const row = parseInt(input.dataset.r, 10);
+            const col = parseInt(input.dataset.c, 10);
+
+            const initiative = state.initiatives[row];
+            const resource = state.resources[col];
+            let value = input.value.trim();
+            
+            // Allow percentage input
+            if (value.endsWith('%')) {
+                value = parseFloat(value) / 100;
+            } else {
+                value = parseFloat(value) || 0;
+            }
+            
+            setAllocation(initiative, resource, value);
+        }
+
+        // Handle resources input change
+        function handleResourcesChange() {
+            const value = resourcesInput.value;
+            state.resources = value.split(',').map(r => r.trim()).filter(r => r);
+            updateURLDisplay();
+            renderTable();
+        }
+
+        // Handle initiatives input change
+        function handleInitiativesChange() {
+            const value = initiativesInput.value;
+            state.initiatives = value.split(',').map(i => i.trim()).filter(i => i);
+            updateURLDisplay();
+            renderTable();
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatNumber(num) {
+            if (num === 0) return '0';
+            if (Number.isInteger(num)) return num.toString();
+            return num.toFixed(2).replace(/\.?0+$/, '');
+        }
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Event listeners
+        resourcesInput.addEventListener('input', debounce(handleResourcesChange, 300));
+        initiativesInput.addEventListener('input', debounce(handleInitiativesChange, 300));
+
+        // Initialize
+        loadFromURL();
+    </script>
+</body>
+</html>
