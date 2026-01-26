@@ -77,7 +77,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 8px 12px;
-            margin-bottom: 2px;
+            margin-bottom: 10px;
             display: flex;
             gap: 8px;
             align-items: center;
@@ -124,8 +124,7 @@
         .url-note {
             font-size: 9px;
             color: var(--text-muted);
-            margin-top: 4px;
-            margin-bottom: 10px;
+            flex: 1;
         }
 
         .table-wrapper {
@@ -552,14 +551,16 @@
                     outline: none;
                 ">
             </div>
-            <p class="subtitle">Allocate resources across initiatives • Copy URL to save/share</p>
+            <p class="subtitle">
+                A lightweight resource allocation tool. All data is encoded in the URL — no server storage required. Share URLs to collaborate. Self-hostable for enterprise use.
+            </p>
         </header>
 
         <div class="url-section">
             <label id="url-label">Shareable URL</label>
+            <span class="url-note">Note: URL should be &lt;80,000 chars for most browsers. Microsoft Edge/IE has a shorter limit (~2,083 chars).</span>
             <button class="copy-btn" id="copy-btn">Copy URL</button>
         </div>
-        <p class="url-note">Note: URL should be &lt;80,000 chars for most browsers. Microsoft Edge/IE has a shorter limit (~2,083 chars).</p>
 
         <div class="table-wrapper">
             <div class="table-scroll">
