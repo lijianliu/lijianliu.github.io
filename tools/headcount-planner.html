@@ -507,6 +507,7 @@
 
         .legend {
             display: flex;
+            align-items: center;
             gap: 16px;
             margin-top: 10px;
             padding: 8px 12px;
@@ -514,6 +515,14 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .legend-item {
@@ -575,14 +584,14 @@
                 ">
             </div>
             <p class="subtitle">
-                A lightweight resource allocation tool. All data is encoded in the URL — no server storage required. Share URLs to collaborate. Self-hostable for enterprise use.
+                A lightweight resource allocation tool. All data is encoded in the link address — no server storage required. Share link addresses to collaborate. Self-hostable for enterprise use.
             </p>
         </header>
 
         <div class="url-section">
-            <label id="url-label">Shareable URL</label>
-            <span class="url-note">Note: URL should be &lt;80,000 chars for most browsers. Microsoft Edge/IE has a shorter limit (~2,083 chars).</span>
-            <button class="copy-btn" id="copy-btn">Copy URL</button>
+            <label id="url-label">Shareable Link Address</label>
+            <span class="url-note">Note: Link address should be &lt;80,000 chars for most browsers. Microsoft Edge/IE has a shorter limit (~2,083 chars).</span>
+            <button class="copy-btn" id="copy-btn">Copy Link Address</button>
         </div>
 
         <div class="table-wrapper">
@@ -592,6 +601,7 @@
         </div>
 
         <div class="legend">
+            <span class="legend-label">Legend:</span>
             <div class="legend-item">
                 <svg width="28" height="28" viewBox="0 0 35 35" style="overflow:visible">
                     <circle cx="17.5" cy="17.5" r="16.5" fill="#9ca3af" stroke="#6b7280" stroke-width="1"/>
@@ -761,7 +771,7 @@
             const lenFormatted = len.toLocaleString();
             
             // Update label with length and color warning
-            urlLabel.textContent = `Shareable URL (length=${lenFormatted} chars)`;
+            urlLabel.textContent = `Shareable Link Address (${lenFormatted} chars)`;
             
             if (len > 80000) {
                 urlLabel.style.color = '#dc2626'; // Red - exceeds most browser limits
@@ -783,14 +793,14 @@
             }
         }
 
-        // Copy URL to clipboard
+        // Copy link address to clipboard
         copyBtn.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(currentUrl);
                 copyBtn.textContent = 'Copied!';
                 copyBtn.classList.add('copied');
                 setTimeout(() => {
-                    copyBtn.textContent = 'Copy URL';
+                    copyBtn.textContent = 'Copy Link Address';
                     copyBtn.classList.remove('copied');
                 }, 2000);
             } catch (err) {
@@ -804,7 +814,7 @@
                 copyBtn.textContent = 'Copied!';
                 copyBtn.classList.add('copied');
                 setTimeout(() => {
-                    copyBtn.textContent = 'Copy URL';
+                    copyBtn.textContent = 'Copy Link Address';
                     copyBtn.classList.remove('copied');
                 }, 2000);
             }
