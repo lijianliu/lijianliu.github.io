@@ -26,6 +26,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input, button, textarea, select {
+            font-family: inherit;
         }
 
         body {
@@ -62,52 +67,6 @@
             font-size: 11px;
         }
 
-        .input-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .input-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .input-group label {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .input-group input {
-            flex: 1;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 8px 10px;
-            color: var(--text-primary);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 12px;
-            transition: all 0.2s ease;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
-
-        .input-group input::placeholder {
-            color: var(--text-muted);
-        }
-
         .url-section {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -127,6 +86,7 @@
             color: var(--text-secondary);
             font-weight: 600;
             white-space: nowrap;
+            font-family: 'Space Grotesk', sans-serif;
         }
 
         .url-section input {
@@ -161,6 +121,11 @@
 
         .copy-btn:hover {
             background: #2563eb;
+        }
+
+        .copy-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         .copy-btn.copied {
@@ -230,6 +195,80 @@
             overflow: visible;
         }
 
+        .resource-cell span {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .resource-name-input {
+            background: transparent;
+            border: none;
+            text-align: center;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            width: 60px;
+            padding: 0 2px;
+        }
+
+        .resource-name-input:focus {
+            outline: none;
+            background: var(--cell-hover);
+        }
+
+        .resource-move-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 8px;
+            cursor: pointer;
+            padding: 0 1px;
+            line-height: 1;
+        }
+
+        .resource-move-btn:hover {
+            color: var(--accent-blue);
+        }
+
+        .add-resource-cell {
+            background: var(--bg-tertiary);
+            min-width: 40px !important;
+            cursor: pointer;
+        }
+
+        .add-resource-btn {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-muted);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-resource-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .resource-delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 10px;
+            cursor: pointer;
+            padding: 0 2px;
+            line-height: 1;
+        }
+
+        .resource-delete-btn:hover {
+            color: var(--accent-red);
+        }
+
         .pie-chart {
             width: 35px;
             height: 35px;
@@ -270,8 +309,23 @@
             background: var(--cell-hover);
         }
 
+        .initiative-input.duplicate {
+            background: #fecaca !important;
+            color: #991b1b;
+        }
+
+        .resource-name-input.duplicate {
+            background: #fecaca !important;
+            color: #991b1b;
+        }
+
         .add-initiative-row td {
             background: var(--bg-tertiary);
+        }
+
+        .add-initiative-row td:first-child {
+            text-align: left;
+            padding-left: 10px;
         }
 
         .add-btn {
@@ -418,6 +472,22 @@
             flex-shrink: 0;
         }
 
+        footer {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .url-section {
                 flex-direction: column;
@@ -452,15 +522,8 @@
             <p class="subtitle">Allocate resources across initiatives • Copy URL to save/share</p>
         </header>
 
-        <div class="input-section">
-            <div class="input-group">
-                <label>Resources (comma separated)</label>
-                <input type="text" id="resources-input" placeholder="e.g., Alice, Bob, Charlie, Diana">
-            </div>
-        </div>
-
         <div class="url-section">
-            <label>Shareable URL</label>
+            <label id="url-label">Shareable URL</label>
             <input type="text" id="url-output" readonly>
             <button class="copy-btn" id="copy-btn">Copy URL</button>
         </div>
@@ -501,6 +564,10 @@
                 <span>Over-allocated</span>
             </div>
         </div>
+
+        <footer>
+            Developed by <a href="https://lijianliu.github.io/" target="_blank">Lijian Liu</a>
+        </footer>
     </div>
 
     <script>
@@ -513,10 +580,10 @@
         };
 
         // DOM elements
-        const resourcesInput = document.getElementById('resources-input');
         const subheaderInput = document.getElementById('subheader-input');
         const tableContainer = document.getElementById('table-container');
         const urlOutput = document.getElementById('url-output');
+        const urlLabel = document.getElementById('url-label');
         const copyBtn = document.getElementById('copy-btn');
 
         // Initialize from URL
@@ -535,11 +602,9 @@
 
             if (resourcesParam) {
                 state.resources = resourcesParam.split(',').map(r => decodeURIComponent(r.trim())).filter(r => r);
-                resourcesInput.value = state.resources.join(', ');
             } else {
                 // Default sample resources
                 state.resources = ['Alice', 'Bob', 'Charlie', 'Diana'];
-                resourcesInput.value = state.resources.join(', ');
             }
 
             if (initiativesParam) {
@@ -613,7 +678,10 @@
 
         // Update URL display
         function updateURLDisplay() {
-            urlOutput.value = generateURL();
+            const url = generateURL();
+            urlOutput.value = url;
+            const len = url.length.toLocaleString();
+            urlLabel.textContent = `Shareable URL (length=${len} chars)`;
         }
 
         // Copy URL to clipboard
@@ -676,14 +744,19 @@
                 totalHeader.innerHTML = `<div>Total</div><div>${formatNumber(getGrandTotal())}</div>`;
             }
 
-            // Update pie charts in header
+            // Update pie charts in header (only update the SVG, preserve buttons)
             const headerCells = document.querySelectorAll('.resource-cell');
             state.resources.forEach((resource, idx) => {
                 if (headerCells[idx]) {
                     const allocated = getAllocatedForResource(resource);
-                    const nameSpan = headerCells[idx].querySelector('span');
-                    const name = nameSpan ? nameSpan.textContent : escapeHtml(resource);
-                    headerCells[idx].innerHTML = `<span>${name}</span>${createPieChart(allocated)}`;
+                    const oldSvg = headerCells[idx].querySelector('svg');
+                    if (oldSvg) {
+                        const newPieChart = createPieChart(allocated);
+                        const temp = document.createElement('div');
+                        temp.innerHTML = newPieChart;
+                        const newSvg = temp.querySelector('svg');
+                        oldSvg.replaceWith(newSvg);
+                    }
                 }
             });
         }
@@ -695,6 +768,108 @@
                 total += getAllocation(initiative, resource);
             }
             return Math.round((1 - total) * 1000) / 1000; // Avoid floating point issues
+        }
+
+        // Check for duplicate or empty initiative names and highlight
+        function checkInitiativeDuplicates() {
+            const inputs = document.querySelectorAll('.initiative-input');
+            const names = [];
+            
+            // Collect all current names from inputs
+            inputs.forEach(input => {
+                names.push(input.value.trim().toLowerCase());
+            });
+            
+            // Find duplicates and empty names
+            const errorIndices = new Set();
+            
+            // Check for empty/whitespace names
+            for (let i = 0; i < names.length; i++) {
+                if (!names[i]) {
+                    errorIndices.add(i);
+                }
+            }
+            
+            // Check for duplicates
+            for (let i = 0; i < names.length; i++) {
+                if (!names[i]) continue;
+                for (let j = i + 1; j < names.length; j++) {
+                    if (names[i] === names[j]) {
+                        errorIndices.add(i);
+                        errorIndices.add(j);
+                    }
+                }
+            }
+            
+            // Apply/remove duplicate class
+            inputs.forEach((input, idx) => {
+                if (errorIndices.has(idx)) {
+                    input.classList.add('duplicate');
+                } else {
+                    input.classList.remove('duplicate');
+                }
+            });
+
+            updateCopyButtonState();
+            return errorIndices.size > 0;
+        }
+
+        // Check for duplicate or empty resource names and highlight
+        function checkResourceDuplicates() {
+            const inputs = document.querySelectorAll('.resource-name-input');
+            const names = [];
+            
+            // Collect all current names from inputs
+            inputs.forEach(input => {
+                names.push(input.value.trim().toLowerCase());
+            });
+            
+            // Find duplicates and empty names
+            const errorIndices = new Set();
+            
+            // Check for empty/whitespace names
+            for (let i = 0; i < names.length; i++) {
+                if (!names[i]) {
+                    errorIndices.add(i);
+                }
+            }
+            
+            // Check for duplicates
+            for (let i = 0; i < names.length; i++) {
+                if (!names[i]) continue;
+                for (let j = i + 1; j < names.length; j++) {
+                    if (names[i] === names[j]) {
+                        errorIndices.add(i);
+                        errorIndices.add(j);
+                    }
+                }
+            }
+            
+            // Apply/remove duplicate class
+            inputs.forEach((input, idx) => {
+                if (errorIndices.has(idx)) {
+                    input.classList.add('duplicate');
+                } else {
+                    input.classList.remove('duplicate');
+                }
+            });
+
+            updateCopyButtonState();
+            return errorIndices.size > 0;
+        }
+
+        // Update copy button state based on duplicates or empty names
+        function updateCopyButtonState() {
+            const hasInitErrors = document.querySelectorAll('.initiative-input.duplicate').length > 0;
+            const hasResErrors = document.querySelectorAll('.resource-name-input.duplicate').length > 0;
+            
+            if (hasInitErrors || hasResErrors) {
+                copyBtn.disabled = true;
+                copyBtn.title = 'Fix duplicate or empty names first';
+            } else {
+                copyBtn.disabled = false;
+                copyBtn.title = '';
+            }
         }
 
         // Calculate total allocation for an initiative
@@ -725,11 +900,13 @@
             html += '<th>Initiative</th>';
             const grandTotal = getGrandTotal();
             html += `<th class="total-header"><div>Total</div><div>${formatNumber(grandTotal)}</div></th>`;
-            for (const resource of state.resources) {
+            for (let resIdx = 0; resIdx < state.resources.length; resIdx++) {
+                const resource = state.resources[resIdx];
                 const allocated = getAllocatedForResource(resource);
                 const pieChart = createPieChart(allocated);
-                html += `<th><div class="resource-cell"><span>${escapeHtml(resource)}</span>${pieChart}</div></th>`;
+                html += `<th><div class="resource-cell"><span><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="left" title="Move left">◀</button><input type="text" class="resource-name-input" data-res-idx="${resIdx}" value="${escapeHtml(resource)}"><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="right" title="Move right">▶</button><button class="resource-delete-btn" data-res-idx="${resIdx}" title="Delete">×</button></span>${pieChart}</div></th>`;
             }
+            html += `<th class="add-resource-cell"><button class="add-resource-btn" id="add-resource-btn">+ Add</button></th>`;
             html += '</tr></thead>';
 
             html += '<tbody>';
@@ -747,12 +924,18 @@
                     const displayValue = value === 0 ? '' : formatNumber(value);
                     html += `<td><input type="text" class="allocation-input" data-r="${initIdx}" data-c="${resIdx}" value="${displayValue}" placeholder="0"></td>`;
                 }
+                html += '<td class="add-resource-cell"></td>';
                 html += '</tr>';
             }
 
             // Add initiative row
             html += '<tr class="add-initiative-row">';
-            html += `<td colspan="${state.resources.length + 2}"><button class="add-btn" id="add-initiative-btn">+ Add Initiative</button></td>`;
+            html += `<td><button class="add-btn" id="add-initiative-btn">+ Add Initiative</button></td>`;
+            html += `<td class="add-resource-cell"></td>`;
+            for (let i = 0; i < state.resources.length; i++) {
+                html += '<td class="add-resource-cell"></td>';
+            }
+            html += '<td class="add-resource-cell"></td>';
             html += '</tr>';
 
             html += '</tbody></table>';
@@ -768,6 +951,7 @@
             // Add event listeners to initiative inputs
             document.querySelectorAll('.initiative-input').forEach(input => {
                 input.addEventListener('change', handleInitiativeRename);
+                input.addEventListener('input', checkInitiativeDuplicates);
             });
 
             // Add event listeners to delete buttons
@@ -787,6 +971,29 @@
 
             // Add event listener to add button
             document.getElementById('add-initiative-btn').addEventListener('click', handleAddInitiative);
+
+            // Add event listeners to resource move buttons
+            document.querySelectorAll('.resource-move-btn').forEach(btn => {
+                btn.addEventListener('click', handleMoveResource);
+            });
+
+            // Add event listeners to resource delete buttons
+            document.querySelectorAll('.resource-delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteResource);
+            });
+
+            // Add event listeners to resource name inputs
+            document.querySelectorAll('.resource-name-input').forEach(input => {
+                input.addEventListener('change', handleResourceRename);
+                input.addEventListener('input', checkResourceDuplicates);
+            });
+
+            // Add event listener to add resource button
+            document.getElementById('add-resource-btn').addEventListener('click', handleAddResource);
+
+            // Run initial duplicate checks
+            checkInitiativeDuplicates();
+            checkResourceDuplicates();
         }
 
         // Handle arrow key navigation
@@ -974,14 +1181,6 @@
             updateTotalsAndPies();
         }
 
-        // Handle resources input change
-        function handleResourcesChange() {
-            const value = resourcesInput.value;
-            state.resources = value.split(',').map(r => r.trim()).filter(r => r);
-            updateURLDisplay();
-            renderTable();
-        }
-
         // Handle initiative rename
         function handleInitiativeRename(e) {
             const input = e.target;
@@ -1104,6 +1303,94 @@
             }
         }
 
+        // Handle move resource left or right
+        function handleMoveResource(e) {
+            const btn = e.currentTarget;
+            const resIdx = parseInt(btn.dataset.resIdx, 10);
+            const direction = btn.dataset.dir;
+            
+            const newIdx = direction === 'left' ? resIdx - 1 : resIdx + 1;
+            
+            // Check bounds
+            if (newIdx < 0 || newIdx >= state.resources.length) {
+                return;
+            }
+            
+            // Swap resources
+            const temp = state.resources[resIdx];
+            state.resources[resIdx] = state.resources[newIdx];
+            state.resources[newIdx] = temp;
+            
+            updateURLDisplay();
+            renderTable();
+        }
+
+        // Handle add resource
+        function handleAddResource() {
+            let newName = `Resource ${state.resources.length + 1}`;
+            let counter = 1;
+            while (state.resources.includes(newName)) {
+                counter++;
+                newName = `Resource ${counter}`;
+            }
+            state.resources.push(newName);
+            updateURLDisplay();
+            renderTable();
+        }
+
+        // Handle resource rename
+        function handleResourceRename(e) {
+            const input = e.target;
+            const resIdx = parseInt(input.dataset.resIdx, 10);
+            const oldName = state.resources[resIdx];
+            const newName = input.value.trim();
+
+            if (!newName || newName === oldName) {
+                input.value = oldName;
+                return;
+            }
+
+            // Update allocations to use new name
+            const newAllocations = {};
+            for (const [key, value] of Object.entries(state.allocations)) {
+                const [initiative, resource] = key.split('|||');
+                if (resource === oldName) {
+                    newAllocations[`${initiative}|||${newName}`] = value;
+                } else {
+                    newAllocations[key] = value;
+                }
+            }
+            state.allocations = newAllocations;
+
+            // Update resource name
+            state.resources[resIdx] = newName;
+            
+            updateURLDisplay();
+        }
+
+        // Handle delete resource
+        function handleDeleteResource(e) {
+            const btn = e.currentTarget;
+            const resIdx = parseInt(btn.dataset.resIdx, 10);
+            const resource = state.resources[resIdx];
+
+            // Remove allocations for this resource
+            const newAllocations = {};
+            for (const [key, value] of Object.entries(state.allocations)) {
+                const [init, res] = key.split('|||');
+                if (res !== resource) {
+                    newAllocations[key] = value;
+                }
+            }
+            state.allocations = newAllocations;
+
+            // Remove resource
+            state.resources.splice(resIdx, 1);
+            
+            updateURLDisplay();
+            renderTable();
+        }
+
         // Utility functions
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -1137,7 +1424,6 @@
         }
 
         // Event listeners
-        resourcesInput.addEventListener('input', debounce(handleResourcesChange, 300));
         subheaderInput.addEventListener('input', debounce(handleSubheaderChange, 300));
 
         // Initialize
