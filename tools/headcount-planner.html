@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Headcount Planner</title>
+    <title>Headcount Planner v0.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -52,7 +52,7 @@
 
         h1 {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 2px;
@@ -65,6 +65,11 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 11px;
+        }
+
+        #subheader-input::placeholder {
+            color: var(--text-muted);
+            opacity: 1;
         }
 
         .url-section {
@@ -87,22 +92,6 @@
             font-weight: 600;
             white-space: nowrap;
             font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .url-section input {
-            flex: 1;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 6px 10px;
-            color: var(--text-secondary);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 10px;
-        }
-
-        .url-section input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
         }
 
         .copy-btn {
@@ -548,28 +537,26 @@
 <body>
     <div class="container">
         <header>
-            <div style="display: flex; align-items: baseline; gap: 12px;">
-                <h1>Headcount Planner</h1>
-                <input type="text" id="subheader-input" placeholder="e.g., FY27 Q1" style="
+            <div style="display: flex; align-items: baseline; gap: 12px; flex: 1;">
+                <h1>Headcount Planner v0.3</h1>
+                <input type="text" id="subheader-input" placeholder="<Enter Your Plan Title Here>" style="
                     background: transparent;
-                    border: 1px dashed var(--border-color);
-                    border-radius: 4px;
+                    border: none;
                     padding: 4px 8px;
                     color: var(--text-primary);
                     font-family: 'Space Grotesk', sans-serif;
-                    font-size: 16px;
+                    font-size: 24px;
                     font-weight: 600;
-                    width: 120px;
+                    flex: 1;
+                    min-width: 350px;
                     outline: none;
-                    transition: border-color 0.2s;
-                " onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor=''">
+                ">
             </div>
             <p class="subtitle">Allocate resources across initiatives • Copy URL to save/share</p>
         </header>
 
         <div class="url-section">
             <label id="url-label">Shareable URL</label>
-            <input type="text" id="url-output" readonly>
             <button class="copy-btn" id="copy-btn">Copy URL</button>
         </div>
         <p class="url-note">Note: URL should be &lt;80,000 chars for most browsers. Microsoft Edge/IE has a shorter limit (~2,083 chars).</p>
@@ -612,7 +599,7 @@
         </div>
 
         <footer>
-            Developed by <a href="https://lijianliu.github.io/" target="_blank">Lijian Liu</a>
+            Developed by <a href="https://lijianliu.github.io/" target="_blank">Lijian Liu</a> · Updated on Jan 26, 2026
         </footer>
     </div>
 
@@ -628,9 +615,11 @@
         // DOM elements
         const subheaderInput = document.getElementById('subheader-input');
         const tableContainer = document.getElementById('table-container');
-        const urlOutput = document.getElementById('url-output');
         const urlLabel = document.getElementById('url-label');
         const copyBtn = document.getElementById('copy-btn');
+        
+        // Store current URL for clipboard
+        let currentUrl = '';
 
         // Initialize from URL
         function loadFromURL() {
@@ -723,7 +712,7 @@
         // Update URL display
         function updateURLDisplay() {
             const url = generateURL();
-            urlOutput.value = url;
+            currentUrl = url;
             const len = url.length;
             const lenFormatted = len.toLocaleString();
             
@@ -753,7 +742,7 @@
         // Copy URL to clipboard
         copyBtn.addEventListener('click', async () => {
             try {
-                await navigator.clipboard.writeText(urlOutput.value);
+                await navigator.clipboard.writeText(currentUrl);
                 copyBtn.textContent = 'Copied!';
                 copyBtn.classList.add('copied');
                 setTimeout(() => {
@@ -762,8 +751,12 @@
                 }, 2000);
             } catch (err) {
                 // Fallback for older browsers
-                urlOutput.select();
+                const textArea = document.createElement('textarea');
+                textArea.value = currentUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
                 document.execCommand('copy');
+                document.body.removeChild(textArea);
                 copyBtn.textContent = 'Copied!';
                 copyBtn.classList.add('copied');
                 setTimeout(() => {
