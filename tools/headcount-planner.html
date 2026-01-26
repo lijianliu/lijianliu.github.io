@@ -175,9 +175,47 @@
         }
 
         th:first-child {
+            text-align: center;
+            min-width: 30px;
+            width: 30px;
+        }
+
+        th:nth-child(2) {
             text-align: left;
             padding-left: 10px;
             min-width: 180px;
+        }
+
+        .index-row th {
+            background: var(--bg-tertiary);
+            height: 18px;
+            font-size: 9px;
+            color: var(--text-muted);
+            font-weight: 500;
+            padding: 2px 4px;
+        }
+
+        .index-cell {
+            background: var(--bg-tertiary) !important;
+            color: var(--text-muted);
+            font-size: 9px;
+            font-weight: 500;
+            min-width: 30px !important;
+            width: 30px;
+            text-align: center;
+            padding: 4px !important;
+        }
+
+        td.index-cell {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .index-header {
+            min-width: 30px !important;
+            width: 30px;
+            font-size: 9px;
+            color: var(--text-muted);
+            text-align: center;
         }
 
         .resource-header {
@@ -915,7 +953,7 @@
                 tableContainer.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📊</div>
-                        <p>Enter resources above to start planning.</p>
+                        <p>Add resources to start planning.</p>
                     </div>
                 `;
                 return;
@@ -923,8 +961,20 @@
 
             let html = '<table>';
             
+            // Index row for resources
+            html += '<thead><tr class="index-row">';
+            html += '<th class="index-cell"></th>'; // Empty for index column
+            html += '<th class="index-cell"></th>'; // Empty for Initiative header
+            html += '<th class="index-cell"></th>'; // Empty for Total header
+            for (let resIdx = 0; resIdx < state.resources.length; resIdx++) {
+                html += `<th class="index-cell">${resIdx + 1}</th>`;
+            }
+            html += '<th class="index-cell"></th>'; // Empty for add column
+            html += '</tr>';
+            
             // Header row - Resource names with pie charts
-            html += '<thead><tr class="resource-header">';
+            html += '<tr class="resource-header">';
+            html += '<th class="index-header">#</th>';
             html += '<th>Initiative</th>';
             const grandTotal = getGrandTotal();
             html += `<th class="total-header"><div>Total</div><div>${formatNumber(grandTotal)}</div></th>`;
@@ -943,6 +993,7 @@
             for (let initIdx = 0; initIdx < state.initiatives.length; initIdx++) {
                 const initiative = state.initiatives[initIdx];
                 html += '<tr>';
+                html += `<td class="index-cell">${initIdx + 1}</td>`;
                 html += `<td class="initiative-cell"><div class="initiative-cell-content"><input type="text" class="initiative-input" data-init-idx="${initIdx}" data-original-name="${escapeHtml(initiative)}" value="${escapeHtml(initiative)}"><div class="initiative-actions"><button class="move-btn" data-init-idx="${initIdx}" data-dir="up" title="Move up">▲</button><button class="move-btn" data-init-idx="${initIdx}" data-dir="down" title="Move down">▼</button><button class="clone-btn" data-init-idx="${initIdx}" title="Clone">⧉</button><button class="delete-btn" data-init-idx="${initIdx}" title="Delete">×</button></div></div></td>`;
                 html += `<td class="total-cell">${formatNumber(getInitiativeTotal(initiative))}</td>`;
                 
@@ -958,6 +1009,7 @@
 
             // Add initiative row
             html += '<tr class="add-initiative-row">';
+            html += '<td class="index-cell"></td>';
             html += `<td><button class="add-btn" id="add-initiative-btn">+ Add Initiative</button></td>`;
             html += `<td class="add-resource-cell"></td>`;
             for (let i = 0; i < state.resources.length; i++) {
