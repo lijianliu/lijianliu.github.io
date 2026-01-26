@@ -42,7 +42,6 @@
         }
 
         .container {
-            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -131,18 +130,20 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: inline-block;
+            min-width: 100%;
         }
 
         .table-scroll {
-            overflow-x: auto;
+            overflow: visible;
         }
 
         table {
-            width: 100%;
             border-collapse: collapse;
             min-width: 350px;
+            background: var(--bg-secondary);
         }
 
         th, td {
@@ -150,8 +151,12 @@
             padding: 0;
             text-align: center;
             height: 28px;
-            min-width: 55px;
+            min-width: 50px;
             font-size: 11px;
+        }
+
+        td {
+            background: var(--bg-secondary);
         }
 
         th {
@@ -213,8 +218,8 @@
         }
 
         .resource-header th {
-            padding: 6px 4px;
-            height: 60px;
+            padding: 3px 2px;
+            height: 70px;
             vertical-align: middle;
             overflow: visible;
         }
@@ -224,11 +229,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
+            gap: 1px;
             overflow: visible;
         }
 
-        .resource-cell span {
+        .resource-buttons {
             display: flex;
             align-items: center;
             gap: 2px;
@@ -242,7 +247,7 @@
             font-family: 'Space Grotesk', sans-serif;
             font-size: 10px;
             font-weight: 600;
-            width: 60px;
+            min-width: 40px;
             padding: 0 2px;
         }
 
@@ -257,7 +262,7 @@
             color: var(--text-muted);
             font-size: 8px;
             cursor: pointer;
-            padding: 0 1px;
+            padding: 0;
             line-height: 1;
         }
 
@@ -294,7 +299,7 @@
             color: var(--text-muted);
             font-size: 10px;
             cursor: pointer;
-            padding: 0 2px;
+            padding: 0;
             line-height: 1;
         }
 
@@ -452,7 +457,7 @@
             color: var(--text-primary);
             font-family: 'Space Grotesk', sans-serif;
             font-size: 11px;
-            padding: 4px;
+            padding: 2px;
             cursor: text;
         }
 
@@ -976,7 +981,7 @@
                 const resource = state.resources[resIdx];
                 const allocated = getAllocatedForResource(resource);
                 const pieChart = createPieChart(allocated);
-                html += `<th><div class="resource-cell"><span><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="left" title="Move left">◀</button><input type="text" class="resource-name-input" data-res-idx="${resIdx}" data-original-name="${escapeHtml(resource)}" value="${escapeHtml(resource)}"><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="right" title="Move right">▶</button><button class="resource-delete-btn" data-res-idx="${resIdx}" title="Delete">×</button></span>${pieChart}</div></th>`;
+                html += `<th><div class="resource-cell"><div class="resource-buttons"><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="left" title="Move left">◀</button><button class="resource-move-btn" data-res-idx="${resIdx}" data-dir="right" title="Move right">▶</button><button class="resource-delete-btn" data-res-idx="${resIdx}" title="Delete">×</button></div><input type="text" class="resource-name-input" data-res-idx="${resIdx}" data-original-name="${escapeHtml(resource)}" value="${escapeHtml(resource)}">${pieChart}</div></th>`;
             }
             html += `<th class="add-resource-cell"><button class="add-resource-btn" id="add-resource-btn">+ Add</button></th>`;
             html += '</tr></thead>';
@@ -1065,7 +1070,9 @@
                 input.addEventListener('input', (e) => {
                     checkResourceDuplicates();
                     handleResourceInputRealtime(e);
+                    autoResizeInput(e.target);
                 });
+                autoResizeInput(input); // Initial resize
             });
 
             // Add event listener to add resource button
@@ -1540,6 +1547,21 @@
             state.resources.splice(resIdx, 1);
             
             renderTable();
+        }
+
+        // Auto-resize input based on content
+        function autoResizeInput(input) {
+            // Create a temporary span to measure text width
+            const span = document.createElement('span');
+            span.style.visibility = 'hidden';
+            span.style.position = 'absolute';
+            span.style.whiteSpace = 'pre';
+            span.style.font = window.getComputedStyle(input).font;
+            span.textContent = input.value || input.placeholder || '';
+            document.body.appendChild(span);
+            const width = Math.max(40, span.offsetWidth + 10);
+            document.body.removeChild(span);
+            input.style.width = width + 'px';
         }
 
         // Utility functions
