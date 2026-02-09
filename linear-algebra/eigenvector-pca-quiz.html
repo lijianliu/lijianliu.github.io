@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigenvalues, Eigenvectors & PCA — 100 MCQ Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #ddd9d0;
+  --accent: #2a7d5f;
+  --accent2: #1e6b50;
+  --accent-dim: rgba(42,125,95,0.07);
+  --wrong: #c93d3d;
+  --wrong-dim: rgba(201,61,61,0.06);
+  --text: #2c2c2c;
+  --text2: #6b6b6b;
+  --text3: #999;
+  --gold: #c8960c;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(42,125,95,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 80% 90%, rgba(42,125,95,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,245,240,0.88);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+.header-inner {
+  max-width: 860px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem; font-weight: 400; color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.score-badge {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.85rem; color: var(--text2);
+}
+.score-badge .num { color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+.progress-bar-wrap {
+  max-width: 860px; margin: 0 auto; padding: 0 24px;
+}
+.progress-bar {
+  height: 3px; background: var(--border); border-radius: 4px; margin-top: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), #1a6b8a);
+  border-radius: 4px; transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* Main */
+.container {
+  max-width: 860px; margin: 0 auto; padding: 16px 24px 60px;
+  position: relative; z-index: 1;
+}
+
+/* Intro */
+.intro {
+  text-align: center; padding: 20px 0 16px;
+}
+.intro h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem; font-weight: 400; margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--accent), #1a6b8a);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.intro p { color: var(--text2); max-width: 520px; margin: 0 auto; font-size: 0.88rem; }
+.topic-tags {
+  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px;
+}
+.topic-tag {
+  font-size: 0.72rem; padding: 3px 10px; border-radius: 20px;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text2);
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+  justify-content: center;
+}
+.filter-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem; font-weight: 500;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text2); cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  border-color: var(--accent); color: var(--accent); background: var(--accent-dim);
+}
+
+/* Question card */
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  animation: fadeUp 0.3s ease both;
+}
+.q-card:hover { border-color: #c5c1b8; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+.q-card.correct { border-color: var(--accent); box-shadow: 0 0 16px rgba(42,125,95,0.1); }
+.q-card.wrong { border-color: var(--wrong); box-shadow: 0 0 16px rgba(201,61,61,0.1); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.q-num {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem; font-weight: 500;
+  color: var(--accent); background: var(--accent-dim);
+  padding: 2px 8px; border-radius: 6px; margin-right: 8px;
+  vertical-align: middle;
+}
+.q-topic {
+  display: inline-block; margin-left: 8px;
+  font-size: 0.7rem; color: var(--text3);
+  background: var(--surface2); padding: 2px 8px; border-radius: 6px;
+  vertical-align: middle;
+}
+.q-text {
+  font-size: 0.95rem; font-weight: 500;
+  color: var(--text); line-height: 1.5;
+  display: inline;
+}
+.q-text code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em; background: var(--surface2);
+  padding: 2px 6px; border-radius: 4px; color: var(--accent2);
+}
+
+.options { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+.opt-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem; text-align: left;
+  padding: 8px 12px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text); cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.opt-btn:hover:not(.disabled) {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.opt-btn .letter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; font-weight: 600;
+  min-width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; background: rgba(0,0,0,0.05);
+  color: var(--text2); flex-shrink: 0;
+}
+.opt-btn.selected-correct {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.opt-btn.selected-correct .letter {
+  background: var(--accent); color: #fff;
+}
+.opt-btn.selected-wrong {
+  border-color: var(--wrong); background: var(--wrong-dim);
+}
+.opt-btn.selected-wrong .letter {
+  background: var(--wrong); color: #fff;
+}
+.opt-btn.show-correct {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.opt-btn.show-correct .letter {
+  background: var(--accent); color: #fff;
+}
+.opt-btn.disabled { cursor: default; opacity: 0.7; }
+.opt-btn.disabled:hover { border-color: var(--border); background: var(--surface2); }
+.opt-btn.selected-correct.disabled, .opt-btn.selected-wrong.disabled, .opt-btn.show-correct.disabled {
+  opacity: 1;
+}
+
+.explanation {
+  margin-top: 8px; padding: 8px 12px;
+  background: rgba(42,125,95,0.05);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.82rem; color: var(--text2);
+  line-height: 1.5; display: none;
+}
+.explanation code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em; background: var(--surface);
+  padding: 1px 5px; border-radius: 3px; color: var(--accent2);
+}
+.q-card.answered .explanation { display: block; }
+
+/* Results */
+.results-panel {
+  display: none; text-align: center; padding: 32px 20px;
+  animation: fadeUp 0.5s ease;
+}
+.results-panel h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem; margin-bottom: 8px; color: var(--accent);
+}
+.results-panel .big-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 3rem; font-weight: 700; color: var(--text);
+  margin: 10px 0;
+}
+.results-panel .big-score span { color: var(--text3); font-size: 2rem; }
+.results-panel p { color: var(--text2); font-size: 0.95rem; }
+.restart-btn {
+  font-family: 'DM Sans', sans-serif;
+  margin-top: 16px; padding: 10px 28px;
+  border-radius: 10px; border: 1px solid var(--accent);
+  background: var(--accent-dim); color: var(--accent);
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.restart-btn:hover { background: var(--accent); color: #fff; }
+
+/* Scroll top */
+.scroll-top {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); font-size: 1.2rem;
+  display: none; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 99; transition: all 0.2s;
+}
+.scroll-top:hover { border-color: var(--accent); color: var(--accent); }
+.scroll-top.visible { display: flex; }
+
+@media (max-width: 600px) {
+  .intro h2 { font-size: 1.6rem; }
+  .q-card { padding: 12px 14px 10px; }
+  .header h1 { font-size: 0.95rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>Eigenvalues & PCA Quiz</h1>
+    <div class="score-badge">
+      <span>Score: <span class="num" id="scoreDisplay">0</span> / <span id="totalAnswered">0</span></span>
+      <span>|</span>
+      <span id="pctDisplay">0%</span>
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="intro">
+    <h2>100 Multiple-Choice Questions</h2>
+    <p>Test your understanding of eigenvalues, eigenvectors, Markov chains, transition matrices, and Principal Component Analysis (PCA).</p>
+    <div class="topic-tags">
+      <span class="topic-tag">Eigenvalues</span>
+      <span class="topic-tag">Eigenvectors</span>
+      <span class="topic-tag">Markov Chains</span>
+      <span class="topic-tag">Transition Matrices</span>
+      <span class="topic-tag">PageRank</span>
+      <span class="topic-tag">PCA</span>
+      <span class="topic-tag">Covariance</span>
+      <span class="topic-tag">Dimensionality Reduction</span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All (100)</button>
+    <button class="filter-btn" data-filter="Dynamical Systems">Dynamical Systems</button>
+    <button class="filter-btn" data-filter="Markov & Transition">Markov & Transition</button>
+    <button class="filter-btn" data-filter="Eigen Fundamentals">Eigen Fundamentals</button>
+    <button class="filter-btn" data-filter="PCA Theory">PCA Theory</button>
+    <button class="filter-btn" data-filter="PCA Application">PCA Application</button>
+    <button class="filter-btn" data-filter="NumPy & Code">NumPy & Code</button>
+  </div>
+
+  <div id="quizArea"></div>
+
+  <div class="results-panel" id="resultsPanel">
+    <h2>Quiz Complete!</h2>
+    <div class="big-score"><span id="finalScore">0</span> <span>/ 100</span></div>
+    <p id="finalMsg"></p>
+    <button class="restart-btn" onclick="restart()">Restart Quiz</button>
+  </div>
+</div>
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0})">↑</div>
+
+<script>
+const questions = [
+  // === DYNAMICAL SYSTEMS (1-15) ===
+  {id:1, topic:"Dynamical Systems", q:"In a discrete dynamical system, what does the state vector represent?",
+   opts:["The transition probabilities between states","The current probabilities of being in each state","The eigenvalues of the system","The eigenvectors of the system"],
+   ans:1, explain:"The state vector X_t holds the probabilities of being in each possible state at time t."},
+
+  {id:2, topic:"Dynamical Systems", q:"Given a transition matrix P and initial state X₀, how do you compute the state after one step?",
+   opts:["X₁ = X₀ × P","X₁ = P + X₀","X₁ = P × X₀","X₁ = P⁻¹ × X₀"],
+   ans:2, explain:"The next state is found by matrix multiplication: X₁ = PX₀."},
+
+  {id:3, topic:"Dynamical Systems", q:"After m steps in a discrete dynamical system, the state vector X_m equals:",
+   opts:["P + mX₀","mPX₀","PᵐX₀","P^(1/m) X₀"],
+   ans:2, explain:"Applying the transition m times gives X_m = P^m X₀."},
+
+  {id:4, topic:"Dynamical Systems", q:"In the webpage navigation model, what do the entries of the state vector represent?",
+   opts:["Number of links on each page","Probabilities the browser is on each page","Rank of each webpage","Number of visits to each page"],
+   ans:1, explain:"The state vector gives the probability distribution of the browser being at each webpage."},
+
+  {id:5, topic:"Dynamical Systems", q:"Why are dynamical systems called 'discrete'?",
+   opts:["The states are continuous","Time advances in discrete steps","The matrix is discrete","The eigenvalues are integers"],
+   ans:1, explain:"The system evolves at discrete time steps t = 0, 1, 2, 3, ..."},
+
+  {id:6, topic:"Dynamical Systems", q:"In the assignment's web navigation model, what assumption is made about self-links?",
+   opts:["Every page links to itself","No page links to itself (diagonal is 0)","Self-links have probability 0.5","Self-links have the highest probability"],
+   ans:1, explain:"The diagonal entries of P are 0, meaning a page does not link to itself."},
+
+  {id:7, topic:"Dynamical Systems", q:"If a browser starts at page 4 with n=5 pages, what does X₀ look like?",
+   opts:["[0.2, 0.2, 0.2, 0.2, 0.2]ᵀ","[0, 0, 0, 1, 0]ᵀ","[1, 1, 1, 1, 1]ᵀ","[0, 0, 0, 0, 1]ᵀ"],
+   ans:1, explain:"X₀ has a 1 in the 4th position and 0 elsewhere, indicating certainty of being on page 4."},
+
+  {id:8, topic:"Dynamical Systems", q:"The relationship X_t = P × X_{t-1} is an example of:",
+   opts:["A quadratic transformation","A linear transformation","An exponential transformation","A logarithmic transformation"],
+   ans:1, explain:"Multiplying a vector by a matrix is a linear transformation."},
+
+  {id:9, topic:"Dynamical Systems", q:"What happens to the state vector after many iterations of multiplying by P (for a Markov matrix)?",
+   opts:["It diverges to infinity","It oscillates indefinitely","It converges to a steady-state vector","It always becomes the zero vector"],
+   ans:2, explain:"For well-behaved Markov matrices, repeated multiplication converges to a steady-state (stationary) distribution."},
+
+  {id:10, topic:"Dynamical Systems", q:"In the web navigation model, what does p_{ij} represent?",
+   opts:["Probability of going from page i to page j","Probability of going from page j to page i","Number of links from page i to j","Rank of page j relative to page i"],
+   ans:0, explain:"The entry p_{ij} gives the probability of navigating to page i from page j (column j to row i in the convention used)."},
+
+  {id:11, topic:"Dynamical Systems", q:"What is the dimension of the state vector for a system with n=5 pages?",
+   opts:["5 × 5","1 × 5","5 × 1","1 × 1"],
+   ans:2, explain:"The state vector is a column vector of size 5 × 1 (one entry per page)."},
+
+  {id:12, topic:"Dynamical Systems", q:"Why is the webpage navigation model useful for search engines?",
+   opts:["It determines the content of web pages","It predicts which pages get the most traffic long-term","It measures internet speed","It counts the number of links"],
+   ans:1, explain:"The stationary distribution tells you the long-run probability of visiting each page, indicating importance/traffic."},
+
+  {id:13, topic:"Dynamical Systems", q:"The PageRank algorithm is based on which type of model?",
+   opts:["Neural network","Decision tree","Discrete dynamical system / Markov chain","Support vector machine"],
+   ans:2, explain:"PageRank models web navigation as a Markov chain (discrete dynamical system)."},
+
+  {id:14, topic:"Dynamical Systems", q:"If all entries in X₁ = PX₀ are equal (e.g., 0.25 each for 4 non-zero entries), this means:",
+   opts:["Page 4 has the most links","All reachable pages from page 4 are equally likely","The matrix P is the identity","The system has reached steady state"],
+   ans:1, explain:"Equal probabilities mean the starting page had equal transition probabilities to those pages."},
+
+  {id:15, topic:"Dynamical Systems", q:"Evolving the system 20 times (m=20) from page 4 gives a result that closely matches:",
+   opts:["The initial state X₀","The first eigenvector of P","The scaled eigenvector for eigenvalue 1","The inverse of P"],
+   ans:2, explain:"After many iterations, the state converges to the eigenvector associated with eigenvalue 1 (scaled to sum to 1)."},
+
+  // === MARKOV & TRANSITION (16-35) ===
+  {id:16, topic:"Markov & Transition", q:"A Markov matrix requires that each column sums to:",
+   opts:["0","The number of states","1","The eigenvalue"],
+   ans:2, explain:"In a Markov (stochastic) matrix, each column's entries are non-negative and sum to 1."},
+
+  {id:17, topic:"Markov & Transition", q:"Which of the following is always true about a Markov matrix?",
+   opts:["All entries are negative","It always has an eigenvalue equal to 1","All eigenvalues are greater than 1","It must be a diagonal matrix"],
+   ans:1, explain:"Markov matrices always have 1 as an eigenvalue — this is a fundamental property."},
+
+  {id:18, topic:"Markov & Transition", q:"For the 5×5 transition matrix in the assignment, how many eigenvalues have absolute value less than 1?",
+   opts:["0","1","4","5"],
+   ans:2, explain:"One eigenvalue equals 1, and the other four have absolute values less than 1."},
+
+  {id:19, topic:"Markov & Transition", q:"What is the size of the transition matrix P for a system with n pages?",
+   opts:["n × 1","1 × n","n × n","n × 2n"],
+   ans:2, explain:"The transition matrix is square, n × n, with one row and column per state."},
+
+  {id:20, topic:"Markov & Transition", q:"Why must all entries of a transition matrix be non-negative?",
+   opts:["They represent eigenvalues","They represent probabilities","They represent page ranks","Negative entries cause overflow"],
+   ans:1, explain:"Entries represent transition probabilities, which must be between 0 and 1."},
+
+  {id:21, topic:"Markov & Transition", q:"The steady-state vector of a Markov chain corresponds to the eigenvector of eigenvalue:",
+   opts:["0","−1","1","The largest eigenvalue other than 1"],
+   ans:2, explain:"The steady-state (stationary) distribution is the eigenvector for eigenvalue λ = 1."},
+
+  {id:22, topic:"Markov & Transition", q:"In the assignment, after finding the eigenvector for λ=1, why is it scaled?",
+   opts:["To make all entries negative","So entries sum to 1 and can be interpreted as probabilities","To make it orthogonal","To increase the eigenvalue"],
+   ans:1, explain:"The raw eigenvector from np.linalg.eig has norm 1, but entries need to sum to 1 for a probability distribution."},
+
+  {id:23, topic:"Markov & Transition", q:"The element at position (2,1) in a transition matrix represents:",
+   opts:["Probability of staying in state 2","Probability of going from state 1 to state 2","Probability of going from state 2 to state 1","The eigenvalue for state 2"],
+   ans:1, explain:"The element (i,j) represents the probability of transitioning from state j to state i."},
+
+  {id:24, topic:"Markov & Transition", q:"If columns of P sum to 1 and all entries are non-negative, P is called a:",
+   opts:["Diagonal matrix","Symmetric matrix","Markov (stochastic) matrix","Orthogonal matrix"],
+   ans:2, explain:"These are the defining properties of a Markov (column stochastic) matrix."},
+
+  {id:25, topic:"Markov & Transition", q:"When checking PX_inf = X_inf, which NumPy function is used for element-wise comparison with tolerance?",
+   opts:["np.equal","np.isclose","np.allclose","np.compare"],
+   ans:1, explain:"np.isclose compares arrays element-by-element with a relative tolerance parameter (rtol)."},
+
+  {id:26, topic:"Markov & Transition", q:"For the assignment's 5-page model, the long-run probability of being on page 1 is approximately:",
+   opts:["0.085","0.134","0.273","0.394"],
+   ans:3, explain:"The assignment states page 1 has the highest long-run probability at approximately 0.394."},
+
+  {id:27, topic:"Markov & Transition", q:"Which page has the lowest long-run probability in the assignment's model?",
+   opts:["Page 1","Page 2","Page 4","Page 5"],
+   ans:2, explain:"Page 4 has the lowest steady-state probability at approximately 0.085."},
+
+  {id:28, topic:"Markov & Transition", q:"Why is it computationally expensive to calculate P^m for large m with large matrices?",
+   opts:["Large matrices have no eigenvalues","Matrix multiplication scales with matrix size and m iterations","P becomes singular after many multiplications","Computers cannot store large matrices"],
+   ans:1, explain:"Repeatedly multiplying large matrices is expensive; eigenvalue decomposition provides a shortcut."},
+
+  {id:29, topic:"Markov & Transition", q:"Using eigenvalues to find the long-run state avoids:",
+   opts:["Finding the transition matrix","Repeated matrix multiplication","Computing any eigenvalues","Defining the state vector"],
+   ans:1, explain:"Instead of multiplying P many times, we directly find the eigenvector for λ = 1."},
+
+  {id:30, topic:"Markov & Transition", q:"If a Markov matrix has diagonal entries of 0, it means:",
+   opts:["All eigenvalues are 0","No state transitions to itself","The matrix is not invertible","The matrix is symmetric"],
+   ans:1, explain:"Zero diagonal means there is zero probability of staying in the current state."},
+
+  {id:31, topic:"Markov & Transition", q:"What does <code>np.linalg.eig</code> return eigenvectors with by convention?",
+   opts:["Entries summing to 1","Norm (magnitude) equal to 1","All positive entries","Integer entries"],
+   ans:1, explain:"np.linalg.eig returns eigenvectors normalized to have unit norm (‖v‖ = 1)."},
+
+  {id:32, topic:"Markov & Transition", q:"To verify Pv = λv for eigenvalue 1, you check that Pv equals:",
+   opts:["The zero vector","v itself","P","The identity matrix"],
+   ans:1, explain:"If λ = 1, then Pv = 1·v = v."},
+
+  {id:33, topic:"Markov & Transition", q:"In the assignment, the eigenvector for λ=1 initially has some negative entries. This is because:",
+   opts:["The matrix is wrong","np.linalg.eig normalizes to unit norm, not probability","Eigenvalues are negative","The transition matrix is singular"],
+   ans:1, explain:"The returned eigenvector has norm 1 with possible negative signs; scaling makes entries positive and sum to 1."},
+
+  {id:34, topic:"Markov & Transition", q:"The sum of all long-run probabilities across all pages must equal:",
+   opts:["0","0.5","1","n (number of pages)"],
+   ans:2, explain:"As a probability distribution, all probabilities must sum to 1."},
+
+  {id:35, topic:"Markov & Transition", q:"A Markov chain can model all of the following EXCEPT:",
+   opts:["Weather prediction (sunny → rainy)","Webpage navigation","Stock price continuous movement","Board game position transitions"],
+   ans:2, explain:"Continuous stock price changes are not naturally a discrete Markov chain; the others fit the discrete state/step model."},
+
+  // === EIGEN FUNDAMENTALS (36-55) ===
+  {id:36, topic:"Eigen Fundamentals", q:"An eigenvector v of matrix A satisfies the equation:",
+   opts:["Av = v","Av = λv","A + v = λ","Av = A + λ"],
+   ans:1, explain:"The defining equation for eigenvectors: Av = λv where λ is the eigenvalue."},
+
+  {id:37, topic:"Eigen Fundamentals", q:"An eigenvalue is a scalar λ such that for some non-zero vector v:",
+   opts:["A + λ = v","Av = λv","λA = v","A^λ = v"],
+   ans:1, explain:"λ is the eigenvalue in Av = λv."},
+
+  {id:38, topic:"Eigen Fundamentals", q:"The function <code>np.linalg.eig(P)</code> returns:",
+   opts:["Only eigenvalues","Only eigenvectors","A tuple of (eigenvalues, eigenvectors)","The determinant"],
+   ans:2, explain:"np.linalg.eig returns both eigenvalues and eigenvectors as a tuple."},
+
+  {id:39, topic:"Eigen Fundamentals", q:"If v is an eigenvector of A with eigenvalue λ, then 2v is:",
+   opts:["Not an eigenvector","An eigenvector with eigenvalue 2λ","An eigenvector with eigenvalue λ","An eigenvector with eigenvalue λ/2"],
+   ans:2, explain:"Any scalar multiple of an eigenvector is also an eigenvector with the same eigenvalue."},
+
+  {id:40, topic:"Eigen Fundamentals", q:"A 5×5 matrix can have at most how many eigenvalues?",
+   opts:["1","4","5","10"],
+   ans:2, explain:"An n×n matrix has at most n eigenvalues."},
+
+  {id:41, topic:"Eigen Fundamentals", q:"If a matrix has an eigenvalue of 0, it means the matrix is:",
+   opts:["Invertible","Singular (not invertible)","Symmetric","Orthogonal"],
+   ans:1, explain:"An eigenvalue of 0 means det(A) = 0, so the matrix is singular."},
+
+  {id:42, topic:"Eigen Fundamentals", q:"The eigenvector corresponding to the largest eigenvalue captures:",
+   opts:["The least important direction","The most variance/dominant direction","No information","Random noise"],
+   ans:1, explain:"The eigenvector for the largest eigenvalue represents the direction of greatest variation."},
+
+  {id:43, topic:"Eigen Fundamentals", q:"If Av = 3v, what is the eigenvalue?",
+   opts:["v","A","3","1/3"],
+   ans:2, explain:"Comparing with Av = λv, clearly λ = 3."},
+
+  {id:44, topic:"Eigen Fundamentals", q:"The eigenvalues of a symmetric matrix are always:",
+   opts:["Complex","Real","Zero","Negative"],
+   ans:1, explain:"A fundamental theorem: symmetric matrices always have real eigenvalues."},
+
+  {id:45, topic:"Eigen Fundamentals", q:"What is the relationship between eigenvectors and the null space of (A − λI)?",
+   opts:["They are unrelated","Eigenvectors are in the null space of (A − λI)","Eigenvectors are in the column space of A","They span the row space"],
+   ans:1, explain:"Av = λv implies (A − λI)v = 0, so v is in the null space of (A − λI)."},
+
+  {id:46, topic:"Eigen Fundamentals", q:"The absolute value of all eigenvalues of a Markov matrix are:",
+   opts:["Greater than 1","Equal to 1","Less than or equal to 1","Negative"],
+   ans:2, explain:"For a Markov matrix, all eigenvalues have |λ| ≤ 1, with at least one eigenvalue equal to 1."},
+
+  {id:47, topic:"Eigen Fundamentals", q:"In the assignment, <code>eigenvecs[:,0]</code> extracts:",
+   opts:["The first eigenvalue","The first eigenvector (first column)","All eigenvalues","The first row of eigenvectors"],
+   ans:1, explain:"Each column of the eigenvectors matrix is one eigenvector; [:,0] selects the first column."},
+
+  {id:48, topic:"Eigen Fundamentals", q:"If an n×n matrix has n linearly independent eigenvectors, it is said to be:",
+   opts:["Singular","Diagonalizable","Defective","Triangular"],
+   ans:1, explain:"A matrix with n independent eigenvectors can be diagonalized as PDP⁻¹."},
+
+  {id:49, topic:"Eigen Fundamentals", q:"The determinant of a matrix equals the product of its:",
+   opts:["Eigenvectors","Eigenvalues","Rows","Columns"],
+   ans:1, explain:"det(A) = λ₁ × λ₂ × ... × λₙ."},
+
+  {id:50, topic:"Eigen Fundamentals", q:"If all eigenvalues of a transition matrix have |λ| < 1 except one equal to 1, the system:",
+   opts:["Diverges","Oscillates","Converges to a unique steady state","Has no solution"],
+   ans:2, explain:"The dominant eigenvalue 1 ensures convergence; the others decay to 0."},
+
+  {id:51, topic:"Eigen Fundamentals", q:"Which operation preserves eigenvector directions?",
+   opts:["Adding another matrix","Multiplying by the matrix A (the linear transformation)","Transposing","Row reduction"],
+   ans:1, explain:"By definition, Av = λv — the matrix multiplication only scales v, preserving direction."},
+
+  {id:52, topic:"Eigen Fundamentals", q:"The trace of a matrix equals the sum of its:",
+   opts:["Diagonal entries / eigenvalues (both are equal)","Off-diagonal entries","Eigenvectors","Column norms"],
+   ans:0, explain:"trace(A) = sum of diagonal entries = sum of eigenvalues."},
+
+  {id:53, topic:"Eigen Fundamentals", q:"If A is a 4096×4096 covariance matrix, how many eigenvalues does it have?",
+   opts:["55","4096","Infinite","1"],
+   ans:1, explain:"An n×n matrix has n eigenvalues (counting multiplicity), so 4096."},
+
+  {id:54, topic:"Eigen Fundamentals", q:"<code>scipy.sparse.linalg.eigsh</code> is preferred over <code>np.linalg.eig</code> when:",
+   opts:["The matrix is small","The matrix is symmetric and you only need a few eigenvalues","The matrix has no eigenvalues","You need complex eigenvalues"],
+   ans:1, explain:"eigsh exploits symmetry and computes only k eigenvalue-eigenvector pairs, saving computation."},
+
+  {id:55, topic:"Eigen Fundamentals", q:"The covariance matrix is always:",
+   opts:["Skew-symmetric","Asymmetric","Symmetric","Diagonal"],
+   ans:2, explain:"Cov(X_i, X_j) = Cov(X_j, X_i), so the covariance matrix is symmetric."},
+
+  // === PCA THEORY (56-75) ===
+  {id:56, topic:"PCA Theory", q:"PCA stands for:",
+   opts:["Partial Component Adjustment","Principal Component Analysis","Primary Covariance Assessment","Probabilistic Cluster Algorithm"],
+   ans:1, explain:"PCA = Principal Component Analysis."},
+
+  {id:57, topic:"PCA Theory", q:"The first step in PCA is to:",
+   opts:["Find eigenvalues","Normalize to unit length","Center the data by subtracting the mean of each variable","Multiply by the covariance matrix"],
+   ans:2, explain:"Centering (subtracting column means) is the first step before computing the covariance matrix."},
+
+  {id:58, topic:"PCA Theory", q:"After centering, the covariance matrix is computed as:",
+   opts:["X + Xᵀ","XᵀX / (n−1)","X × X","X − mean(X)"],
+   ans:1, explain:"The covariance matrix is Σ = XᵀX / (n−1) where X is the centered data."},
+
+  {id:59, topic:"PCA Theory", q:"Each principal component corresponds to:",
+   opts:["A row of the data matrix","An eigenvalue of the mean","An eigenvector of the covariance matrix","A column of the original data"],
+   ans:2, explain:"Principal components are the eigenvectors of the covariance matrix."},
+
+  {id:60, topic:"PCA Theory", q:"The first principal component is the eigenvector associated with:",
+   opts:["The smallest eigenvalue","The eigenvalue closest to zero","The largest eigenvalue","Eigenvalue equal to 1"],
+   ans:2, explain:"The first PC corresponds to the largest eigenvalue, capturing the most variance."},
+
+  {id:61, topic:"PCA Theory", q:"PCA performs dimensionality reduction by:",
+   opts:["Deleting random columns","Projecting data onto directions of maximum variance","Averaging all variables into one","Removing rows with missing data"],
+   ans:1, explain:"PCA projects data onto the top k eigenvectors (directions of maximum variance)."},
+
+  {id:62, topic:"PCA Theory", q:"The explained variance of a principal component is:",
+   opts:["The component's eigenvalue divided by the sum of all eigenvalues","The square of the eigenvalue","The eigenvector's norm","The mean of the projected data"],
+   ans:0, explain:"Explained variance ratio = λ_i / Σλ_j."},
+
+  {id:63, topic:"PCA Theory", q:"If you keep k principal components, you are projecting data from n dimensions to:",
+   opts:["n dimensions","k dimensions","n − k dimensions","n × k dimensions"],
+   ans:1, explain:"Keeping k components reduces the data to k dimensions."},
+
+  {id:64, topic:"PCA Theory", q:"Centering the data means subtracting from each entry:",
+   opts:["The global mean of all data","The mean of its row","The mean of its column (variable)","The median of its column"],
+   ans:2, explain:"Each variable's mean is subtracted from all observations of that variable."},
+
+  {id:65, topic:"PCA Theory", q:"After PCA with k components, the transformed data matrix X_red has shape:",
+   opts:["(n_variables × k)","(n_observations × k)","(k × k)","(n_observations × n_variables)"],
+   ans:1, explain:"X_red = X @ V_k has shape (observations × k)."},
+
+  {id:66, topic:"PCA Theory", q:"Why does PCA use the covariance matrix?",
+   opts:["It captures mean values","It captures variance and linear relationships between variables","It captures median values","It normalizes the data"],
+   ans:1, explain:"The covariance matrix encodes how variables vary together, which PCA exploits."},
+
+  {id:67, topic:"PCA Theory", q:"The total variance in the data equals:",
+   opts:["The largest eigenvalue","The smallest eigenvalue","The sum of all eigenvalues of the covariance matrix","Zero"],
+   ans:2, explain:"The total variance is the trace of the covariance matrix, which equals the sum of its eigenvalues."},
+
+  {id:68, topic:"PCA Theory", q:"Cumulative explained variance reaching 95% means:",
+   opts:["5% of data is removed","95% of the total variance is captured by the selected components","95 components are used","The data is 95% accurate"],
+   ans:1, explain:"95% cumulative explained variance means the kept components account for 95% of total variance."},
+
+  {id:69, topic:"PCA Theory", q:"In the assignment, approximately how many components are needed to explain 95% of variance?",
+   opts:["2","10","35","55"],
+   ans:2, explain:"The cumulative explained variance plot shows ~35 components reach 95%."},
+
+  {id:70, topic:"PCA Theory", q:"Principal components are guaranteed to be:",
+   opts:["Correlated with each other","Mutually orthogonal","Parallel","Equal in magnitude"],
+   ans:1, explain:"Eigenvectors of a symmetric matrix (the covariance matrix) are orthogonal."},
+
+  {id:71, topic:"PCA Theory", q:"To reconstruct data from PCA, you compute:",
+   opts:["X_red × V_kᵀ","X_red + V_k","V_k × X_red","X_red − V_k"],
+   ans:0, explain:"Reconstruction: X_reconstructed = X_red × V_kᵀ, projecting back to original space."},
+
+  {id:72, topic:"PCA Theory", q:"Using fewer principal components for reconstruction causes:",
+   opts:["Perfect reconstruction","Some loss of information","More information than the original","Negative pixel values"],
+   ans:1, explain:"Fewer components means less variance is captured, losing some detail."},
+
+  {id:73, topic:"PCA Theory", q:"The explained variance of the first component falls off quickly because:",
+   opts:["The data has no variance","The first few components capture most of the structure/patterns","The eigenvalues are all equal","The data is random noise"],
+   ans:1, explain:"Real data often has most variance concentrated in a few directions."},
+
+  {id:74, topic:"PCA Theory", q:"PCA is most useful when:",
+   opts:["All variables are completely independent","Variables are highly correlated / data has structure","Data has only one variable","The dataset has no variance"],
+   ans:1, explain:"PCA excels when variables are correlated, so fewer components can capture most variance."},
+
+  {id:75, topic:"PCA Theory", q:"The matrix V_k used in PCA has shape:",
+   opts:["(k × k)","(n_variables × k)","(n_observations × k)","(k × n_observations)"],
+   ans:1, explain:"V_k contains k eigenvectors as columns, each of length n_variables."},
+
+  // === PCA APPLICATION (76-90) ===
+  {id:76, topic:"PCA Application", q:"In the cat image dataset, each image is 64×64 pixels. How many variables does each flattened image have?",
+   opts:["64","128","4096","55"],
+   ans:2, explain:"64 × 64 = 4096 pixels, each treated as a variable."},
+
+  {id:77, topic:"PCA Application", q:"How many cat images are in the dataset used in the assignment?",
+   opts:["20","55","100","4096"],
+   ans:1, explain:"The dataset has 55 images (observations)."},
+
+  {id:78, topic:"PCA Application", q:"The shape of <code>imgs_flatten</code> is:",
+   opts:["(4096, 55)","(55, 4096)","(64, 64)","(55, 64)"],
+   ans:1, explain:"55 images (rows) × 4096 pixels (columns)."},
+
+  {id:79, topic:"PCA Application", q:"The covariance matrix of the flattened images has shape:",
+   opts:["(55, 55)","(55, 4096)","(4096, 4096)","(64, 64)"],
+   ans:2, explain:"The covariance matrix is (n_variables × n_variables) = (4096 × 4096)."},
+
+  {id:80, topic:"PCA Application", q:"Why are at most 55 eigenvalues of the 4096×4096 covariance matrix non-zero?",
+   opts:["There are 55 pixels","The matrix rank is at most min(n_observations, n_variables) = 55","55 is the number of eigenvalues by convention","The images are 55×55"],
+   ans:1, explain:"With 55 observations, the rank of XᵀX is at most 55, so at most 55 non-zero eigenvalues."},
+
+  {id:81, topic:"PCA Application", q:"Reducing from 4096 to 2 dimensions allows you to:",
+   opts:["Perfectly reconstruct all images","Visualize each image as a point on a 2D plane","Increase the resolution of images","Remove all noise"],
+   ans:1, explain:"2D reduction maps each image to a point, enabling scatter plot visualization."},
+
+  {id:82, topic:"PCA Application", q:"In the 2D PCA plot, images that are close together are expected to:",
+   opts:["Be completely different","Look similar","Have the same filename","Be from different datasets"],
+   ans:1, explain:"Proximity in PCA space means similar projections, implying visual similarity."},
+
+  {id:83, topic:"PCA Application", q:"Images 19, 21, and 41 appear close in the 2D plot. They share:",
+   opts:["Different colors entirely","White snouts and black fur around the eyes","Completely black fur","No visible features"],
+   ans:1, explain:"The assignment notes these cats have white snouts and black fur around the eyes."},
+
+  {id:84, topic:"PCA Application", q:"Reconstructing an image from just 1 component preserves:",
+   opts:["All detail perfectly","The general location of features like eyes and nose","Nothing at all","Only the background"],
+   ans:1, explain:"Even 1 component captures the most dominant pattern, revealing rough feature locations."},
+
+  {id:85, topic:"PCA Application", q:"As the number of principal components used in reconstruction increases:",
+   opts:["Image quality decreases","Image quality stays the same","Image quality improves, approaching the original","The image disappears"],
+   ans:2, explain:"More components add more detail, bringing the reconstruction closer to the original."},
+
+  {id:86, topic:"PCA Application", q:"Using all 55 non-zero eigenvectors for reconstruction gives:",
+   opts:["A blank image","A perfect (or near-perfect) reconstruction","A worse image than using fewer","An image of a dog"],
+   ans:1, explain:"Using all non-zero components recovers (nearly) all the information in the data."},
+
+  {id:87, topic:"PCA Application", q:"The assignment reduces 4096 variables to 35 to capture 95% variance. The compression ratio is approximately:",
+   opts:["2:1","10:1","117:1","4096:1"],
+   ans:2, explain:"4096 / 35 ≈ 117, so about 117:1 compression."},
+
+  {id:88, topic:"PCA Application", q:"To reconstruct from X_red, you need the first k eigenvectors because:",
+   opts:["They contain the raw image data","X_red was computed using those k eigenvectors","They are the largest","They are randomly chosen"],
+   ans:1, explain:"Reconstruction reverses the projection: X_red × V_kᵀ requires the same V_k used for reduction."},
+
+  {id:89, topic:"PCA Application", q:"Visualizing the first 16 eigenvectors as images reveals:",
+   opts:["Random noise only","Patterns and features extracted from the cat images","The original 16 cat images","Blank white images"],
+   ans:1, explain:"Each eigenvector (principal component) captures a pattern or feature from the data."},
+
+  {id:90, topic:"PCA Application", q:"The <code>np.cumsum</code> function is used to compute:",
+   opts:["The mean of eigenvalues","The cumulative sum of explained variance","The standard deviation","The inverse of eigenvalues"],
+   ans:1, explain:"np.cumsum computes the running total, used here for cumulative explained variance."},
+
+  // === NUMPY & CODE (91-100) ===
+  {id:91, topic:"NumPy & Code", q:"The <code>@</code> operator in NumPy performs:",
+   opts:["Element-wise multiplication","Matrix multiplication","Addition","Power"],
+   ans:1, explain:"@ is the matrix multiplication operator in Python/NumPy."},
+
+  {id:92, topic:"NumPy & Code", q:"<code>np.mean(Y, axis=0)</code> computes the mean along:",
+   opts:["Rows (mean of each column)","Columns (mean of each row)","The entire array","The diagonal"],
+   ans:0, explain:"axis=0 collapses rows, giving the mean of each column (variable)."},
+
+  {id:93, topic:"NumPy & Code", q:"<code>np.reshape(arr, shape, order='F')</code> reshapes using:",
+   opts:["Row-major (C) order","Column-major (Fortran) order","Random order","Diagonal order"],
+   ans:1, explain:"order='F' means Fortran-style column-major order."},
+
+  {id:94, topic:"NumPy & Code", q:"<code>np.repeat(mean_vector, n)</code> does what?",
+   opts:["Tiles the array as a block n times","Repeats each element of mean_vector n times","Adds n to each element","Deletes n elements"],
+   ans:1, explain:"np.repeat repeats each element of the input array the specified number of times."},
+
+  {id:95, topic:"NumPy & Code", q:"<code>X.T</code> in NumPy returns:",
+   opts:["The trace of X","The transpose of X","The inverse of X","The determinant of X"],
+   ans:1, explain:".T is the transpose attribute in NumPy."},
+
+  {id:96, topic:"NumPy & Code", q:"<code>eigenvecs[:,::-1]</code> reverses the order of:",
+   opts:["Rows","Columns","Both rows and columns","Eigenvalues"],
+   ans:1, explain:"[:,::-1] reverses the column order, reordering eigenvectors from largest to smallest eigenvalue."},
+
+  {id:97, topic:"NumPy & Code", q:"<code>im.reshape(-1)</code> converts an image matrix into:",
+   opts:["A 2D square matrix","A 1D flat array","A 3D tensor","A diagonal matrix"],
+   ans:1, explain:"reshape(-1) flattens the array into one dimension."},
+
+  {id:98, topic:"NumPy & Code", q:"In the assignment, <code>scipy.random.seed(7)</code> is used to:",
+   opts:["Generate random eigenvalues","Ensure reproducible eigenvector computation","Speed up calculations","Initialize the transition matrix"],
+   ans:1, explain:"Setting a seed ensures the same eigenvectors are returned each run, since sign can vary."},
+
+  {id:99, topic:"NumPy & Code", q:"The <code>k</code> parameter in <code>scipy.sparse.linalg.eigsh(cov_matrix, k=55)</code> specifies:",
+   opts:["The matrix size","The number of eigenvalue-eigenvector pairs to compute","The tolerance","The number of iterations"],
+   ans:1, explain:"k tells eigsh how many of the largest eigenvalue/eigenvector pairs to compute."},
+
+  {id:100, topic:"NumPy & Code", q:"<code>eigenvecs[:, :k]</code> selects:",
+   opts:["The first k rows","The first k columns (first k eigenvectors)","The last k columns","A k×k submatrix"],
+   ans:1, explain:"[:, :k] slices the first k columns — the k eigenvectors for the k largest eigenvalues."}
+];
+
+let score = 0, answered = 0;
+const letters = ['A','B','C','D'];
+
+function render(filter = 'all') {
+  const area = document.getElementById('quizArea');
+  area.innerHTML = '';
+  const filtered = filter === 'all' ? questions : questions.filter(q => q.topic === filter);
+  filtered.forEach(q => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = 'q' + q.id;
+    card.dataset.answered = 'false';
+    card.innerHTML = `
+      <span class="q-num">Q${q.id}</span><span class="q-text">${q.q}</span><span class="q-topic">${q.topic}</span>
+      <div class="options">
+        ${q.opts.map((o, i) => `
+          <button class="opt-btn" data-qid="${q.id}" data-idx="${i}" onclick="selectAnswer(${q.id},${i})">
+            <span class="letter">${letters[i]}</span>
+            <span>${o}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="explanation">${q.explain}</div>
+    `;
+    area.appendChild(card);
+  });
+  document.getElementById('resultsPanel').style.display = 'none';
+}
+
+function selectAnswer(qid, idx) {
+  const card = document.getElementById('q' + qid);
+  if (card.dataset.answered === 'true') return;
+  card.dataset.answered = 'true';
+  card.classList.add('answered');
+  const q = questions.find(x => x.id === qid);
+  const btns = card.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.classList.add('disabled'));
+  if (idx === q.ans) {
+    btns[idx].classList.add('selected-correct');
+    card.classList.add('correct');
+    score++;
+  } else {
+    btns[idx].classList.add('selected-wrong');
+    btns[q.ans].classList.add('show-correct');
+    card.classList.add('wrong');
+  }
+  answered++;
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('totalAnswered').textContent = answered;
+  document.getElementById('pctDisplay').textContent = answered ? Math.round(score/answered*100) + '%' : '0%';
+  document.getElementById('progressFill').style.width = (answered/100*100) + '%';
+  if (answered === 100) showResults();
+}
+
+function showResults() {
+  const p = document.getElementById('resultsPanel');
+  p.style.display = 'block';
+  document.getElementById('finalScore').textContent = score;
+  const pct = Math.round(score/100*100);
+  let msg = pct >= 90 ? 'Outstanding! You have an excellent grasp of eigenvalues, Markov chains, and PCA.' :
+            pct >= 70 ? 'Great job! You have a solid understanding of the key concepts.' :
+            pct >= 50 ? 'Good effort! Review the explanations for questions you missed.' :
+            'Keep studying! Focus on the explanations to strengthen your understanding.';
+  document.getElementById('finalMsg').textContent = msg;
+}
+
+function restart() {
+  score = 0; answered = 0; updateStats();
+  render(document.querySelector('.filter-btn.active').dataset.filter);
+  window.scrollTo({top: 0});
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    score = 0; answered = 0; updateStats();
+    render(btn.dataset.filter);
+  });
+});
+
+// Scroll top button
+window.addEventListener('scroll', () => {
+  document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 400);
+});
+
+render();
+</script>
+</body>
+</html>
