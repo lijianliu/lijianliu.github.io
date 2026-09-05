@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101b2b"><title>Radio Quest · Island Defender</title><meta name="description" content="Explore an island, battle rogue robots, and answer HAM radio questions to heal and recharge."><link rel="stylesheet" href="style.css"></head><body>
+<div id="world" aria-label="3D island battlefield"></div><div id="damage"></div>
+<header><div class="brand">⌁ RADIO<span>QUEST</span><small>ISLAND DEFENDER</small></div><div class="tools"><button id="sound" aria-label="Mute sound">♫</button><button id="pause" aria-label="Pause and settings">Ⅱ</button></div></header>
+<div class="hud"><div class="health"><div><span>♥ HEALTH</span><strong id="hp">100</strong></div><div class="bar"><i id="hpbar"></i></div></div><div class="ammo"><strong id="ammo">5</strong><span>⚡ CHARGES</span></div></div>
+<div class="mission"><span id="zone">01 · SUNRISE ISLAND</span><strong id="objective">Defeat the rogue robots</strong><small id="wave">0 / 4 robots disabled</small></div>
+<canvas id="minimap" width="150" height="150" aria-label="Live map: cyan is you, red dots are robots, yellow is the radio tower"></canvas>
+<div id="hint" role="status">Move with the joystick. Hold FIRE to blast robots.</div><div id="savewarn" hidden>Saving unavailable. Export progress from the pause menu.</div>
+<div class="bottom"><div id="joystick" role="group" aria-label="Movement joystick"><div id="stick">✥</div><span>MOVE</span></div><div class="actions"><button id="charge">⌁<span>HEAL + RELOAD</span><small>Answer a question</small></button><button id="fire">◎<span>FIRE</span><small>Auto-aim</small></button></div></div><div class="desktop-help">WASD / arrows · SPACE to fire · E to heal + reload · P to pause</div>
+<div id="overlay" class="overlay"><section id="panel" class="panel"></section></div><div id="toast" role="status"></div>
+<script src="questions.js"></script><script src="engine.js"></script><script src="combat.js"></script><script src="app.js"></script><script type="module" src="battle.js"></script></body></html>
