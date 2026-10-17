@@ -40,55 +40,136 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .o .m{min-width:22px;color:#c62828;font-weight:bold}
 .o.ok{border-color:#2e7d32;background:#e8f5e9;color:#1b5e20;font-weight:bold}
 .o.ok .m{color:#2e7d32}
-/* quiz mode (default): answers hidden until the student picks one */
+/* quiz mode (default): pick answers, nothing is graded until "Grade" */
 .quiz .o{cursor:pointer;color:#222}
 .quiz .o:hover{border-color:#90caf9;background:#e3f2fd}
 .quiz .o .m{visibility:hidden}
 .quiz .o.ok{border-color:#e3e3e3;background:#fafafa;color:#222;font-weight:normal}
+.quiz .o.sel{border-color:#1565c0;background:#bbdefb;color:#0d47a1;font-weight:bold}
 .quiz .q.done .o{cursor:default}
 .quiz .q.done .o .m{visibility:visible}
 .quiz .q.done .o.ok{border-color:#2e7d32;background:#e8f5e9;color:#1b5e20;font-weight:bold}
-.quiz .q.done .o.pick:not(.ok){border-color:#c62828;background:#ffebee;color:#b71c1c;font-weight:bold}
-.quiz .q.done .o:not(.ok):not(.pick){opacity:.55}
+.quiz .q.done .o.sel:not(.ok){border-color:#c62828;background:#ffebee;color:#b71c1c;font-weight:bold}
+.quiz .q.done .o:not(.ok):not(.sel){opacity:.55}
 .verdict{display:none;margin-top:8px;font-weight:bold;font-size:18px}
-.quiz .q.done .verdict{display:block}
-.q.right .verdict{color:#2e7d32}.q.wrong .verdict{color:#c62828}
-.q.right{box-shadow:0 0 0 3px #a5d6a7}.q.wrong{box-shadow:0 0 0 3px #ef9a9a}
-.tools{margin:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:64px;z-index:4;background:#f4f6f9;padding:8px 0}
-.tools button{font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #999;background:#fff;cursor:pointer}
+.quiz .q.done .verdict,.quiz .q.skip .verdict{display:block}
+.q.right .verdict{color:#2e7d32}.q.wrong .verdict{color:#c62828}.q.skip .verdict{color:#e65100}
+.q.right{box-shadow:0 0 0 3px #a5d6a7}.q.wrong{box-shadow:0 0 0 3px #ef9a9a}.q.skip{box-shadow:0 0 0 3px #ffcc80}
+.hist{float:right;font-size:13px;font-weight:bold;border-radius:6px;padding:3px 8px}
+.hist.h-right{background:#e8f5e9;color:#2e7d32}.hist.h-wrong{background:#ffebee;color:#c62828}.hist.h-new{background:#eceff1;color:#607d8b}
+.tools{margin:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tools button,.gradebar button{font-size:16px;padding:8px 14px;border-radius:8px;border:1px solid #999;background:#fff;cursor:pointer}
+button.grade{background:#2e7d32;color:#fff;border-color:#1b5e20;font-weight:bold;font-size:18px;padding:10px 22px}
+button.grade:disabled{background:#9e9e9e;border-color:#9e9e9e;cursor:default}
+.gradebar{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;background:#fff;border-radius:12px;padding:14px;margin:18px 0;box-shadow:0 1px 4px #0001}
 .score{font-size:18px;font-weight:bold;background:#263238;color:#fff;border-radius:8px;padding:8px 14px}
+.score:empty{display:none}
 .hint{color:#666}
+.stats{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px;font-weight:bold}
+.stats .pill{background:#ffffffe6;color:#222;border-radius:20px;padding:5px 11px;white-space:nowrap}
+.stats .pill b{font-size:16px}
+.stats .p-bad b{color:#c62828}.stats .p-ok b{color:#2e7d32}
+.toc .gs{float:right;font-size:14px;margin-left:10px}
+.toc .gs span{display:inline-block;border-radius:6px;padding:2px 8px;margin-left:4px;font-weight:bold}
+.gs .f{background:#ffebee;color:#c62828}.gs .nt{background:#eceff1;color:#546e7a}.gs .done{background:#e8f5e9;color:#2e7d32}
+.resetall{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer;margin-left:6px}
 footer{text-align:center;color:#888;font-size:13px;padding:20px}
 .toc a{display:block;padding:10px 14px;margin:6px 0;background:#fff;border-radius:8px;text-decoration:none;color:#222;box-shadow:0 1px 3px #0001}
 .toc h2{margin-top:26px}
 .toc .n{display:inline-block;width:40px;color:#888}
-.toc .c{color:#888;font-size:14px;float:right}
+.toc .c{color:#888;font-size:14px;float:right;margin-left:10px}
 """
 
 JS = r"""
 (function(){
+// ---- progress store (browser localStorage) ----
+// hamtech.v1 = { "T1A01": {r:"right"|"wrong", n:attempts, w:times_wrong, t:timestamp}, ... }
+const KEY='hamtech.v1';
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+function save(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} }
+const ALL=(window.GROUPS||[]).flat();
+function overall(){
+  const s=load(); let tested=0, failed=0;
+  ALL.forEach(id=>{ if(s[id]){ tested++; if(s[id].r==='wrong') failed++; } });
+  return {tested, failed, total:ALL.length};
+}
+function paintStats(){
+  const el=document.getElementById('stats'); if(!el) return;
+  const o=overall();
+  el.innerHTML=`<span class="pill">Tested <b>${o.tested}</b> / ${o.total}</span>`+
+               `<span class="pill p-bad">Failed <b>${o.failed}</b></span>`+
+               `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`;
+}
+
+// ---- index page: per-group status ----
+document.querySelectorAll('.toc a[data-g]').forEach(a=>{
+  const ids=(window.GROUPS||[])[+a.dataset.g]||[], s=load();
+  const f=ids.filter(id=>s[id]&&s[id].r==='wrong').length, nt=ids.filter(id=>!s[id]).length;
+  const gs=a.querySelector('.gs');
+  if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'');
+});
+const ra=document.getElementById('resetall');
+if(ra) ra.onclick=()=>{ if(confirm('Erase ALL saved progress on this computer?')){ localStorage.removeItem(KEY); location.reload(); } };
+
+// ---- topic page: pick answers, then grade all at once ----
 const body=document.body, qs=[...document.querySelectorAll('.q')];
-const sc=document.getElementById('score'), mb=document.getElementById('mode'), rb=document.getElementById('reset');
-function upd(){ if(!sc) return;
-  const d=qs.filter(q=>q.classList.contains('done')).length, r=qs.filter(q=>q.classList.contains('right')).length;
-  sc.textContent=`Score: ${r} / ${d} answered (of ${qs.length})`+(d===qs.length&&qs.length?(r===qs.length?'  \u{1F389} Perfect!':''):''); }
+const sc=document.getElementById('score'), mb=document.getElementById('mode');
+const gbs=[...document.querySelectorAll('button.grade')], rbs=[...document.querySelectorAll('button.reset')];
+let graded=false;
+function paintHist(){
+  const s=load();
+  qs.forEach(q=>{ const h=q.querySelector('.hist'); if(!h) return; const r=s[q.dataset.id];
+    h.className='hist '+(r?(r.r==='right'?'h-right':'h-wrong'):'h-new');
+    h.textContent=r?(r.r==='right'?'✔ passed last time':'✘ failed last time'):'not tested yet'; });
+}
+function picked(){ return qs.filter(q=>q.querySelector('.o.sel')).length; }
+function paintButtons(){
+  const p=picked();
+  gbs.forEach(b=>{ b.disabled=graded||p===0; b.textContent=graded?'Graded ✔':`Grade my answers (${p} / ${qs.length})`; });
+}
 qs.forEach(q=>{
   q.querySelectorAll('.o').forEach(o=>o.addEventListener('click',()=>{
-    if(!body.classList.contains('quiz')||q.classList.contains('done')) return;
-    o.classList.add('pick'); q.classList.add('done');
-    const ok=o.classList.contains('ok'); q.classList.add(ok?'right':'wrong');
-    const v=q.querySelector('.verdict');
-    if(v) v.textContent= ok? '\u2714 Correct!' : '\u2718 Not quite. The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.','');
-    upd();
+    if(!body.classList.contains('quiz')||graded) return;
+    q.querySelectorAll('.o').forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel'); q.classList.remove('skip'); paintButtons();
   }));
 });
-function reset(){ qs.forEach(q=>{q.classList.remove('done','right','wrong');q.querySelectorAll('.o').forEach(o=>o.classList.remove('pick'));}); upd(); }
+function grade(){
+  if(graded) return;
+  const unanswered=qs.length-picked();
+  if(unanswered && !confirm(`${unanswered} question(s) have no answer yet. Grade anyway? (Unanswered ones will NOT be counted.)`)) return;
+  const s=load(); let right=0, done=0, first=null;
+  qs.forEach(q=>{
+    const sel=q.querySelector('.o.sel'), v=q.querySelector('.verdict');
+    if(!sel){ q.classList.add('skip'); v.textContent='– Not answered (not counted)'; return; }
+    const ok=sel.classList.contains('ok'); done++; if(ok) right++;
+    q.classList.add('done', ok?'right':'wrong');
+    v.textContent= ok ? '✔ Correct!' : '✘ Not quite. The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.','');
+    const id=q.dataset.id, r=s[id]||{n:0,w:0};
+    r.n++; if(!ok) r.w++; r.r=ok?'right':'wrong'; r.t=Date.now(); s[id]=r;
+    if(!ok && !first) first=q;
+  });
+  save(s); graded=true;
+  if(sc) sc.textContent=`This page: ${right} / ${done} correct`+(done===qs.length&&right===done?'  🎉 Perfect!':'');
+  paintButtons(); paintStats();
+  (first||sc||document.body).scrollIntoView({behavior:'smooth', block:'center'});
+}
+function reset(){
+  graded=false; if(sc) sc.textContent='';
+  qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); });
+  paintHist(); paintButtons();
+}
+gbs.forEach(b=>b.onclick=grade);
+rbs.forEach(b=>b.onclick=()=>{ reset(); window.scrollTo({top:0,behavior:'smooth'}); });
 if(mb) mb.onclick=()=>{ body.classList.toggle('quiz'); reset();
-  mb.textContent=body.classList.contains('quiz')?'Study mode: show all answers':'Back to quiz mode';
-  if(sc) sc.style.display=body.classList.contains('quiz')?'':'none'; };
-if(rb) rb.onclick=reset;
-upd();
-document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'&&window.PREV)location=PREV;if(e.key==='ArrowRight'&&window.NEXT)location=NEXT;});
+  const q=body.classList.contains('quiz');
+  mb.textContent=q?'Study mode: show all answers':'Back to quiz mode';
+  document.querySelectorAll('.gradebar').forEach(g=>g.style.display=q?'':'none'); };
+
+paintStats(); paintHist(); paintButtons();
+// refresh counts if another tab changed progress
+window.addEventListener('storage',e=>{ if(e.key===KEY){ paintStats(); paintHist(); } });
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return; if(e.key==='ArrowLeft'&&window.PREV)location=PREV;if(e.key==='ArrowRight'&&window.NEXT)location=NEXT;});
 })();
 """
 
@@ -122,7 +203,7 @@ def q_html(qid, col):
         ok = "ABCD"[i] == q["ans"]
         opts.append(f'<div class="o{" ok" if ok else ""}"><span class="m">{"&#10004;" if ok else "&#10008;"}</span><b class="l">{L}.</b><span>{e(q["opts"][i])}</span></div>')
     ref = f'<span class="ref">{e(q["ref"])}</span>' if q["ref"] else ""
-    return (f'<div class="q"><span class="qid" style="background:{col}">{qid}</span>{ref}'
+    return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}<span class="hist"></span>'
             f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}<div class="verdict"></div></div>')
 
 def page(n, total, s):
@@ -138,14 +219,15 @@ def page(n, total, s):
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{n}. {e(s['title'])} – Ham Technician Study</title><link rel="stylesheet" href="style.css"></head>
 <body class="quiz"><header style="background:{col}"><div class="t"><h1>{n}. {e(s['title'])}</h1>
-<div class="sub">{e(subtxt)} &bull; {len(s['ids'])} question{'s' if len(s['ids'])!=1 else ''}</div></div>{nav(n,total)}</header>
+<div class="sub">{e(subtxt)} &bull; {len(s['ids'])} question{'s' if len(s['ids'])!=1 else ''}</div></div><div class="stats" id="stats"></div>{nav(n,total)}</header>
 <main><img class="ill" src="img/group_{n:03d}.png" alt="Illustration: {e(s['title'])}">{extra}
 {tip}
-<div class="tools"><span class="score" id="score"></span><button id="reset">&#8635; Try again</button><button id="mode">Study mode: show all answers</button><span class="hint">Tap an answer to check it.</span></div>
+<div class="tools"><button id="mode">Study mode: show all answers</button><span class="hint">Pick an answer for each question, then press <b>Grade</b> at the bottom.</span></div>
 {''.join(q_html(i, col) for i in s['ids'])}
+<div class="gradebar"><button class="grade">Grade my answers</button><span class="score" id="score"></span><button class="reset">&#8635; Try again</button></div>
 <div style="text-align:center;margin:20px">{nav(n,total)}</div>
 </main><footer>Questions &amp; answers copied word-for-word from the 2026-2030 Technician Class (Element 2) Question Pool. Only the A/B/C/D order is shuffled. Tip: use &larr; &rarr; keys.</footer>
-<script>window.PREV={prev};window.NEXT={nxt};</script><script src="app.js"></script></body></html>"""
+<script>window.PREV={prev};window.NEXT={nxt};</script><script src="groups.js"></script><script src="app.js"></script></body></html>"""
 
 def index(slides):
     out, cur = [], None
@@ -154,20 +236,21 @@ def index(slides):
         if sub != cur:
             cur = sub
             out.append(f'<h2 style="color:{SUBCOLORS[sub]}">{sub} – {SUBNAMES[sub]}</h2>')
-        out.append(f'<a href="{fname(n)}"><span class="n">{n}.</span>{html.escape(s["title"])}<span class="c">{len(s["ids"])} q</span></a>')
+        out.append(f'<a href="{fname(n)}" data-g="{n-1}"><span class="n">{n}.</span>{html.escape(s["title"])}<span class="c">{len(s["ids"])} q</span><span class="gs"></span></a>')
     total = sum(len(s["ids"]) for s in slides)
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ham Radio Technician – Study by Topic</title><link rel="stylesheet" href="style.css"></head><body>
 <header style="background:#263238"><div class="t"><h1>&#128251; Ham Radio Technician 2026–2030 – Study by Topic</h1>
 <div class="sub">{len(slides)} topic pages &bull; {total} of {len(QS)} pool questions</div></div>
-<div class="nav"><a href="{fname(1)}">Start &rarr;</a></div></header>
-<main class="toc">{''.join(out)}</main><script src="app.js"></script></body></html>"""
+<div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><button class="resetall" id="resetall">Reset progress</button></div></header>
+<main class="toc">{''.join(out)}</main><script src="groups.js"></script><script src="app.js"></script></body></html>"""
 
 if __name__ == "__main__":
     only = sys.argv[1:]
     os.makedirs(IMG, exist_ok=True)
     open(os.path.join(OUT, "style.css"), "w").write(CSS)
     open(os.path.join(OUT, "app.js"), "w").write(JS)
+    open(os.path.join(OUT, "groups.js"), "w").write("window.GROUPS=" + json.dumps([s["ids"] for s in slides]) + ";\n")
     total = len(slides)
     for n, s in enumerate(slides, 1):
         if not only or str(n) in only:
