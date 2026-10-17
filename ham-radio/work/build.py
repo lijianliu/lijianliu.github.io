@@ -190,8 +190,6 @@ qs.forEach(q=>{
 });
 function grade(){
   if(graded) return;
-  const unanswered=qs.length-picked();
-  if(unanswered && !confirm(`${unanswered} question(s) have no answer yet. Grade anyway? (Unanswered ones will NOT be counted.)`)) return;
   const s=load(); let right=0, done=0, first=null;
   qs.forEach(q=>{
     const sel=q.querySelector('.o.sel'), v=q.querySelector('.verdict');
