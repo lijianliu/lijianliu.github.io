@@ -87,6 +87,15 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .toc .gs{float:right;font-size:14px;margin-left:10px}
 .toc .gs span{display:inline-block;border-radius:6px;padding:2px 8px;margin-left:4px;font-weight:bold}
 .gs .f{background:#ffebee;color:#c62828}.gs .nt{background:#eceff1;color:#546e7a}.gs .done{background:#e8f5e9;color:#2e7d32}
+.prof{display:flex;align-items:center;gap:6px;background:#ffffff26;border-radius:10px;padding:5px 10px;color:#fff;font-weight:bold;font-size:15px}
+.prof select{font-size:15px;font-weight:bold;padding:4px 6px;border-radius:7px;border:none;background:#fff;color:#263238;cursor:pointer}
+.xfer{background:#fff;border-radius:12px;padding:16px 20px;margin:16px 0;box-shadow:0 2px 8px #0002;border-top:5px solid #6a1b9a}
+.xfer h3{margin:0 0 6px;color:#6a1b9a}.xfer p{margin:4px 0 10px;color:#455a64}
+.xfer textarea{width:100%;box-sizing:border-box;height:220px;font:13px/1.35 Menlo,Consolas,monospace;border:2px solid #cfd8dc;border-radius:8px;padding:8px}
+.xrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.xrow button{font-size:16px;font-weight:bold;padding:8px 16px;border-radius:8px;border:none;background:#6a1b9a;color:#fff;cursor:pointer}
+.xrow button.sec{background:#eceff1;color:#263238}
+.xmsg{font-weight:bold}.xmsg.ok{color:#2e7d32}.xmsg.bad{color:#c62828}
 .resetall{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer;margin-left:6px}
 footer{text-align:center;color:#888;font-size:13px;padding:20px}
 .toc a{display:block;padding:10px 14px;margin:6px 0;background:#fff;border-radius:8px;text-decoration:none;color:#222;box-shadow:0 1px 3px #0001}

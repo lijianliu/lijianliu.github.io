@@ -108,6 +108,15 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .toc .gs{float:right;font-size:14px;margin-left:10px}
 .toc .gs span{display:inline-block;border-radius:6px;padding:2px 8px;margin-left:4px;font-weight:bold}
 .gs .f{background:#ffebee;color:#c62828}.gs .nt{background:#eceff1;color:#546e7a}.gs .done{background:#e8f5e9;color:#2e7d32}
+.prof{display:flex;align-items:center;gap:6px;background:#ffffff26;border-radius:10px;padding:5px 10px;color:#fff;font-weight:bold;font-size:15px}
+.prof select{font-size:15px;font-weight:bold;padding:4px 6px;border-radius:7px;border:none;background:#fff;color:#263238;cursor:pointer}
+.xfer{background:#fff;border-radius:12px;padding:16px 20px;margin:16px 0;box-shadow:0 2px 8px #0002;border-top:5px solid #6a1b9a}
+.xfer h3{margin:0 0 6px;color:#6a1b9a}.xfer p{margin:4px 0 10px;color:#455a64}
+.xfer textarea{width:100%;box-sizing:border-box;height:220px;font:13px/1.35 Menlo,Consolas,monospace;border:2px solid #cfd8dc;border-radius:8px;padding:8px}
+.xrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.xrow button{font-size:16px;font-weight:bold;padding:8px 16px;border-radius:8px;border:none;background:#6a1b9a;color:#fff;cursor:pointer}
+.xrow button.sec{background:#eceff1;color:#263238}
+.xmsg{font-weight:bold}.xmsg.ok{color:#2e7d32}.xmsg.bad{color:#c62828}
 .resetall{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer;margin-left:6px}
 footer{text-align:center;color:#888;font-size:13px;padding:20px}
 .toc a{display:block;padding:10px 14px;margin:6px 0;background:#fff;border-radius:8px;text-decoration:none;color:#222;box-shadow:0 1px 3px #0001}
@@ -120,11 +129,24 @@ JS = r"""
 (function(){
 // ---- progress store (browser localStorage) ----
 // hamtech.v1 = { "T1A01": {r:"right"|"wrong", n:attempts, w:times_wrong, t:timestamp}, ... }
-const KEY='hamtech.v1';
+// ---- profiles: each has its own results + hard marks ----
+const PROFILES=['student1','student2','exam1'];
+const PKEY='hamtech.profile';
+// one-time migration: progress saved before profiles existed becomes student1's
+try{
+  if(localStorage.getItem('hamtech.v1')!==null && localStorage.getItem('hamtech.student1.v1')===null){
+    localStorage.setItem('hamtech.student1.v1', localStorage.getItem('hamtech.v1'));
+    if(localStorage.getItem('hamtech.hard')!==null) localStorage.setItem('hamtech.student1.hard', localStorage.getItem('hamtech.hard'));
+    localStorage.removeItem('hamtech.v1'); localStorage.removeItem('hamtech.hard');
+  }
+}catch(e){}
+let PROFILE='student1';
+try{ const p=localStorage.getItem(PKEY); if(PROFILES.includes(p)) PROFILE=p; }catch(e){}
+const KEY='hamtech.'+PROFILE+'.v1';
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
 function save(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} }
 const ALL=(window.GROUPS||[]).flat();
-const HKEY='hamtech.hard';   // { "T1A01": true, ... } questions the student marked as hard
+const HKEY='hamtech.'+PROFILE+'.hard';   // { "T1A01": true, ... } questions the student marked as hard
 function loadHard(){ try{ return JSON.parse(localStorage.getItem(HKEY))||{}; }catch(e){ return {}; } }
 function saveHard(h){ try{ localStorage.setItem(HKEY, JSON.stringify(h)); }catch(e){} }
 
@@ -171,6 +193,13 @@ function overall(){
   ALL.forEach(id=>{ if(s[id]){ tested++; if(s[id].r==='wrong') failed++; } });
   return {tested, failed, total:ALL.length};
 }
+function paintProfile(){
+  const st=document.getElementById('stats'); if(!st || document.getElementById('profile')) return;
+  st.insertAdjacentHTML('beforebegin',
+    `<label class="prof" title="Each profile keeps its own progress">&#128100; <select id="profile">${PROFILES.map(p=>`<option value="${p}"${p===PROFILE?' selected':''}>${p}</option>`).join('')}</select></label>`);
+  document.getElementById('profile').onchange=e=>{ try{ localStorage.setItem(PKEY,e.target.value); }catch(_){} location.reload(); };
+}
+paintProfile();
 function paintStats(){
   const el=document.getElementById('stats'); if(!el) return;
   const o=overall();
@@ -190,7 +219,56 @@ document.querySelectorAll('.toc a[data-g]').forEach(a=>{
   if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'')+(nh?`<span class="h">&#9733; ${nh} hard</span>`:'');
 });
 const ra=document.getElementById('resetall');
-if(ra) ra.onclick=()=>{ if(confirm('Erase ALL saved progress (results and hard marks) on this computer?')){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); location.reload(); } };
+if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard marks) for profile "${PROFILE}"?`)){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); location.reload(); } };
+
+// ---- export / import the current profile as text ----
+const exb=document.getElementById('exportbtn'), imb=document.getElementById('importbtn'), xbox=document.getElementById('xfer');
+function xfer(mode){
+  xbox.hidden=false;
+  const ta=document.getElementById('xtext'), msg=document.getElementById('xmsg');
+  const go=document.getElementById('xgo'), dl=document.getElementById('xdl'), fi=document.getElementById('xfile');
+  msg.textContent=''; msg.className='xmsg';
+  if(mode==='export'){
+    const data={app:'hamtech', version:1, profile:PROFILE, exported:new Date().toISOString(), results:load(), hard:loadHard()};
+    ta.value=JSON.stringify(data,null,1); ta.readOnly=true;
+    document.getElementById('xtitle').textContent=`Export profile "${PROFILE}"`;
+    document.getElementById('xhelp').textContent='Copy this text (or download it) and keep it somewhere safe. Use Import to load it back on any computer or into another profile.';
+    go.textContent='Copy to clipboard'; dl.hidden=false; fi.parentElement.hidden=true;
+    go.onclick=()=>{ ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+      if(navigator.clipboard) navigator.clipboard.writeText(ta.value).then(()=>{msg.textContent='Copied!';},()=>{});
+      msg.textContent= ok?'Copied!':'Text selected: press Ctrl+C (Cmd+C on Mac) to copy.'; };
+    dl.onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([ta.value],{type:'text/plain'}));
+      a.download=`hamtech-${PROFILE}-${new Date().toISOString().slice(0,10)}.txt`; document.body.appendChild(a); a.click(); a.remove(); };
+    ta.focus(); ta.select();
+  }else{
+    ta.value=''; ta.readOnly=false;
+    document.getElementById('xtitle').textContent=`Import into profile "${PROFILE}"`;
+    document.getElementById('xhelp').textContent=`Paste exported text below (or choose a file), then press Import. This REPLACES the current progress of "${PROFILE}".`;
+    go.textContent='Import'; dl.hidden=true; fi.parentElement.hidden=false;
+    fi.value=''; fi.onchange=()=>{ const f=fi.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ ta.value=r.result; }; r.readAsText(f); };
+    go.onclick=()=>{
+      let d; try{ d=JSON.parse(ta.value); }catch(e){ msg.textContent='That text is not valid export data.'; msg.className='xmsg bad'; return; }
+      if(!d || d.app!=='hamtech' || typeof d.results!=='object' || d.results===null){ msg.textContent='That text is not a Ham Technician export.'; msg.className='xmsg bad'; return; }
+      const valid=new Set(ALL), res={}, hard={};
+      for(const [id,r] of Object.entries(d.results)){
+        if(!valid.has(id)||!r||typeof r!=='object') continue;
+        const n=Math.max(0,parseInt(r.n)||0), w=Math.min(n,Math.max(0,parseInt(r.w)||0));
+        if(!n || (r.r!=='right'&&r.r!=='wrong')) continue;
+        res[id]={n, w, r:r.r, t:+r.t||Date.now()};
+      }
+      for(const [id,v] of Object.entries(d.hard||{})) if(valid.has(id)&&v) hard[id]=true;
+      const nr=Object.keys(res).length, nh=Object.keys(hard).length;
+      if(!confirm(`Replace progress of "${PROFILE}" with ${nr} question result(s) and ${nh} hard mark(s)`+(d.profile&&d.profile!==PROFILE?` from profile "${d.profile}"`:'')+'?')) return;
+      save(res); saveHard(hard);
+      msg.textContent=`Imported ${nr} result(s) and ${nh} hard mark(s).`; msg.className='xmsg ok';
+      setTimeout(()=>location.reload(),900);
+    };
+    ta.focus();
+  }
+}
+if(exb) exb.onclick=()=>xfer('export');
+if(imb) imb.onclick=()=>xfer('import');
+const xc=document.getElementById('xclose'); if(xc) xc.onclick=()=>{ xbox.hidden=true; };
 
 // ---- topic page: pick answers, then grade all at once ----
 const body=document.body, qs=[...document.querySelectorAll('.q')];
@@ -378,8 +456,12 @@ def index(slides):
 <title>Ham Radio Technician – Study by Topic</title><link rel="stylesheet" href="style.css"></head><body>
 <header style="background:#263238"><div class="t"><h1>&#128251; Ham Radio Technician 2026–2030 – Study by Topic</h1>
 <div class="sub">{len(slides)} topic pages &bull; {total} of {len(QS)} pool questions</div></div>
-<div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><button class="resetall" id="resetall">Reset progress</button></div></header>
-<main class="toc">{''.join(out)}</main><script src="groups.js"></script><script src="app.js"></script></body></html>"""
+<div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><button class="resetall" id="exportbtn">Export</button><button class="resetall" id="importbtn">Import</button><button class="resetall" id="resetall">Reset progress</button></div></header>
+<main class="toc"><div class="xfer" id="xfer" hidden><h3 id="xtitle"></h3><p id="xhelp"></p>
+<textarea id="xtext" spellcheck="false"></textarea>
+<div class="xrow"><button id="xgo"></button><button class="sec" id="xdl">Download .txt</button><label>or load a file: <input type="file" id="xfile" accept=".txt,.json,text/plain"></label>
+<span class="xmsg" id="xmsg"></span><button class="sec" id="xclose" style="margin-left:auto">Close</button></div></div>
+{''.join(out)}</main><script src="groups.js"></script><script src="app.js"></script></body></html>"""
 
 def review(slides):
     qs_html = []
