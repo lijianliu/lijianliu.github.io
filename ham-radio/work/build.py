@@ -7,6 +7,7 @@ MODS = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p0"]
 OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "site"))
 IMG = os.path.join(OUT, "img")
 
+from glossary import G as GLOSS
 slides = []
 for m in MODS:
     if os.path.exists(os.path.join(os.path.dirname(__file__), f"{m}.py")):
@@ -30,6 +31,12 @@ header .sub{font-size:14px;opacity:.9}
 .nav .pg{background:transparent;color:#fff;opacity:1}
 main{max-width:1100px;margin:0 auto;padding:16px}
 .ill{width:100%;border-radius:12px;box-shadow:0 2px 8px #0002;background:#fff;display:block}
+.kw{background:#fff;border-radius:12px;padding:12px 18px 14px;margin:16px 0;box-shadow:0 1px 4px #0001;border-top:5px solid #1565c0}
+.kw h3{margin:2px 0 8px;color:#1565c0;font-size:20px}
+.kw dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:6px 22px;margin:0}
+.kw .it{font-size:16.5px;line-height:1.4;padding:4px 0;border-bottom:1px dashed #e0e0e0}
+.kw dt{display:inline;font-weight:bold;color:#0d47a1}.kw dt::after{content:" – ";color:#90a4ae;font-weight:normal}
+.kw dd{display:inline;margin:0}
 .explain{background:#fff;border-left:6px solid #7b1fa2;border-radius:10px;padding:12px 20px;margin:16px 0;font-size:18px;line-height:1.5;box-shadow:0 1px 4px #0001}
 .explain h3{margin:4px 0 8px;color:#6a1b9a;font-size:21px}
 .explain ul{margin:6px 0;padding-left:24px}.explain li{margin:4px 0}
@@ -336,6 +343,10 @@ def page(n, total, s):
     subtxt = " + ".join(f"{x} {SUBNAMES[x]}" for x in subs)
     e = html.escape
     tip = f'<div class="tip">&#128161; {e(s["tip"])}</div>' if s.get("tip") else ""
+    kw = GLOSS.get(s["title"], [])
+    if kw:
+        tip += ('<div class="kw"><h3>&#128218; Key words</h3><dl>' +
+                "".join(f'<div class="it"><dt>{e(t)}</dt><dd>{e(d)}</dd></div>' for t, d in kw) + '</dl></div>')
     tip += "".join(f'<div class="explain">{x}</div>' for x in s.get("explain", []))  # trusted HTML written in p*.py
     prev = f'"{fname(n-1)}"' if n > 1 else "null"
     nxt = f'"{fname(n+1)}"' if n < total else "null"

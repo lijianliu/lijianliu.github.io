@@ -10,6 +10,12 @@ header .sub{font-size:14px;opacity:.9}
 .nav .pg{background:transparent;color:#fff;opacity:1}
 main{max-width:1100px;margin:0 auto;padding:16px}
 .ill{width:100%;border-radius:12px;box-shadow:0 2px 8px #0002;background:#fff;display:block}
+.kw{background:#fff;border-radius:12px;padding:12px 18px 14px;margin:16px 0;box-shadow:0 1px 4px #0001;border-top:5px solid #1565c0}
+.kw h3{margin:2px 0 8px;color:#1565c0;font-size:20px}
+.kw dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:6px 22px;margin:0}
+.kw .it{font-size:16.5px;line-height:1.4;padding:4px 0;border-bottom:1px dashed #e0e0e0}
+.kw dt{display:inline;font-weight:bold;color:#0d47a1}.kw dt::after{content:" – ";color:#90a4ae;font-weight:normal}
+.kw dd{display:inline;margin:0}
 .explain{background:#fff;border-left:6px solid #7b1fa2;border-radius:10px;padding:12px 20px;margin:16px 0;font-size:18px;line-height:1.5;box-shadow:0 1px 4px #0001}
 .explain h3{margin:4px 0 8px;color:#6a1b9a;font-size:21px}
 .explain ul{margin:6px 0;padding-left:24px}.explain li{margin:4px 0}
