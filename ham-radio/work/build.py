@@ -55,6 +55,16 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .quiz .q.done .o.ok{border-color:#2e7d32;background:#e8f5e9;color:#1b5e20;font-weight:bold}
 .quiz .q.done .o.sel:not(.ok){border-color:#c62828;background:#ffebee;color:#b71c1c;font-weight:bold}
 .quiz .q.done .o:not(.ok):not(.sel){opacity:.55}
+.qact{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+button.chk{font-size:16px;font-weight:bold;padding:7px 16px;border-radius:8px;border:2px solid #1565c0;background:#fff;color:#1565c0;cursor:pointer}
+button.chk:disabled{border-color:#bdbdbd;color:#9e9e9e;cursor:default}
+.cmsg{font-weight:bold;font-size:17px}
+.q.c-right .cmsg{color:#2e7d32}.q.c-wrong .cmsg{color:#c62828}
+.quiz .q.c-right .o.sel{border-color:#2e7d32;background:#c8e6c9;color:#1b5e20}
+.quiz .q.c-wrong .o.sel{border-color:#c62828;background:#ffcdd2;color:#b71c1c}
+.q.c-right{box-shadow:0 0 0 3px #a5d6a7}.q.c-wrong{box-shadow:0 0 0 3px #ef9a9a}
+.quiz .q.done .qact{display:none}
+body:not(.quiz) .qact{display:none}
 .verdict{display:none;margin-top:8px;font-weight:bold;font-size:18px}
 .quiz .q.done .verdict,.quiz .q.skip .verdict{display:block}
 .q.right .verdict{color:#2e7d32}.q.wrong .verdict{color:#c62828}.q.skip .verdict{color:#e65100}
@@ -162,7 +172,7 @@ let graded=false;
 const FIXED=/^(All these (choices|answers) are correct|None of (these|the above))/;
 function shuffleAnswers(){
   qs.forEach(q=>{
-    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.verdict');
+    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.qact')||q.querySelector('.from')||q.querySelector('.verdict');
     const txt=o=>o.querySelector('span:last-child').textContent.trim();
     const move=opts.filter(o=>!FIXED.test(txt(o))), fixed=opts.filter(o=>FIXED.test(txt(o)));
     for(let i=move.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [move[i],move[j]]=[move[j],move[i]]; }
@@ -185,30 +195,55 @@ qs.forEach(q=>{
   q.querySelectorAll('.o').forEach(o=>o.addEventListener('click',()=>{
     if(!body.classList.contains('quiz')||graded) return;
     q.querySelectorAll('.o').forEach(x=>x.classList.remove('sel'));
-    o.classList.add('sel'); q.classList.remove('skip'); paintButtons();
+    o.classList.add('sel'); q.classList.remove('skip'); clearCheck(q); paintButtons();
   }));
+  const cb=q.querySelector('button.chk');
+  if(cb) cb.addEventListener('click',()=>checkOne(q));
 });
+// ---- per-question Check: says right / wrong, never reveals which option is correct ----
+// A miss is remembered for this visit (q.dataset.missed), so guessing until it turns
+// green does not wipe the question off the Failed list; it stays failed until a
+// later visit where it is answered right first time.
+function clearCheck(q){
+  q.classList.remove('c-right','c-wrong');
+  const m=q.querySelector('.cmsg'); if(m) m.textContent='';
+  const cb=q.querySelector('button.chk'); if(cb) cb.disabled=!q.querySelector('.o.sel');
+}
+function record(q, ok){
+  const s=load(), id=q.dataset.id, r=s[id]||{n:0,w:0};
+  if(!ok) q.dataset.missed='1';
+  r.n++; if(!ok) r.w++;
+  r.r=(ok && !q.dataset.missed)?'right':'wrong'; r.t=Date.now(); s[id]=r; save(s);
+}
+function checkOne(q){
+  const sel=q.querySelector('.o.sel'); if(!sel||graded) return;
+  const ok=sel.classList.contains('ok');
+  q.classList.remove('c-right','c-wrong'); q.classList.add(ok?'c-right':'c-wrong');
+  q.querySelector('.cmsg').textContent= ok ? '✔ Correct!' : (q.dataset.missed ? '✘ Still not correct. Pick another answer and check again.' : '✘ Not correct. Pick another answer and check again.');
+  q.querySelector('button.chk').disabled=true;
+  record(q, ok); paintStats(); paintHist();
+}
 function grade(){
   if(graded) return;
-  const s=load(); let right=0, done=0, first=null;
+  let right=0, done=0, first=null;
   qs.forEach(q=>{
     const sel=q.querySelector('.o.sel'), v=q.querySelector('.verdict');
     if(!sel){ q.classList.add('skip'); v.textContent='– Not answered (not counted)'; return; }
     const ok=sel.classList.contains('ok'); done++; if(ok) right++;
     q.classList.add('done', ok?'right':'wrong');
     v.textContent= ok ? '✔ Correct!' : '✘ Not quite. The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.','');
-    const id=q.dataset.id, r=s[id]||{n:0,w:0};
-    r.n++; if(!ok) r.w++; r.r=ok?'right':'wrong'; r.t=Date.now(); s[id]=r;
+    q.classList.remove('c-right','c-wrong');
+    record(q, ok);
     if(!ok && !first) first=q;
   });
-  save(s); graded=true;
+  graded=true;
   if(sc) sc.textContent=`This page: ${right} / ${done} correct`+(done===qs.length&&right===done?'  🎉 Perfect!':'');
   paintButtons(); paintStats();
   (first||sc||document.body).scrollIntoView({behavior:'smooth', block:'center'});
 }
 function reset(){
   graded=false; if(sc) sc.textContent='';
-  qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); });
+  qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); delete q.dataset.missed; clearCheck(q); });
   shuffleAnswers(); paintHist(); paintButtons();
 }
 gbs.forEach(b=>b.onclick=grade);
@@ -269,7 +304,9 @@ def q_html(qid, col, src=None):
     frm = f'<a class="from" href="{fname(src[0])}">&#128214; Study this topic: {src[0]}. {e(src[1])}</a>' if src else ""
     return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}'
             f'<button class="hardbtn" type="button">&#9734; Mark hard</button><span class="hist"></span>'
-            f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}{frm}<div class="verdict"></div></div>')
+            f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}'
+            f'<div class="qact"><button class="chk" type="button" disabled>Check</button><span class="cmsg"></span></div>'
+            f'{frm}<div class="verdict"></div></div>')
 
 def page(n, total, s):
     col = SUBCOLORS[s["ids"][0][:2]]
@@ -288,7 +325,7 @@ def page(n, total, s):
 <div class="sub">{e(subtxt)} &bull; {len(s['ids'])} question{'s' if len(s['ids'])!=1 else ''}</div></div><div class="stats" id="stats"></div>{nav(n,total)}</header>
 <main><img class="ill" src="img/group_{n:03d}.png" alt="Illustration: {e(s['title'])}">{extra}
 {tip}
-<div class="tools"><button id="mode">Study mode: show all answers</button><span class="hint">Pick an answer for each question, then press <b>Grade</b> at the bottom.</span></div>
+<div class="tools"><button id="mode">Study mode: show all answers</button><span class="hint">Press <b>Check</b> on any question to see if you're right (it won't show the answer), or <b>Grade</b> at the bottom to grade the whole page.</span></div>
 {''.join(q_html(i, col) for i in s['ids'])}
 <div class="gradebar"><button class="grade">Grade my answers</button><span class="score" id="score"></span><button class="reset">&#8635; Try again</button></div>
 <div style="text-align:center;margin:20px">{nav(n,total)}</div>
