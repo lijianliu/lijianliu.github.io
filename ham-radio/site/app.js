@@ -77,7 +77,7 @@ function paintHist(){
   const s=load();
   qs.forEach(q=>{ const h=q.querySelector('.hist'); if(!h) return; const r=s[q.dataset.id];
     h.className='hist '+(r?(r.r==='right'?'h-right':'h-wrong'):'h-new');
-    h.textContent=r?(r.r==='right'?'✔ passed last time':'✘ failed last time'):'not tested yet'; });
+    h.textContent=r?(r.r==='right'?'✔ passed':'✘ failed'):'not tested yet'; });
 }
 function picked(){ return qs.filter(q=>q.querySelector('.o.sel')).length; }
 function paintButtons(){
@@ -94,9 +94,7 @@ qs.forEach(q=>{
   if(cb) cb.addEventListener('click',()=>checkOne(q));
 });
 // ---- per-question Check: says right / wrong, never reveals which option is correct ----
-// A miss is remembered for this visit (q.dataset.missed), so guessing until it turns
-// green does not wipe the question off the Failed list; it stays failed until a
-// later visit where it is answered right first time.
+// Every Check / Grade saves the latest result: a pass removes it from Failed, a miss adds it.
 function clearCheck(q){
   q.classList.remove('c-right','c-wrong');
   const m=q.querySelector('.cmsg'); if(m) m.textContent='';
@@ -104,15 +102,14 @@ function clearCheck(q){
 }
 function record(q, ok){
   const s=load(), id=q.dataset.id, r=s[id]||{n:0,w:0};
-  if(!ok) q.dataset.missed='1';
   r.n++; if(!ok) r.w++;
-  r.r=(ok && !q.dataset.missed)?'right':'wrong'; r.t=Date.now(); s[id]=r; save(s);
+  r.r=ok?'right':'wrong'; r.t=Date.now(); s[id]=r; save(s);
 }
 function checkOne(q){
   const sel=q.querySelector('.o.sel'); if(!sel||graded) return;
   const ok=sel.classList.contains('ok');
   q.classList.remove('c-right','c-wrong'); q.classList.add(ok?'c-right':'c-wrong');
-  q.querySelector('.cmsg').textContent= ok ? '✔ Correct!' : (q.dataset.missed ? '✘ Still not correct. Pick another answer and check again.' : '✘ Not correct. Pick another answer and check again.');
+  q.querySelector('.cmsg').textContent= ok ? '✔ Correct!' : '✘ Not correct. Pick another answer and check again.';
   q.querySelector('button.chk').disabled=true;
   record(q, ok); paintStats(); paintHist();
 }
@@ -131,12 +128,12 @@ function grade(){
   });
   graded=true;
   if(sc) sc.textContent=`This page: ${right} / ${done} correct`+(done===qs.length&&right===done?'  🎉 Perfect!':'');
-  paintButtons(); paintStats();
+  paintButtons(); paintStats(); paintHist();
   (first||sc||document.body).scrollIntoView({behavior:'smooth', block:'center'});
 }
 function reset(){
   graded=false; if(sc) sc.textContent='';
-  qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); delete q.dataset.missed; clearCheck(q); });
+  qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); clearCheck(q); });
   shuffleAnswers(); paintHist(); paintButtons();
 }
 gbs.forEach(b=>b.onclick=grade);
