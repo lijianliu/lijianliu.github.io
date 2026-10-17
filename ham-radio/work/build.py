@@ -30,6 +30,10 @@ header .sub{font-size:14px;opacity:.9}
 .nav .pg{background:transparent;color:#fff;opacity:1}
 main{max-width:1100px;margin:0 auto;padding:16px}
 .ill{width:100%;border-radius:12px;box-shadow:0 2px 8px #0002;background:#fff;display:block}
+.explain{background:#fff;border-left:6px solid #7b1fa2;border-radius:10px;padding:12px 20px;margin:16px 0;font-size:18px;line-height:1.5;box-shadow:0 1px 4px #0001}
+.explain h3{margin:4px 0 8px;color:#6a1b9a;font-size:21px}
+.explain ul{margin:6px 0;padding-left:24px}.explain li{margin:4px 0}
+.explain .yes{color:#2e7d32;font-weight:bold}.explain .no{color:#c62828;font-weight:bold}
 .tip{background:#fff8e1;border:2px solid #ffb300;border-radius:10px;padding:12px 16px;margin:16px 0;font-size:19px;font-weight:bold;color:#5d4037}
 .q{background:#fff;border-radius:12px;padding:16px;margin:14px 0;box-shadow:0 1px 4px #0001}
 .qid{display:inline-block;color:#fff;font-weight:bold;border-radius:6px;padding:3px 10px;font-size:15px}
@@ -225,6 +229,7 @@ def page(n, total, s):
     subtxt = " + ".join(f"{x} {SUBNAMES[x]}" for x in subs)
     e = html.escape
     tip = f'<div class="tip">&#128161; {e(s["tip"])}</div>' if s.get("tip") else ""
+    tip += "".join(f'<div class="explain">{x}</div>' for x in s.get("explain", []))  # trusted HTML written in p*.py
     prev = f'"{fname(n-1)}"' if n > 1 else "null"
     nxt = f'"{fname(n+1)}"' if n < total else "null"
     extra = "".join(f'<img class="ill" style="margin-top:12px" src="{x}" alt="{e(x)}">' for x in s.get("extra_imgs", []))

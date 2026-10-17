@@ -307,7 +307,23 @@ SLIDES = [
     dict(title="VHF/UHF bands & band edges", ids=["T1B03", "T1B04", "T1B07", "T1B10", "T1B09", "T1B08"], draw=d_vhf,
          tip="6 m = 50–54 MHz, 2 m = 144–148 MHz. The bottom 100 kHz of each is CW only."),
     dict(title="Space stations, repeaters & coordinators", ids=["T1A07", "T1B02", "T1E02", "T1F09", "T1F10", "T1A08", "T1A09", "T1D07"], draw=d_space,
-         tip="Space = above 50 km. Repeaters re-send signals on another channel. Coordinators are chosen by local hams."),
+         tip="Space = above 50 km. Repeaters re-send signals on another channel. Coordinators are chosen by local hams.",
+         explain=["""<h3>&#128225; What is an auxiliary station?</h3>
+<p>An <b>auxiliary station</b> is a <b>helper station</b>. It doesn't talk to people. It sends signals
+<b>from one point to another inside a group of ham stations that work together</b>, usually to help run a repeater.</p>
+<p><b>Example: a repeater with a remote receiver.</b> A repeater sits on a hill. To hear weak handheld radios in a valley
+far away, the club puts an extra <b>receiver</b> in that valley. That receiver needs a way to send what it hears
+back to the repeater, so a small transmitter beams it <b>one way</b> to the main repeater on a separate channel.
+That one-way link is an auxiliary station (the "one-way link" panel in the picture above).</p>
+<ul>
+<li><span class="yes">&#10004; Auxiliary station:</span> one-way transmissions between a remote repeater receiver and the main repeater transmitter.</li>
+<li><span class="no">&#10008; Not one:</span> a backup radio kept for emergencies. That's just a spare radio.</li>
+<li><span class="no">&#10008; Not one:</span> a station in the Military Auxiliary Radio System (MARS). The word "auxiliary" is a trap!</li>
+<li><span class="no">&#10008; Not one:</span> a second station at a multi-operator contest site.</li>
+</ul>
+<p><b>Who picks their channels?</b> Repeater and auxiliary stations need channels that won't bump into each other.
+A <b>Volunteer Frequency Coordinator recognized by local amateurs</b> recommends them. The coordinator is chosen by
+<b>local or regional hams whose stations could be repeater or auxiliary stations</b>, not by the FCC.</p>"""]),
     dict(title="Control operators & types of control", ids=["T1E11", "T1E03", "T1E05", "T1E01", "T1E07", "T1E04", "T1E06", "T2C09", "T1E08", "T1E09", "T1E10"], draw=d_control,
          tip="Every transmitting station needs a control operator. Repeater = automatic, internet = remote."),
     dict(title="What's prohibited (and the exceptions)", ids=["T1D10", "T1D02", "T1D04", "T1D09", "T1D03", "T1D06", "T1A11", "T1D08", "T1D05"], draw=d_prohibit,
