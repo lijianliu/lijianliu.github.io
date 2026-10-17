@@ -10,23 +10,41 @@ const HKEY='hamtech.hard';   // { "T1A01": true, ... } questions the student mar
 function loadHard(){ try{ return JSON.parse(localStorage.getItem(HKEY))||{}; }catch(e){ return {}; } }
 function saveHard(h){ try{ localStorage.setItem(HKEY, JSON.stringify(h)); }catch(e){} }
 
-// ---- review page: keep only failed / hard questions ----
+// ---- frequently failed: missed 2+ times, most misses first (then worst miss rate), top 20 ----
+const FREQ_MIN=2, FREQ_TOP=20;
+function freqList(){
+  const s=load();
+  return ALL.filter(id=>s[id] && s[id].w>=FREQ_MIN)
+    .sort((a,b)=> s[b].w-s[a].w || (s[b].w/s[b].n)-(s[a].w/s[a].n) || a.localeCompare(b))
+    .slice(0,FREQ_TOP);
+}
+// ---- review page: keep only failed / hard / frequently failed questions ----
 const RV=document.getElementById('review');
 if(RV){
-  const f=(new URLSearchParams(location.search).get('f')==='hard')?'hard':'failed';
-  const s=load(), h=loadHard();
-  const keep=id=> f==='hard' ? !!h[id] : (s[id] && s[id].r==='wrong');
+  const fp=new URLSearchParams(location.search).get('f');
+  const f=['hard','freq'].includes(fp)?fp:'failed';
+  const s=load(), h=loadHard(), fl=freqList();
+  const keep=id=> f==='hard' ? !!h[id] : f==='freq' ? fl.includes(id) : (s[id] && s[id].r==='wrong');
   let n=0;
   RV.querySelectorAll('.q').forEach(q=>{ if(keep(q.dataset.id)) n++; else q.remove(); });
+  if(f==='freq'){   // worst first, with a rank badge
+    const cards=[...RV.querySelectorAll('.q')], anchor=RV.querySelector('.gradebar');
+    fl.forEach((id,i)=>{ const c=cards.find(x=>x.dataset.id===id); if(!c) return;
+      c.querySelector('.qid').insertAdjacentHTML('afterend',`<span class="rank">#${i+1} most missed</span>`);
+      RV.insertBefore(c,anchor); });
+  }
   const nf=ALL.filter(id=>s[id]&&s[id].r==='wrong').length, nh=ALL.filter(id=>h[id]).length;
   document.getElementById('tab-failed').innerHTML=`&#10008; Failed questions (${nf})`;
+  document.getElementById('tab-freq').innerHTML=`&#128293; Frequently failed (${fl.length})`;
   document.getElementById('tab-hard').innerHTML=`&#9733; Hard questions (${nh})`;
   document.getElementById('tab-'+f).classList.add('cur');
-  document.getElementById('rtitle').textContent= f==='hard' ? 'Review: questions you marked hard' : 'Review: questions you got wrong';
+  document.getElementById('rtitle').textContent= f==='hard' ? 'Review: questions you marked hard'
+    : f==='freq' ? `Review: your most-missed questions (missed ${FREQ_MIN}+ times, top ${FREQ_TOP})` : 'Review: questions you got wrong';
   if(!n){
     RV.querySelectorAll('.gradebar,.tools').forEach(x=>x.remove());
     RV.insertAdjacentHTML('beforeend', f==='hard'
       ? '<div class="empty">No hard questions yet.<br>Tap <b>&#9734; Mark hard</b> on any question to add it here.</div>'
+      : f==='freq' ? `<div class="empty">No frequently failed questions yet.<br>A question shows up here once you've missed it ${FREQ_MIN} or more times.</div>`
       : '<div class="empty">&#127881; No failed questions! Keep testing on the topic pages.</div>');
   }
 }
@@ -42,6 +60,7 @@ function paintStats(){
   el.innerHTML=`<span class="pill">Tested <b>${o.tested}</b> / ${o.total}</span>`+
                `<a class="pill p-bad" href="review.html?f=failed" title="Show all failed questions">Failed <b>${o.failed}</b></a>`+
                `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`+
+               `<a class="pill p-freq" href="review.html?f=freq" title="Questions you missed ${FREQ_MIN}+ times">&#128293; Frequently failed <b>${freqList().length}</b></a>`+
                `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`;
 }
 
@@ -77,7 +96,9 @@ function paintHist(){
   const s=load();
   qs.forEach(q=>{ const h=q.querySelector('.hist'); if(!h) return; const r=s[q.dataset.id];
     h.className='hist '+(r?(r.r==='right'?'h-right':'h-wrong'):'h-new');
-    h.textContent=r?(r.r==='right'?'✔ passed':'✘ failed'):'not tested yet'; });
+    h.textContent=r?(r.r==='right'?'✔ passed':'✘ failed'):'not tested yet';
+    const c=q.querySelector('.cnt');
+    if(c){ c.textContent=r?`tried ${r.n}× · missed ${r.w}×`:''; c.title='How many times you checked or graded this question, and how many of those were wrong'; } });
 }
 function picked(){ return qs.filter(q=>q.querySelector('.o.sel')).length; }
 function paintButtons(){

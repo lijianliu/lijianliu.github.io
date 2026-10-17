@@ -69,6 +69,10 @@ body:not(.quiz) .qact{display:none}
 .quiz .q.done .verdict,.quiz .q.skip .verdict{display:block}
 .q.right .verdict{color:#2e7d32}.q.wrong .verdict{color:#c62828}.q.skip .verdict{color:#e65100}
 .q.right{box-shadow:0 0 0 3px #a5d6a7}.q.wrong{box-shadow:0 0 0 3px #ef9a9a}.q.skip{box-shadow:0 0 0 3px #ffcc80}
+.stats .p-freq b{color:#6a1b9a}
+.cnt{float:right;margin-left:8px;font-size:13px;font-weight:bold;border-radius:6px;padding:3px 8px;background:#f3e5f5;color:#6a1b9a}
+.cnt:empty{display:none}
+.rank{display:inline-block;margin-left:6px;font-size:13px;font-weight:bold;color:#fff;background:#6a1b9a;border-radius:6px;padding:3px 8px}
 .hist{float:right;font-size:13px;font-weight:bold;border-radius:6px;padding:3px 8px}
 .hist.h-right{background:#e8f5e9;color:#2e7d32}.hist.h-wrong{background:#ffebee;color:#c62828}.hist.h-new{background:#eceff1;color:#607d8b}
 .tools{margin:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -117,23 +121,41 @@ const HKEY='hamtech.hard';   // { "T1A01": true, ... } questions the student mar
 function loadHard(){ try{ return JSON.parse(localStorage.getItem(HKEY))||{}; }catch(e){ return {}; } }
 function saveHard(h){ try{ localStorage.setItem(HKEY, JSON.stringify(h)); }catch(e){} }
 
-// ---- review page: keep only failed / hard questions ----
+// ---- frequently failed: missed 2+ times, most misses first (then worst miss rate), top 20 ----
+const FREQ_MIN=2, FREQ_TOP=20;
+function freqList(){
+  const s=load();
+  return ALL.filter(id=>s[id] && s[id].w>=FREQ_MIN)
+    .sort((a,b)=> s[b].w-s[a].w || (s[b].w/s[b].n)-(s[a].w/s[a].n) || a.localeCompare(b))
+    .slice(0,FREQ_TOP);
+}
+// ---- review page: keep only failed / hard / frequently failed questions ----
 const RV=document.getElementById('review');
 if(RV){
-  const f=(new URLSearchParams(location.search).get('f')==='hard')?'hard':'failed';
-  const s=load(), h=loadHard();
-  const keep=id=> f==='hard' ? !!h[id] : (s[id] && s[id].r==='wrong');
+  const fp=new URLSearchParams(location.search).get('f');
+  const f=['hard','freq'].includes(fp)?fp:'failed';
+  const s=load(), h=loadHard(), fl=freqList();
+  const keep=id=> f==='hard' ? !!h[id] : f==='freq' ? fl.includes(id) : (s[id] && s[id].r==='wrong');
   let n=0;
   RV.querySelectorAll('.q').forEach(q=>{ if(keep(q.dataset.id)) n++; else q.remove(); });
+  if(f==='freq'){   // worst first, with a rank badge
+    const cards=[...RV.querySelectorAll('.q')], anchor=RV.querySelector('.gradebar');
+    fl.forEach((id,i)=>{ const c=cards.find(x=>x.dataset.id===id); if(!c) return;
+      c.querySelector('.qid').insertAdjacentHTML('afterend',`<span class="rank">#${i+1} most missed</span>`);
+      RV.insertBefore(c,anchor); });
+  }
   const nf=ALL.filter(id=>s[id]&&s[id].r==='wrong').length, nh=ALL.filter(id=>h[id]).length;
   document.getElementById('tab-failed').innerHTML=`&#10008; Failed questions (${nf})`;
+  document.getElementById('tab-freq').innerHTML=`&#128293; Frequently failed (${fl.length})`;
   document.getElementById('tab-hard').innerHTML=`&#9733; Hard questions (${nh})`;
   document.getElementById('tab-'+f).classList.add('cur');
-  document.getElementById('rtitle').textContent= f==='hard' ? 'Review: questions you marked hard' : 'Review: questions you got wrong';
+  document.getElementById('rtitle').textContent= f==='hard' ? 'Review: questions you marked hard'
+    : f==='freq' ? `Review: your most-missed questions (missed ${FREQ_MIN}+ times, top ${FREQ_TOP})` : 'Review: questions you got wrong';
   if(!n){
     RV.querySelectorAll('.gradebar,.tools').forEach(x=>x.remove());
     RV.insertAdjacentHTML('beforeend', f==='hard'
       ? '<div class="empty">No hard questions yet.<br>Tap <b>&#9734; Mark hard</b> on any question to add it here.</div>'
+      : f==='freq' ? `<div class="empty">No frequently failed questions yet.<br>A question shows up here once you've missed it ${FREQ_MIN} or more times.</div>`
       : '<div class="empty">&#127881; No failed questions! Keep testing on the topic pages.</div>');
   }
 }
@@ -149,6 +171,7 @@ function paintStats(){
   el.innerHTML=`<span class="pill">Tested <b>${o.tested}</b> / ${o.total}</span>`+
                `<a class="pill p-bad" href="review.html?f=failed" title="Show all failed questions">Failed <b>${o.failed}</b></a>`+
                `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`+
+               `<a class="pill p-freq" href="review.html?f=freq" title="Questions you missed ${FREQ_MIN}+ times">&#128293; Frequently failed <b>${freqList().length}</b></a>`+
                `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`;
 }
 
@@ -184,7 +207,9 @@ function paintHist(){
   const s=load();
   qs.forEach(q=>{ const h=q.querySelector('.hist'); if(!h) return; const r=s[q.dataset.id];
     h.className='hist '+(r?(r.r==='right'?'h-right':'h-wrong'):'h-new');
-    h.textContent=r?(r.r==='right'?'✔ passed':'✘ failed'):'not tested yet'; });
+    h.textContent=r?(r.r==='right'?'✔ passed':'✘ failed'):'not tested yet';
+    const c=q.querySelector('.cnt');
+    if(c){ c.textContent=r?`tried ${r.n}× · missed ${r.w}×`:''; c.title='How many times you checked or graded this question, and how many of those were wrong'; } });
 }
 function picked(){ return qs.filter(q=>q.querySelector('.o.sel')).length; }
 function paintButtons(){
@@ -300,7 +325,7 @@ def q_html(qid, col, src=None):
     ref = f'<span class="ref">{e(q["ref"])}</span>' if q["ref"] else ""
     frm = f'<a class="from" href="{fname(src[0])}">&#128214; Study this topic: {src[0]}. {e(src[1])}</a>' if src else ""
     return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}'
-            f'<button class="hardbtn" type="button">&#9734; Mark hard</button><span class="hist"></span>'
+            f'<button class="hardbtn" type="button">&#9734; Mark hard</button><span class="hist"></span><span class="cnt"></span>'
             f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}'
             f'<div class="qact"><button class="chk" type="button" disabled>Check</button><span class="cmsg"></span></div>'
             f'{frm}<div class="verdict"></div></div>')
@@ -355,7 +380,7 @@ def review(slides):
 <body class="quiz"><header style="background:#b71c1c"><div class="t"><h1 id="rtitle">Review</h1>
 <div class="sub">Questions copied word-for-word from the pool &bull; answers re-shuffled each time</div></div>
 <div class="stats" id="stats"></div><div class="nav"><a href="index.html">Topics</a></div></header>
-<main id="review"><div class="rtabs"><a id="tab-failed" href="review.html?f=failed">Failed</a><a id="tab-hard" href="review.html?f=hard">Hard</a></div>
+<main id="review"><div class="rtabs"><a id="tab-failed" href="review.html?f=failed">Failed</a><a id="tab-freq" href="review.html?f=freq">Frequently failed</a><a id="tab-hard" href="review.html?f=hard">Hard</a></div>
 <div class="tools"><button id="mode">Study mode: show all answers</button><span class="hint">Pick an answer for each question, then press <b>Grade</b> at the bottom. Fixed ones leave the Failed list next time.</span></div>
 {''.join(qs_html)}
 <div class="gradebar"><button class="grade">Grade my answers</button><span class="score" id="score"></span><button class="reset">&#8635; Try again</button></div>

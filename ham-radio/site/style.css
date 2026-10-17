@@ -49,6 +49,10 @@ body:not(.quiz) .qact{display:none}
 .quiz .q.done .verdict,.quiz .q.skip .verdict{display:block}
 .q.right .verdict{color:#2e7d32}.q.wrong .verdict{color:#c62828}.q.skip .verdict{color:#e65100}
 .q.right{box-shadow:0 0 0 3px #a5d6a7}.q.wrong{box-shadow:0 0 0 3px #ef9a9a}.q.skip{box-shadow:0 0 0 3px #ffcc80}
+.stats .p-freq b{color:#6a1b9a}
+.cnt{float:right;margin-left:8px;font-size:13px;font-weight:bold;border-radius:6px;padding:3px 8px;background:#f3e5f5;color:#6a1b9a}
+.cnt:empty{display:none}
+.rank{display:inline-block;margin-left:6px;font-size:13px;font-weight:bold;color:#fff;background:#6a1b9a;border-radius:6px;padding:3px 8px}
 .hist{float:right;font-size:13px;font-weight:bold;border-radius:6px;padding:3px 8px}
 .hist.h-right{background:#e8f5e9;color:#2e7d32}.hist.h-wrong{background:#ffebee;color:#c62828}.hist.h-new{background:#eceff1;color:#607d8b}
 .tools{margin:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
