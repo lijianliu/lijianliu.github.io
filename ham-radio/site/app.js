@@ -34,6 +34,19 @@ const body=document.body, qs=[...document.querySelectorAll('.q')];
 const sc=document.getElementById('score'), mb=document.getElementById('mode');
 const gbs=[...document.querySelectorAll('button.grade')], rbs=[...document.querySelectorAll('button.reset')];
 let graded=false;
+// ---- shuffle answer order on every page load (and on "Try again") ----
+// "All these choices are correct" / "None of these" stay last; letters are re-assigned A-D.
+const FIXED=/^(All these (choices|answers) are correct|None of (these|the above))/;
+function shuffleAnswers(){
+  qs.forEach(q=>{
+    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.verdict');
+    const txt=o=>o.querySelector('span:last-child').textContent.trim();
+    const move=opts.filter(o=>!FIXED.test(txt(o))), fixed=opts.filter(o=>FIXED.test(txt(o)));
+    for(let i=move.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [move[i],move[j]]=[move[j],move[i]]; }
+    move.concat(fixed).forEach((o,i)=>{ q.insertBefore(o,v); o.querySelector('b.l').textContent='ABCD'[i]+'.'; });
+  });
+}
+shuffleAnswers();
 function paintHist(){
   const s=load();
   qs.forEach(q=>{ const h=q.querySelector('.hist'); if(!h) return; const r=s[q.dataset.id];
@@ -75,7 +88,7 @@ function grade(){
 function reset(){
   graded=false; if(sc) sc.textContent='';
   qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); });
-  paintHist(); paintButtons();
+  shuffleAnswers(); paintHist(); paintButtons();
 }
 gbs.forEach(b=>b.onclick=grade);
 rbs.forEach(b=>b.onclick=()=>{ reset(); window.scrollTo({top:0,behavior:'smooth'}); });
