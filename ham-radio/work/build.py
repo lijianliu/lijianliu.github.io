@@ -73,6 +73,17 @@ button.grade:disabled{background:#9e9e9e;border-color:#9e9e9e;cursor:default}
 .stats .pill{background:#ffffffe6;color:#222;border-radius:20px;padding:5px 11px;white-space:nowrap}
 .stats .pill b{font-size:16px}
 .stats .p-bad b{color:#c62828}.stats .p-ok b{color:#2e7d32}
+a.pill{text-decoration:none}
+a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
+.stats .p-hard b{color:#ef6c00}
+.hardbtn{float:right;margin-left:8px;font-size:13px;font-weight:bold;border-radius:6px;padding:3px 9px;border:1.5px solid #ffb74d;background:#fff;color:#ef6c00;cursor:pointer}
+.hardbtn.on{background:#ff9800;border-color:#ef6c00;color:#fff}
+.from{display:block;margin-top:8px;font-size:14px;color:#1565c0}
+.rtabs{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
+.rtabs a{padding:10px 18px;border-radius:10px;background:#fff;color:#222;text-decoration:none;font-weight:bold;font-size:17px;box-shadow:0 1px 3px #0002}
+.rtabs a.cur{background:#263238;color:#fff}
+.empty{background:#fff;border-radius:12px;padding:30px;text-align:center;font-size:20px;color:#555}
+.gs .h{background:#fff3e0;color:#ef6c00}
 .toc .gs{float:right;font-size:14px;margin-left:10px}
 .toc .gs span{display:inline-block;border-radius:6px;padding:2px 8px;margin-left:4px;font-weight:bold}
 .gs .f{background:#ffebee;color:#c62828}.gs .nt{background:#eceff1;color:#546e7a}.gs .done{background:#e8f5e9;color:#2e7d32}
@@ -92,6 +103,30 @@ const KEY='hamtech.v1';
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
 function save(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} }
 const ALL=(window.GROUPS||[]).flat();
+const HKEY='hamtech.hard';   // { "T1A01": true, ... } questions the student marked as hard
+function loadHard(){ try{ return JSON.parse(localStorage.getItem(HKEY))||{}; }catch(e){ return {}; } }
+function saveHard(h){ try{ localStorage.setItem(HKEY, JSON.stringify(h)); }catch(e){} }
+
+// ---- review page: keep only failed / hard questions ----
+const RV=document.getElementById('review');
+if(RV){
+  const f=(new URLSearchParams(location.search).get('f')==='hard')?'hard':'failed';
+  const s=load(), h=loadHard();
+  const keep=id=> f==='hard' ? !!h[id] : (s[id] && s[id].r==='wrong');
+  let n=0;
+  RV.querySelectorAll('.q').forEach(q=>{ if(keep(q.dataset.id)) n++; else q.remove(); });
+  const nf=ALL.filter(id=>s[id]&&s[id].r==='wrong').length, nh=ALL.filter(id=>h[id]).length;
+  document.getElementById('tab-failed').innerHTML=`&#10008; Failed questions (${nf})`;
+  document.getElementById('tab-hard').innerHTML=`&#9733; Hard questions (${nh})`;
+  document.getElementById('tab-'+f).classList.add('cur');
+  document.getElementById('rtitle').textContent= f==='hard' ? 'Review: questions you marked hard' : 'Review: questions you got wrong';
+  if(!n){
+    RV.querySelectorAll('.gradebar,.tools').forEach(x=>x.remove());
+    RV.insertAdjacentHTML('beforeend', f==='hard'
+      ? '<div class="empty">No hard questions yet.<br>Tap <b>&#9734; Mark hard</b> on any question to add it here.</div>'
+      : '<div class="empty">&#127881; No failed questions! Keep testing on the topic pages.</div>');
+  }
+}
 function overall(){
   const s=load(); let tested=0, failed=0;
   ALL.forEach(id=>{ if(s[id]){ tested++; if(s[id].r==='wrong') failed++; } });
@@ -100,20 +135,22 @@ function overall(){
 function paintStats(){
   const el=document.getElementById('stats'); if(!el) return;
   const o=overall();
+  const nh=ALL.filter(id=>loadHard()[id]).length;
   el.innerHTML=`<span class="pill">Tested <b>${o.tested}</b> / ${o.total}</span>`+
-               `<span class="pill p-bad">Failed <b>${o.failed}</b></span>`+
-               `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`;
+               `<a class="pill p-bad" href="review.html?f=failed" title="Show all failed questions">Failed <b>${o.failed}</b></a>`+
+               `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`+
+               `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`;
 }
 
 // ---- index page: per-group status ----
 document.querySelectorAll('.toc a[data-g]').forEach(a=>{
-  const ids=(window.GROUPS||[])[+a.dataset.g]||[], s=load();
-  const f=ids.filter(id=>s[id]&&s[id].r==='wrong').length, nt=ids.filter(id=>!s[id]).length;
+  const ids=(window.GROUPS||[])[+a.dataset.g]||[], s=load(), hd=loadHard();
+  const f=ids.filter(id=>s[id]&&s[id].r==='wrong').length, nt=ids.filter(id=>!s[id]).length, nh=ids.filter(id=>hd[id]).length;
   const gs=a.querySelector('.gs');
-  if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'');
+  if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'')+(nh?`<span class="h">&#9733; ${nh} hard</span>`:'');
 });
 const ra=document.getElementById('resetall');
-if(ra) ra.onclick=()=>{ if(confirm('Erase ALL saved progress on this computer?')){ localStorage.removeItem(KEY); location.reload(); } };
+if(ra) ra.onclick=()=>{ if(confirm('Erase ALL saved progress (results and hard marks) on this computer?')){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); location.reload(); } };
 
 // ---- topic page: pick answers, then grade all at once ----
 const body=document.body, qs=[...document.querySelectorAll('.q')];
@@ -183,9 +220,20 @@ if(mb) mb.onclick=()=>{ body.classList.toggle('quiz'); reset();
   mb.textContent=q?'Study mode: show all answers':'Back to quiz mode';
   document.querySelectorAll('.gradebar').forEach(g=>g.style.display=q?'':'none'); };
 
-paintStats(); paintHist(); paintButtons();
+// ---- "Mark hard" toggle on every question ----
+function paintHard(){
+  const h=loadHard();
+  qs.forEach(q=>{ const b=q.querySelector('.hardbtn'); if(!b) return; const on=!!h[q.dataset.id];
+    b.classList.toggle('on',on); b.innerHTML=on?'&#9733; Hard':'&#9734; Mark hard'; b.title=on?'Click to un-mark':'Save this question to your Hard list'; });
+}
+qs.forEach(q=>{ const b=q.querySelector('.hardbtn'); if(b) b.addEventListener('click',e=>{
+  e.stopPropagation(); const h=loadHard(), id=q.dataset.id;
+  if(h[id]) delete h[id]; else h[id]=true;
+  saveHard(h); paintHard(); paintStats(); }); });
+
+paintStats(); paintHist(); paintButtons(); paintHard();
 // refresh counts if another tab changed progress
-window.addEventListener('storage',e=>{ if(e.key===KEY){ paintStats(); paintHist(); } });
+window.addEventListener('storage',e=>{ if(e.key===KEY||e.key===HKEY){ paintStats(); paintHist(); paintHard(); } });
 document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return; if(e.key==='ArrowLeft'&&window.PREV)location=PREV;if(e.key==='ArrowRight'&&window.NEXT)location=NEXT;});
 })();
 """
@@ -211,7 +259,7 @@ def order(q, qid):
     random.Random(qid).shuffle(move)
     return move + fixed
 
-def q_html(qid, col):
+def q_html(qid, col, src=None):
     q = QS[qid]
     e = html.escape
     opts = []
@@ -220,8 +268,10 @@ def q_html(qid, col):
         ok = "ABCD"[i] == q["ans"]
         opts.append(f'<div class="o{" ok" if ok else ""}"><span class="m">{"&#10004;" if ok else "&#10008;"}</span><b class="l">{L}.</b><span>{e(q["opts"][i])}</span></div>')
     ref = f'<span class="ref">{e(q["ref"])}</span>' if q["ref"] else ""
-    return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}<span class="hist"></span>'
-            f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}<div class="verdict"></div></div>')
+    frm = f'<a class="from" href="{fname(src[0])}">&#128214; Study this topic: {src[0]}. {e(src[1])}</a>' if src else ""
+    return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}'
+            f'<button class="hardbtn" type="button">&#9734; Mark hard</button><span class="hist"></span>'
+            f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}{frm}<div class="verdict"></div></div>')
 
 def page(n, total, s):
     col = SUBCOLORS[s["ids"][0][:2]]
@@ -263,6 +313,23 @@ def index(slides):
 <div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><button class="resetall" id="resetall">Reset progress</button></div></header>
 <main class="toc">{''.join(out)}</main><script src="groups.js"></script><script src="app.js"></script></body></html>"""
 
+def review(slides):
+    qs_html = []
+    for n, s in enumerate(slides, 1):
+        for i in s["ids"]:
+            qs_html.append(q_html(i, SUBCOLORS[i[:2]], (n, s["title"])))
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Review – Ham Technician Study</title><link rel="stylesheet" href="style.css"></head>
+<body class="quiz"><header style="background:#b71c1c"><div class="t"><h1 id="rtitle">Review</h1>
+<div class="sub">Questions copied word-for-word from the pool &bull; answers re-shuffled each time</div></div>
+<div class="stats" id="stats"></div><div class="nav"><a href="index.html">Topics</a></div></header>
+<main id="review"><div class="rtabs"><a id="tab-failed" href="review.html?f=failed">Failed</a><a id="tab-hard" href="review.html?f=hard">Hard</a></div>
+<div class="tools"><button id="mode">Study mode: show all answers</button><span class="hint">Pick an answer for each question, then press <b>Grade</b> at the bottom. Fixed ones leave the Failed list next time.</span></div>
+{''.join(qs_html)}
+<div class="gradebar"><button class="grade">Grade my answers</button><span class="score" id="score"></span><button class="reset">&#8635; Try again</button></div>
+</main><footer>Questions &amp; answers copied word-for-word from the 2026-2030 Technician Class (Element 2) Question Pool.</footer>
+<script>window.PREV=null;window.NEXT=null;</script><script src="groups.js"></script><script src="app.js"></script></body></html>"""
+
 if __name__ == "__main__":
     only = sys.argv[1:]
     os.makedirs(IMG, exist_ok=True)
@@ -279,4 +346,5 @@ if __name__ == "__main__":
                 print(f"      QA: {q}")
         open(os.path.join(OUT, fname(n)), "w").write(page(n, total, s))
     open(os.path.join(OUT, "index.html"), "w").write(index(slides))
+    open(os.path.join(OUT, "review.html"), "w").write(review(slides))
     print("wrote", OUT)
