@@ -91,6 +91,8 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .toc .gs span{display:inline-block;border-radius:6px;padding:2px 8px;margin-left:4px;font-weight:bold}
 .gs .f{background:#ffebee;color:#c62828}.gs .nt{background:#eceff1;color:#546e7a}.gs .done{background:#e8f5e9;color:#2e7d32}
 .prof{display:flex;align-items:center;gap:6px;background:#ffffff26;border-radius:10px;padding:5px 10px;color:#fff;font-weight:bold;font-size:15px}
+.topreset{font-size:13px;font-weight:bold;padding:4px 9px;border-radius:7px;border:1.5px solid #ffcdd2;background:#c62828;color:#fff;cursor:pointer;margin-left:4px}
+.topreset:hover{background:#b71c1c}
 .prof select{font-size:15px;font-weight:bold;padding:4px 6px;border-radius:7px;border:none;background:#fff;color:#263238;cursor:pointer}
 .xfer{background:#fff;border-radius:12px;padding:16px 20px;margin:16px 0;box-shadow:0 2px 8px #0002;border-top:5px solid #6a1b9a}
 .xfer h3{margin:0 0 6px;color:#6a1b9a}.xfer p{margin:4px 0 10px;color:#455a64}

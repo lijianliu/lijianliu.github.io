@@ -113,6 +113,8 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .toc .gs span{display:inline-block;border-radius:6px;padding:2px 8px;margin-left:4px;font-weight:bold}
 .gs .f{background:#ffebee;color:#c62828}.gs .nt{background:#eceff1;color:#546e7a}.gs .done{background:#e8f5e9;color:#2e7d32}
 .prof{display:flex;align-items:center;gap:6px;background:#ffffff26;border-radius:10px;padding:5px 10px;color:#fff;font-weight:bold;font-size:15px}
+.topreset{font-size:13px;font-weight:bold;padding:4px 9px;border-radius:7px;border:1.5px solid #ffcdd2;background:#c62828;color:#fff;cursor:pointer;margin-left:4px}
+.topreset:hover{background:#b71c1c}
 .prof select{font-size:15px;font-weight:bold;padding:4px 6px;border-radius:7px;border:none;background:#fff;color:#263238;cursor:pointer}
 .xfer{background:#fff;border-radius:12px;padding:16px 20px;margin:16px 0;box-shadow:0 2px 8px #0002;border-top:5px solid #6a1b9a}
 .xfer h3{margin:0 0 6px;color:#6a1b9a}.xfer p{margin:4px 0 10px;color:#455a64}
@@ -250,7 +252,8 @@ function overall(){
 function paintProfile(){
   const st=document.getElementById('stats'); if(!st || document.getElementById('profile')) return;
   st.insertAdjacentHTML('beforebegin',
-    `<label class="prof" title="Each profile keeps its own progress">&#128100; <select id="profile">${PROFILES.map(p=>`<option value="${p}"${p===PROFILE?' selected':''}>${p}</option>`).join('')}</select></label>`);
+    `<label class="prof" title="Each profile keeps its own progress">&#128100; <select id="profile">${PROFILES.map(p=>`<option value="${p}"${p===PROFILE?' selected':''}>${p}</option>`).join('')}</select>`+
+    `<button type="button" class="topreset" title="Erase all saved progress for this profile">&#8634; Reset</button></label>`);
   document.getElementById('profile').onchange=e=>{ try{ localStorage.setItem(PKEY,e.target.value); }catch(_){} location.reload(); };
 }
 paintProfile();
@@ -273,8 +276,11 @@ document.querySelectorAll('.toc a[data-g]').forEach(a=>{
   const gs=a.querySelector('.gs');
   if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'')+(nh?`<span class="h">&#9733; ${nh} hard</span>`:'');
 });
-const ra=document.getElementById('resetall');
-if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard marks) for profile "${PROFILE}"?`)){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); localStorage.removeItem(MKEY); location.reload(); } };
+function resetProfile(){
+  if(!confirm(`Are you sure you want to reset profile "${PROFILE}"?\n\nThis erases ALL its saved results, hard marks and mock exam history. It cannot be undone.\n(Tip: use Export on the Topics page first to keep a copy.)`)) return;
+  localStorage.removeItem(KEY); localStorage.removeItem(HKEY); localStorage.removeItem(MKEY); location.reload();
+}
+document.querySelectorAll('#resetall, .topreset').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); resetProfile(); }));
 
 // ---- export / import the current profile as text ----
 const exb=document.getElementById('exportbtn'), imb=document.getElementById('importbtn'), xbox=document.getElementById('xfer');
