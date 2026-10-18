@@ -117,6 +117,18 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .xrow button{font-size:16px;font-weight:bold;padding:8px 16px;border-radius:8px;border:none;background:#6a1b9a;color:#fff;cursor:pointer}
 .xrow button.sec{background:#eceff1;color:#263238}
 .xmsg{font-weight:bold}.xmsg.ok{color:#2e7d32}.xmsg.bad{color:#c62828}
+.stats a.p-mock{background:#ffd54f;color:#3e2723;font-weight:bold}
+.qnum{display:inline-block;margin-right:6px;font-weight:bold;font-size:15px;color:#fff;background:#37474f;border-radius:6px;padding:3px 8px}
+.mockpage .qact,.mockpage .hist,.mockpage .cnt,.mockpage .from,.mockpage #mode{display:none!important}
+.mockres{border-radius:14px;padding:18px 22px;margin:18px 0;text-align:center;font-size:22px;font-weight:bold}
+.mockres .big{font-size:56px;margin:4px 0}
+.mockres div:last-child{font-size:17px;font-weight:normal}
+.mockres.pass{background:#e8f5e9;color:#1b5e20;border:3px solid #43a047}
+.mockres.fail{background:#ffebee;color:#b71c1c;border:3px solid #e53935}
+.mockhist{background:#fff;border-radius:10px;padding:10px 16px;margin:10px 0;font-size:16px;box-shadow:0 1px 3px #0001}
+.mh{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mh span{padding:3px 9px;border-radius:6px;font-weight:bold;font-size:14px}
+.mh .mp{background:#c8e6c9;color:#1b5e20}.mh .mf{background:#ffcdd2;color:#b71c1c}
 .resetall{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer;margin-left:6px}
 footer{text-align:center;color:#888;font-size:13px;padding:20px}
 .toc a{display:block;padding:10px 14px;margin:6px 0;background:#fff;border-radius:8px;text-decoration:none;color:#222;box-shadow:0 1px 3px #0001}
@@ -159,6 +171,33 @@ function freqList(){
     .slice(0,FREQ_TOP);
 }
 // ---- review page: keep only failed / hard / frequently failed questions ----
+// ---- mock test: one random question from each of the 35 groups (T0A ... T9B), pass = 26 ----
+const MKEY='hamtech.'+PROFILE+'.mock', PASS_MARK=26;
+function loadMock(){ try{ return JSON.parse(localStorage.getItem(MKEY))||[]; }catch(e){ return []; } }
+function saveMock(m){ try{ localStorage.setItem(MKEY, JSON.stringify(m)); }catch(e){} }
+const MOCK=document.getElementById('mock');
+if(MOCK){
+  const byGroup={};
+  MOCK.querySelectorAll('.q').forEach(q=>{ (byGroup[q.dataset.id.slice(0,3)]=byGroup[q.dataset.id.slice(0,3)]||[]).push(q); });
+  const anchor=MOCK.querySelector('.gradebar');
+  Object.keys(byGroup).sort().forEach((g,i)=>{
+    const list=byGroup[g], pick=list[Math.floor(Math.random()*list.length)];
+    list.forEach(q=>{ if(q!==pick) q.remove(); });
+    pick.querySelector('.qid').insertAdjacentHTML('beforebegin',`<span class="qnum">Q${i+1}</span>`);
+    MOCK.insertBefore(pick,anchor);
+  });
+  const tot=MOCK.querySelectorAll('.q').length;
+  document.getElementById('mtitle').textContent=`Mock exam: ${tot} questions, pass with ${PASS_MARK} correct`;
+  paintMockHist();
+}
+function paintMockHist(){
+  const el=document.getElementById('mockhist'); if(!el) return;
+  const m=loadMock();
+  if(!m.length){ el.innerHTML='<b>Past mock exams:</b> none yet. Good luck on your first one!'; return; }
+  const passes=m.filter(x=>x.score>=PASS_MARK).length, best=Math.max(...m.map(x=>x.score));
+  el.innerHTML=`<b>Past mock exams (${PROFILE}):</b> ${m.length} taken &bull; ${passes} passed &bull; best ${best}/35<div class="mh">`+
+    m.slice(-10).reverse().map(x=>`<span class="${x.score>=PASS_MARK?'mp':'mf'}" title="${new Date(x.t).toLocaleString()}">${x.score}/${x.total}</span>`).join('')+'</div>';
+}
 const RV=document.getElementById('review');
 if(RV){
   const fp=new URLSearchParams(location.search).get('f');
@@ -208,7 +247,8 @@ function paintStats(){
                `<a class="pill p-bad" href="review.html?f=failed" title="Show all failed questions">Failed <b>${o.failed}</b></a>`+
                `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`+
                `<a class="pill p-freq" href="review.html?f=freq" title="Questions you missed ${FREQ_MIN}+ times">&#128293; Frequently failed <b>${freqList().length}</b></a>`+
-               `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`;
+               `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`+
+               `<a class="pill p-mock" href="mock.html" title="35 random questions, like the real exam">&#128221; Mock exam</a>`;
 }
 
 // ---- index page: per-group status ----
@@ -219,7 +259,7 @@ document.querySelectorAll('.toc a[data-g]').forEach(a=>{
   if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'')+(nh?`<span class="h">&#9733; ${nh} hard</span>`:'');
 });
 const ra=document.getElementById('resetall');
-if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard marks) for profile "${PROFILE}"?`)){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); location.reload(); } };
+if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard marks) for profile "${PROFILE}"?`)){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); localStorage.removeItem(MKEY); location.reload(); } };
 
 // ---- export / import the current profile as text ----
 const exb=document.getElementById('exportbtn'), imb=document.getElementById('importbtn'), xbox=document.getElementById('xfer');
@@ -229,7 +269,7 @@ function xfer(mode){
   const go=document.getElementById('xgo'), dl=document.getElementById('xdl'), fi=document.getElementById('xfile');
   msg.textContent=''; msg.className='xmsg';
   if(mode==='export'){
-    const data={app:'hamtech', version:1, profile:PROFILE, exported:new Date().toISOString(), results:load(), hard:loadHard()};
+    const data={app:'hamtech', version:1, profile:PROFILE, exported:new Date().toISOString(), results:load(), hard:loadHard(), mock:loadMock()};
     ta.value=JSON.stringify(data,null,1); ta.readOnly=true;
     document.getElementById('xtitle').textContent=`Export profile "${PROFILE}"`;
     document.getElementById('xhelp').textContent='Copy this text (or download it) and keep it somewhere safe. Use Import to load it back on any computer or into another profile.';
@@ -259,7 +299,8 @@ function xfer(mode){
       for(const [id,v] of Object.entries(d.hard||{})) if(valid.has(id)&&v) hard[id]=true;
       const nr=Object.keys(res).length, nh=Object.keys(hard).length;
       if(!confirm(`Replace progress of "${PROFILE}" with ${nr} question result(s) and ${nh} hard mark(s)`+(d.profile&&d.profile!==PROFILE?` from profile "${d.profile}"`:'')+'?')) return;
-      save(res); saveHard(hard);
+      const mk=Array.isArray(d.mock)?d.mock.filter(x=>x&&Number.isFinite(+x.score)&&Number.isFinite(+x.t)).map(x=>({t:+x.t,score:Math.max(0,Math.min(35,+x.score)),total:+x.total||35,ids:Array.isArray(x.ids)?x.ids.filter(i=>valid.has(i)):[]})):[];
+      save(res); saveHard(hard); saveMock(mk);
       msg.textContent=`Imported ${nr} result(s) and ${nh} hard mark(s).`; msg.className='xmsg ok';
       setTimeout(()=>location.reload(),900);
     };
@@ -299,7 +340,7 @@ function paintHist(){
 function picked(){ return qs.filter(q=>q.querySelector('.o.sel')).length; }
 function paintButtons(){
   const p=picked();
-  gbs.forEach(b=>{ b.disabled=graded||p===0; b.textContent=graded?'Graded ✔':`Grade my answers (${p} / ${qs.length})`; });
+  gbs.forEach(b=>{ b.disabled=graded||p===0; b.textContent=graded?'Graded ✔':(MOCK?`Finish & grade exam (${p} / ${qs.length} answered)`:`Grade my answers (${p} / ${qs.length})`); });
 }
 qs.forEach(q=>{
   q.querySelectorAll('.o').forEach(o=>o.addEventListener('click',()=>{
@@ -344,6 +385,20 @@ function grade(){
     if(!ok && !first) first=q;
   });
   graded=true;
+  if(MOCK){
+    // real exam rules: every question counts; a blank is a wrong answer
+    const total=qs.length, pass=right>=PASS_MARK;
+    qs.forEach(q=>{ if(q.classList.contains('skip')) q.querySelector('.verdict').textContent='– Not answered (counts as wrong). The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.',''); });
+    const m=loadMock(); m.push({t:Date.now(), score:right, total, ids:qs.map(q=>q.dataset.id)}); saveMock(m);
+    const res=document.getElementById('mockres');
+    res.hidden=false; res.className='mockres '+(pass?'pass':'fail');
+    res.innerHTML=(pass?'🎉 PASS!':'✘ Not yet. Keep studying!')+`<div class="big">${right} / ${total}</div>`+
+      `<div>You need ${PASS_MARK} to pass. ${pass?`You had ${right-PASS_MARK} to spare.`:`You needed ${PASS_MARK-right} more.`} Wrong: ${done-right} &bull; Blank: ${total-done}</div>`;
+    if(sc) sc.textContent=`${right} / ${total} correct, ${pass?'PASS':'not passed'}`;
+    paintButtons(); paintStats(); paintHist(); paintMockHist();
+    res.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   if(sc) sc.textContent=`This page: ${right} / ${done} correct`+(done===qs.length&&right===done?'  🎉 Perfect!':'');
   paintButtons(); paintStats(); paintHist();
   (first||sc||document.body).scrollIntoView({behavior:'smooth', block:'center'});
@@ -354,7 +409,7 @@ function reset(){
   shuffleAnswers(); paintHist(); paintButtons();
 }
 gbs.forEach(b=>b.onclick=grade);
-rbs.forEach(b=>b.onclick=()=>{ reset(); window.scrollTo({top:0,behavior:'smooth'}); });
+rbs.forEach(b=>b.onclick=()=>{ if(MOCK){ location.reload(); return; } reset(); window.scrollTo({top:0,behavior:'smooth'}); });
 if(mb) mb.onclick=()=>{ body.classList.toggle('quiz'); reset();
   const q=body.classList.contains('quiz');
   mb.textContent=q?'Study mode: show all answers':'Back to quiz mode';
@@ -373,7 +428,7 @@ qs.forEach(q=>{ const b=q.querySelector('.hardbtn'); if(b) b.addEventListener('c
 
 paintStats(); paintHist(); paintButtons(); paintHard();
 // refresh counts if another tab changed progress
-window.addEventListener('storage',e=>{ if(e.key===KEY||e.key===HKEY){ paintStats(); paintHist(); paintHard(); } });
+window.addEventListener('storage',e=>{ if(e.key===KEY||e.key===HKEY||e.key===MKEY){ paintStats(); paintHist(); paintHard(); } });
 document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return; if(e.key==='ArrowLeft'&&window.PREV)location=PREV;if(e.key==='ArrowRight'&&window.NEXT)location=NEXT;});
 })();
 """
@@ -456,7 +511,7 @@ def index(slides):
 <title>Ham Radio Technician – Study by Topic</title><link rel="stylesheet" href="style.css"></head><body>
 <header style="background:#263238"><div class="t"><h1>&#128251; Ham Radio Technician 2026–2030 – Study by Topic</h1>
 <div class="sub">{len(slides)} topic pages &bull; {total} of {len(QS)} pool questions</div></div>
-<div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><button class="resetall" id="exportbtn">Export</button><button class="resetall" id="importbtn">Import</button><button class="resetall" id="resetall">Reset progress</button></div></header>
+<div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><a href="mock.html">&#128221; Mock exam</a><button class="resetall" id="exportbtn">Export</button><button class="resetall" id="importbtn">Import</button><button class="resetall" id="resetall">Reset progress</button></div></header>
 <main class="toc"><div class="xfer" id="xfer" hidden><h3 id="xtitle"></h3><p id="xhelp"></p>
 <textarea id="xtext" spellcheck="false"></textarea>
 <div class="xrow"><button id="xgo"></button><button class="sec" id="xdl">Download .txt</button><label>or load a file: <input type="file" id="xfile" accept=".txt,.json,text/plain"></label>
@@ -480,6 +535,24 @@ def review(slides):
 </main><footer>Questions &amp; answers copied word-for-word from the 2026-2030 Technician Class (Element 2) Question Pool.</footer>
 <script>window.PREV=null;window.NEXT=null;</script><script src="groups.js"></script><script src="app.js"></script></body></html>"""
 
+def mock_page(slides):
+    qs_html = []
+    for s in slides:
+        for i in s["ids"]:
+            qs_html.append(q_html(i, SUBCOLORS[i[:2]]))
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mock exam – Ham Technician Study</title><link rel="stylesheet" href="style.css"></head>
+<body class="quiz mockpage"><header style="background:#37474f"><div class="t"><h1 id="mtitle">Mock exam</h1>
+<div class="sub">One random question from each of the 35 pool groups, like the real Element 2 exam &bull; answers shuffled</div></div>
+<div class="stats" id="stats"></div><div class="nav"><a href="index.html">Topics</a></div></header>
+<main id="mock"><div class="tools"><span class="hint">Answer all 35, then press <b>Finish &amp; grade exam</b> at the bottom. You need <b>26 correct</b> to pass. Blank answers count as wrong.</span></div>
+<div class="mockhist" id="mockhist"></div>
+{''.join(qs_html)}
+<div class="gradebar"><button class="grade">Finish &amp; grade exam</button><span class="score" id="score"></span><button class="reset">&#8635; New mock exam</button></div>
+<div class="mockres" id="mockres" hidden></div>
+</main><footer>Questions &amp; answers copied word-for-word from the 2026-2030 Technician Class (Element 2) Question Pool.</footer>
+<script>window.PREV=null;window.NEXT=null;</script><script src="groups.js"></script><script src="app.js"></script></body></html>"""
+
 if __name__ == "__main__":
     only = sys.argv[1:]
     os.makedirs(IMG, exist_ok=True)
@@ -497,4 +570,5 @@ if __name__ == "__main__":
         open(os.path.join(OUT, fname(n)), "w").write(page(n, total, s))
     open(os.path.join(OUT, "index.html"), "w").write(index(slides))
     open(os.path.join(OUT, "review.html"), "w").write(review(slides))
+    open(os.path.join(OUT, "mock.html"), "w").write(mock_page(slides))
     print("wrote", OUT)

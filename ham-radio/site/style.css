@@ -96,6 +96,18 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .xrow button{font-size:16px;font-weight:bold;padding:8px 16px;border-radius:8px;border:none;background:#6a1b9a;color:#fff;cursor:pointer}
 .xrow button.sec{background:#eceff1;color:#263238}
 .xmsg{font-weight:bold}.xmsg.ok{color:#2e7d32}.xmsg.bad{color:#c62828}
+.stats a.p-mock{background:#ffd54f;color:#3e2723;font-weight:bold}
+.qnum{display:inline-block;margin-right:6px;font-weight:bold;font-size:15px;color:#fff;background:#37474f;border-radius:6px;padding:3px 8px}
+.mockpage .qact,.mockpage .hist,.mockpage .cnt,.mockpage .from,.mockpage #mode{display:none!important}
+.mockres{border-radius:14px;padding:18px 22px;margin:18px 0;text-align:center;font-size:22px;font-weight:bold}
+.mockres .big{font-size:56px;margin:4px 0}
+.mockres div:last-child{font-size:17px;font-weight:normal}
+.mockres.pass{background:#e8f5e9;color:#1b5e20;border:3px solid #43a047}
+.mockres.fail{background:#ffebee;color:#b71c1c;border:3px solid #e53935}
+.mockhist{background:#fff;border-radius:10px;padding:10px 16px;margin:10px 0;font-size:16px;box-shadow:0 1px 3px #0001}
+.mh{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mh span{padding:3px 9px;border-radius:6px;font-weight:bold;font-size:14px}
+.mh .mp{background:#c8e6c9;color:#1b5e20}.mh .mf{background:#ffcdd2;color:#b71c1c}
 .resetall{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer;margin-left:6px}
 footer{text-align:center;color:#888;font-size:13px;padding:20px}
 .toc a{display:block;padding:10px 14px;margin:6px 0;background:#fff;border-radius:8px;text-decoration:none;color:#222;box-shadow:0 1px 3px #0001}

@@ -32,6 +32,33 @@ function freqList(){
     .slice(0,FREQ_TOP);
 }
 // ---- review page: keep only failed / hard / frequently failed questions ----
+// ---- mock test: one random question from each of the 35 groups (T0A ... T9B), pass = 26 ----
+const MKEY='hamtech.'+PROFILE+'.mock', PASS_MARK=26;
+function loadMock(){ try{ return JSON.parse(localStorage.getItem(MKEY))||[]; }catch(e){ return []; } }
+function saveMock(m){ try{ localStorage.setItem(MKEY, JSON.stringify(m)); }catch(e){} }
+const MOCK=document.getElementById('mock');
+if(MOCK){
+  const byGroup={};
+  MOCK.querySelectorAll('.q').forEach(q=>{ (byGroup[q.dataset.id.slice(0,3)]=byGroup[q.dataset.id.slice(0,3)]||[]).push(q); });
+  const anchor=MOCK.querySelector('.gradebar');
+  Object.keys(byGroup).sort().forEach((g,i)=>{
+    const list=byGroup[g], pick=list[Math.floor(Math.random()*list.length)];
+    list.forEach(q=>{ if(q!==pick) q.remove(); });
+    pick.querySelector('.qid').insertAdjacentHTML('beforebegin',`<span class="qnum">Q${i+1}</span>`);
+    MOCK.insertBefore(pick,anchor);
+  });
+  const tot=MOCK.querySelectorAll('.q').length;
+  document.getElementById('mtitle').textContent=`Mock exam: ${tot} questions, pass with ${PASS_MARK} correct`;
+  paintMockHist();
+}
+function paintMockHist(){
+  const el=document.getElementById('mockhist'); if(!el) return;
+  const m=loadMock();
+  if(!m.length){ el.innerHTML='<b>Past mock exams:</b> none yet. Good luck on your first one!'; return; }
+  const passes=m.filter(x=>x.score>=PASS_MARK).length, best=Math.max(...m.map(x=>x.score));
+  el.innerHTML=`<b>Past mock exams (${PROFILE}):</b> ${m.length} taken &bull; ${passes} passed &bull; best ${best}/35<div class="mh">`+
+    m.slice(-10).reverse().map(x=>`<span class="${x.score>=PASS_MARK?'mp':'mf'}" title="${new Date(x.t).toLocaleString()}">${x.score}/${x.total}</span>`).join('')+'</div>';
+}
 const RV=document.getElementById('review');
 if(RV){
   const fp=new URLSearchParams(location.search).get('f');
@@ -81,7 +108,8 @@ function paintStats(){
                `<a class="pill p-bad" href="review.html?f=failed" title="Show all failed questions">Failed <b>${o.failed}</b></a>`+
                `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`+
                `<a class="pill p-freq" href="review.html?f=freq" title="Questions you missed ${FREQ_MIN}+ times">&#128293; Frequently failed <b>${freqList().length}</b></a>`+
-               `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`;
+               `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`+
+               `<a class="pill p-mock" href="mock.html" title="35 random questions, like the real exam">&#128221; Mock exam</a>`;
 }
 
 // ---- index page: per-group status ----
@@ -92,7 +120,7 @@ document.querySelectorAll('.toc a[data-g]').forEach(a=>{
   if(gs) gs.innerHTML=(f?`<span class="f">[${f}] failed</span>`:'')+(nt?`<span class="nt">[${nt}] not tested</span>`:'')+(!f&&!nt?'<span class="done">✔ all passed</span>':'')+(nh?`<span class="h">&#9733; ${nh} hard</span>`:'');
 });
 const ra=document.getElementById('resetall');
-if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard marks) for profile "${PROFILE}"?`)){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); location.reload(); } };
+if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard marks) for profile "${PROFILE}"?`)){ localStorage.removeItem(KEY); localStorage.removeItem(HKEY); localStorage.removeItem(MKEY); location.reload(); } };
 
 // ---- export / import the current profile as text ----
 const exb=document.getElementById('exportbtn'), imb=document.getElementById('importbtn'), xbox=document.getElementById('xfer');
@@ -102,7 +130,7 @@ function xfer(mode){
   const go=document.getElementById('xgo'), dl=document.getElementById('xdl'), fi=document.getElementById('xfile');
   msg.textContent=''; msg.className='xmsg';
   if(mode==='export'){
-    const data={app:'hamtech', version:1, profile:PROFILE, exported:new Date().toISOString(), results:load(), hard:loadHard()};
+    const data={app:'hamtech', version:1, profile:PROFILE, exported:new Date().toISOString(), results:load(), hard:loadHard(), mock:loadMock()};
     ta.value=JSON.stringify(data,null,1); ta.readOnly=true;
     document.getElementById('xtitle').textContent=`Export profile "${PROFILE}"`;
     document.getElementById('xhelp').textContent='Copy this text (or download it) and keep it somewhere safe. Use Import to load it back on any computer or into another profile.';
@@ -132,7 +160,8 @@ function xfer(mode){
       for(const [id,v] of Object.entries(d.hard||{})) if(valid.has(id)&&v) hard[id]=true;
       const nr=Object.keys(res).length, nh=Object.keys(hard).length;
       if(!confirm(`Replace progress of "${PROFILE}" with ${nr} question result(s) and ${nh} hard mark(s)`+(d.profile&&d.profile!==PROFILE?` from profile "${d.profile}"`:'')+'?')) return;
-      save(res); saveHard(hard);
+      const mk=Array.isArray(d.mock)?d.mock.filter(x=>x&&Number.isFinite(+x.score)&&Number.isFinite(+x.t)).map(x=>({t:+x.t,score:Math.max(0,Math.min(35,+x.score)),total:+x.total||35,ids:Array.isArray(x.ids)?x.ids.filter(i=>valid.has(i)):[]})):[];
+      save(res); saveHard(hard); saveMock(mk);
       msg.textContent=`Imported ${nr} result(s) and ${nh} hard mark(s).`; msg.className='xmsg ok';
       setTimeout(()=>location.reload(),900);
     };
@@ -172,7 +201,7 @@ function paintHist(){
 function picked(){ return qs.filter(q=>q.querySelector('.o.sel')).length; }
 function paintButtons(){
   const p=picked();
-  gbs.forEach(b=>{ b.disabled=graded||p===0; b.textContent=graded?'Graded ✔':`Grade my answers (${p} / ${qs.length})`; });
+  gbs.forEach(b=>{ b.disabled=graded||p===0; b.textContent=graded?'Graded ✔':(MOCK?`Finish & grade exam (${p} / ${qs.length} answered)`:`Grade my answers (${p} / ${qs.length})`); });
 }
 qs.forEach(q=>{
   q.querySelectorAll('.o').forEach(o=>o.addEventListener('click',()=>{
@@ -217,6 +246,20 @@ function grade(){
     if(!ok && !first) first=q;
   });
   graded=true;
+  if(MOCK){
+    // real exam rules: every question counts; a blank is a wrong answer
+    const total=qs.length, pass=right>=PASS_MARK;
+    qs.forEach(q=>{ if(q.classList.contains('skip')) q.querySelector('.verdict').textContent='– Not answered (counts as wrong). The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.',''); });
+    const m=loadMock(); m.push({t:Date.now(), score:right, total, ids:qs.map(q=>q.dataset.id)}); saveMock(m);
+    const res=document.getElementById('mockres');
+    res.hidden=false; res.className='mockres '+(pass?'pass':'fail');
+    res.innerHTML=(pass?'🎉 PASS!':'✘ Not yet. Keep studying!')+`<div class="big">${right} / ${total}</div>`+
+      `<div>You need ${PASS_MARK} to pass. ${pass?`You had ${right-PASS_MARK} to spare.`:`You needed ${PASS_MARK-right} more.`} Wrong: ${done-right} &bull; Blank: ${total-done}</div>`;
+    if(sc) sc.textContent=`${right} / ${total} correct, ${pass?'PASS':'not passed'}`;
+    paintButtons(); paintStats(); paintHist(); paintMockHist();
+    res.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   if(sc) sc.textContent=`This page: ${right} / ${done} correct`+(done===qs.length&&right===done?'  🎉 Perfect!':'');
   paintButtons(); paintStats(); paintHist();
   (first||sc||document.body).scrollIntoView({behavior:'smooth', block:'center'});
@@ -227,7 +270,7 @@ function reset(){
   shuffleAnswers(); paintHist(); paintButtons();
 }
 gbs.forEach(b=>b.onclick=grade);
-rbs.forEach(b=>b.onclick=()=>{ reset(); window.scrollTo({top:0,behavior:'smooth'}); });
+rbs.forEach(b=>b.onclick=()=>{ if(MOCK){ location.reload(); return; } reset(); window.scrollTo({top:0,behavior:'smooth'}); });
 if(mb) mb.onclick=()=>{ body.classList.toggle('quiz'); reset();
   const q=body.classList.contains('quiz');
   mb.textContent=q?'Study mode: show all answers':'Back to quiz mode';
@@ -246,6 +289,6 @@ qs.forEach(q=>{ const b=q.querySelector('.hardbtn'); if(b) b.addEventListener('c
 
 paintStats(); paintHist(); paintButtons(); paintHard();
 // refresh counts if another tab changed progress
-window.addEventListener('storage',e=>{ if(e.key===KEY||e.key===HKEY){ paintStats(); paintHist(); paintHard(); } });
+window.addEventListener('storage',e=>{ if(e.key===KEY||e.key===HKEY||e.key===MKEY){ paintStats(); paintHist(); paintHard(); } });
 document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return; if(e.key==='ArrowLeft'&&window.PREV)location=PREV;if(e.key==='ArrowRight'&&window.NEXT)location=NEXT;});
 })();
