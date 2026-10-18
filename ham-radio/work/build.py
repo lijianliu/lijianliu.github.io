@@ -66,10 +66,10 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .qfig{margin:8px 0 10px;text-align:center}
 .qfig img{max-width:min(100%,460px);max-height:340px;border:2px solid #cfd8dc;border-radius:8px;background:#fff;padding:6px}
 .qfig figcaption{font-size:14px;font-weight:bold;color:#455a64;margin-top:2px}
-.qact{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
-button.chk{font-size:16px;font-weight:bold;padding:7px 16px;border-radius:8px;border:2px solid #1565c0;background:#fff;color:#1565c0;cursor:pointer}
+.qact{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;vertical-align:middle}
+button.chk{font-size:14px;font-weight:bold;padding:3px 12px;border-radius:6px;border:2px solid #1565c0;background:#fff;color:#1565c0;cursor:pointer}
 button.chk:disabled{border-color:#bdbdbd;color:#9e9e9e;cursor:default}
-.cmsg{font-weight:bold;font-size:17px}
+.cmsg{font-weight:bold;font-size:15px}
 .q.c-right .cmsg{color:#2e7d32}.q.c-wrong .cmsg{color:#c62828}
 .quiz .q.c-right .o.sel{border-color:#2e7d32;background:#c8e6c9;color:#1b5e20}
 .quiz .q.c-wrong .o.sel{border-color:#c62828;background:#ffcdd2;color:#b71c1c}
@@ -372,7 +372,7 @@ let graded=false;
 const FIXED=/^(All these (choices|answers) are correct|None of (these|the above))/;
 function shuffleAnswers(){
   qs.forEach(q=>{
-    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.qact')||q.querySelector('.from')||q.querySelector('.verdict');
+    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.from')||q.querySelector('.verdict');
     const txt=o=>o.querySelector('span:last-child').textContent.trim();
     const move=opts.filter(o=>!FIXED.test(txt(o))), fixed=opts.filter(o=>FIXED.test(txt(o)));
     for(let i=move.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [move[i],move[j]]=[move[j],move[i]]; }
@@ -418,7 +418,7 @@ function checkOne(q){
   const sel=q.querySelector('.o.sel'); if(!sel||graded) return;
   const ok=sel.classList.contains('ok');
   q.classList.remove('c-right','c-wrong'); q.classList.add(ok?'c-right':'c-wrong');
-  q.querySelector('.cmsg').textContent= ok ? '✔ Correct!' : '✘ Not correct. Pick another answer and check again.';
+  const cm=q.querySelector('.cmsg'); cm.textContent= ok ? '✔ Correct!' : '✘ Not correct, try again'; cm.title= ok ? '' : 'Pick another answer and press Check again';
   q.querySelector('button.chk').disabled=true;
   record(q, ok); paintStats(); paintHist();
 }
@@ -525,10 +525,10 @@ def q_html(qid, col, src=None):
         opts.append(f'<div class="o{" ok" if ok else ""}"><span class="m">{"&#10004;" if ok else "&#10008;"}</span><b class="l">{L}.</b><span>{e(q["opts"][i])}</span></div>')
     ref = f'<span class="ref">{e(q["ref"])}</span>' if q["ref"] else ""
     frm = f'<a class="from" href="{fname(src[0])}">&#128214; Study this topic: {src[0]}. {e(src[1])}</a>' if src else ""
-    return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}'
+    return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>'
+            f'<span class="qact"><button class="chk" type="button" disabled>Check</button><span class="cmsg"></span></span>{ref}'
             f'<button class="hardbtn" type="button">&#9734; Mark hard</button><span class="hist"></span><span class="cnt"></span>'
             f'<div class="qt">{e(q["q"])}</div>{fig_html(q["q"])}{"".join(opts)}'
-            f'<div class="qact"><button class="chk" type="button" disabled>Check</button><span class="cmsg"></span></div>'
             f'{frm}<div class="verdict"></div></div>')
 
 def page(n, total, s):

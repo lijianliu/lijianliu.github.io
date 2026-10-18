@@ -218,7 +218,7 @@ let graded=false;
 const FIXED=/^(All these (choices|answers) are correct|None of (these|the above))/;
 function shuffleAnswers(){
   qs.forEach(q=>{
-    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.qact')||q.querySelector('.from')||q.querySelector('.verdict');
+    const opts=[...q.querySelectorAll('.o')], v=q.querySelector('.from')||q.querySelector('.verdict');
     const txt=o=>o.querySelector('span:last-child').textContent.trim();
     const move=opts.filter(o=>!FIXED.test(txt(o))), fixed=opts.filter(o=>FIXED.test(txt(o)));
     for(let i=move.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [move[i],move[j]]=[move[j],move[i]]; }
@@ -264,7 +264,7 @@ function checkOne(q){
   const sel=q.querySelector('.o.sel'); if(!sel||graded) return;
   const ok=sel.classList.contains('ok');
   q.classList.remove('c-right','c-wrong'); q.classList.add(ok?'c-right':'c-wrong');
-  q.querySelector('.cmsg').textContent= ok ? '✔ Correct!' : '✘ Not correct. Pick another answer and check again.';
+  const cm=q.querySelector('.cmsg'); cm.textContent= ok ? '✔ Correct!' : '✘ Not correct, try again'; cm.title= ok ? '' : 'Pick another answer and press Check again';
   q.querySelector('button.chk').disabled=true;
   record(q, ok); paintStats(); paintHist();
 }
