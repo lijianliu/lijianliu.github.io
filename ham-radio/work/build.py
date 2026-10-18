@@ -1,3 +1,4 @@
+import re
 """Build one HTML page per topic group: PNG illustration on top, exact bank questions below, prev/next nav."""
 import sys, os, importlib, collections, html, json
 from core import QS, SUBCOLORS, SUBNAMES
@@ -62,6 +63,9 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .quiz .q.done .o.ok{border-color:#2e7d32;background:#e8f5e9;color:#1b5e20;font-weight:bold}
 .quiz .q.done .o.sel:not(.ok){border-color:#c62828;background:#ffebee;color:#b71c1c;font-weight:bold}
 .quiz .q.done .o:not(.ok):not(.sel){opacity:.55}
+.qfig{margin:8px 0 10px;text-align:center}
+.qfig img{max-width:min(100%,460px);max-height:340px;border:2px solid #cfd8dc;border-radius:8px;background:#fff;padding:6px}
+.qfig figcaption{font-size:14px;font-weight:bold;color:#455a64;margin-top:2px}
 .qact{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
 button.chk{font-size:16px;font-weight:bold;padding:7px 16px;border-radius:8px;border:2px solid #1565c0;background:#fff;color:#1565c0;cursor:pointer}
 button.chk:disabled{border-color:#bdbdbd;color:#9e9e9e;cursor:default}
@@ -454,6 +458,16 @@ def order(q, qid):
     random.Random(qid).shuffle(move)
     return move + fixed
 
+FIG_RE = re.compile(r"figure (T-[123])", re.I)
+def fig_html(text):
+    """Questions that say 'figure T-1/2/3' get the pool's own figure right under the question."""
+    m = FIG_RE.search(text)
+    if not m:
+        return ""
+    f = m.group(1).upper()
+    return (f'<figure class="qfig"><img src="img/figure_{f}.png" alt="Figure {f} from the question pool" loading="lazy">'
+            f'<figcaption>Figure {f}</figcaption></figure>')
+
 def q_html(qid, col, src=None):
     q = QS[qid]
     e = html.escape
@@ -466,7 +480,7 @@ def q_html(qid, col, src=None):
     frm = f'<a class="from" href="{fname(src[0])}">&#128214; Study this topic: {src[0]}. {e(src[1])}</a>' if src else ""
     return (f'<div class="q" data-id="{qid}"><span class="qid" style="background:{col}">{qid}</span>{ref}'
             f'<button class="hardbtn" type="button">&#9734; Mark hard</button><span class="hist"></span><span class="cnt"></span>'
-            f'<div class="qt">{e(q["q"])}</div>{"".join(opts)}'
+            f'<div class="qt">{e(q["q"])}</div>{fig_html(q["q"])}{"".join(opts)}'
             f'<div class="qact"><button class="chk" type="button" disabled>Check</button><span class="cmsg"></span></div>'
             f'{frm}<div class="verdict"></div></div>')
 
