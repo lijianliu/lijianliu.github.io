@@ -155,7 +155,7 @@ footer{text-align:center;color:#888;font-size:13px;padding:20px}
 JS = r"""
 (function(){
 // ---- progress store (browser localStorage) ----
-// hamtech.v1 = { "T1A01": {r:"right"|"wrong", n:attempts, w:times_wrong, t:timestamp}, ... }
+// hamtech.<profile>.v1 = { "T1A01": {r:"right"|"wrong", n:attempts, w:times_wrong}, ... }
 // ---- profiles: each has its own results + hard marks ----
 const PROFILES=['student1','student2','exam1'];
 const PKEY='hamtech.profile';
@@ -211,7 +211,7 @@ function paintMockHist(){
   if(!m.length){ el.innerHTML='<b>Past mock exams:</b> none yet. Good luck on your first one!'; return; }
   const passes=m.filter(x=>x.score>=PASS_MARK).length, best=Math.max(...m.map(x=>x.score));
   el.innerHTML=`<b>Past mock exams (${PROFILE}):</b> ${m.length} taken &bull; ${passes} passed &bull; best ${best}/35<div class="mh">`+
-    m.slice(-10).reverse().map(x=>`<span class="${x.score>=PASS_MARK?'mp':'mf'}" title="${new Date(x.t).toLocaleString()}">${x.score}/${x.total}</span>`).join('')+'</div>';
+    m.slice(-10).reverse().map(x=>`<span class="${x.score>=PASS_MARK?'mp':'mf'}" title="${x.t?new Date(x.t).toLocaleString():''}">${x.score}/${x.total}</span>`).join('')+'</div>';
 }
 const RV=document.getElementById('review');
 if(RV){
@@ -278,45 +278,81 @@ if(ra) ra.onclick=()=>{ if(confirm(`Erase ALL saved progress (results and hard m
 
 // ---- export / import the current profile as text ----
 const exb=document.getElementById('exportbtn'), imb=document.getElementById('importbtn'), xbox=document.getElementById('xfer');
+// export format: compact JSON, or "HAM1:" + base64url(deflate-raw(JSON)) for texting
+function exportData(){
+  const res={};
+  for(const [id,r] of Object.entries(load())) res[id]={r:r.r, n:r.n, w:r.w};       // no timestamp: never used
+  return {app:'hamtech', version:2, profile:PROFILE, results:res, hard:Object.keys(loadHard()),
+          mock:loadMock().map(x=>({t:x.t, score:x.score, total:x.total}))};        // t = date shown in mock history
+}
+async function gzipB64(str){
+  const cs=new Blob([str]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  const buf=new Uint8Array(await new Response(cs).arrayBuffer());
+  let bin=''; for(let i=0;i<buf.length;i+=0x8000) bin+=String.fromCharCode.apply(null,buf.subarray(i,i+0x8000));
+  return 'HAM1:'+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function gunzipB64(txt){
+  let s=txt.replace(/^HAM1:/,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
+  while(s.length%4) s+='=';
+  const bin=atob(s), buf=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+  const ds=new Blob([buf]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return await new Response(ds).text();
+}
+async function parseImport(txt){
+  txt=txt.trim();
+  if(/^HAM1:/.test(txt)) return JSON.parse(await gunzipB64(txt));
+  return JSON.parse(txt);
+}
 function xfer(mode){
   xbox.hidden=false;
   const ta=document.getElementById('xtext'), msg=document.getElementById('xmsg');
   const go=document.getElementById('xgo'), dl=document.getElementById('xdl'), fi=document.getElementById('xfile');
+  const fmt=document.getElementById('xfmt');
   msg.textContent=''; msg.className='xmsg';
   if(mode==='export'){
-    const data={app:'hamtech', version:1, profile:PROFILE, exported:new Date().toISOString(), results:load(), hard:loadHard(), mock:loadMock()};
-    ta.value=JSON.stringify(data,null,1); ta.readOnly=true;
+    const json=JSON.stringify(exportData());
+    const show=async()=>{
+      if(fmt.value==='b64'){
+        try{ ta.value=await gzipB64(json); }
+        catch(e){ ta.value=json; fmt.value='json'; msg.textContent='Compression not supported in this browser: showing JSON.'; msg.className='xmsg bad'; }
+      }else ta.value=json;
+      document.getElementById('xsize').textContent=`${ta.value.length.toLocaleString()} characters`;
+      ta.focus(); ta.select();
+    };
+    ta.readOnly=true; fmt.parentElement.hidden=false; fmt.onchange=show;
     document.getElementById('xtitle').textContent=`Export profile "${PROFILE}"`;
-    document.getElementById('xhelp').textContent='Copy this text (or download it) and keep it somewhere safe. Use Import to load it back on any computer or into another profile.';
+    document.getElementById('xhelp').textContent='Copy this text (or download it). "Short code" is compressed so it fits in a text message. Use Import on the other computer or profile to load it.';
     go.textContent='Copy to clipboard'; dl.hidden=false; fi.parentElement.hidden=true;
     go.onclick=()=>{ ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
       if(navigator.clipboard) navigator.clipboard.writeText(ta.value).then(()=>{msg.textContent='Copied!';},()=>{});
-      msg.textContent= ok?'Copied!':'Text selected: press Ctrl+C (Cmd+C on Mac) to copy.'; };
+      msg.textContent= ok?'Copied!':'Text selected: press Ctrl+C (Cmd+C on Mac) to copy.'; msg.className='xmsg ok'; };
     dl.onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([ta.value],{type:'text/plain'}));
       a.download=`hamtech-${PROFILE}-${new Date().toISOString().slice(0,10)}.txt`; document.body.appendChild(a); a.click(); a.remove(); };
-    ta.focus(); ta.select();
+    show();
   }else{
-    ta.value=''; ta.readOnly=false;
+    ta.value=''; ta.readOnly=false; fmt.parentElement.hidden=true; document.getElementById('xsize').textContent='';
     document.getElementById('xtitle').textContent=`Import into profile "${PROFILE}"`;
-    document.getElementById('xhelp').textContent=`Paste exported text below (or choose a file), then press Import. This REPLACES the current progress of "${PROFILE}".`;
+    document.getElementById('xhelp').textContent=`Paste the exported text or short code (HAM1:...) below, or choose a file, then press Import. This REPLACES the current progress of "${PROFILE}".`;
     go.textContent='Import'; dl.hidden=true; fi.parentElement.hidden=false;
     fi.value=''; fi.onchange=()=>{ const f=fi.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ ta.value=r.result; }; r.readAsText(f); };
-    go.onclick=()=>{
-      let d; try{ d=JSON.parse(ta.value); }catch(e){ msg.textContent='That text is not valid export data.'; msg.className='xmsg bad'; return; }
+    go.onclick=async()=>{
+      let d; try{ d=await parseImport(ta.value); }catch(e){ msg.textContent='That text is not valid export data (was it copied completely?).'; msg.className='xmsg bad'; return; }
       if(!d || d.app!=='hamtech' || typeof d.results!=='object' || d.results===null){ msg.textContent='That text is not a Ham Technician export.'; msg.className='xmsg bad'; return; }
       const valid=new Set(ALL), res={}, hard={};
       for(const [id,r] of Object.entries(d.results)){
         if(!valid.has(id)||!r||typeof r!=='object') continue;
         const n=Math.max(0,parseInt(r.n)||0), w=Math.min(n,Math.max(0,parseInt(r.w)||0));
         if(!n || (r.r!=='right'&&r.r!=='wrong')) continue;
-        res[id]={n, w, r:r.r, t:+r.t||Date.now()};
+        res[id]={r:r.r, n, w};
       }
-      for(const [id,v] of Object.entries(d.hard||{})) if(valid.has(id)&&v) hard[id]=true;
+      // hard: v2 = list of IDs, v1 = {id:true}
+      const hl=Array.isArray(d.hard)?d.hard:Object.keys(d.hard||{}).filter(k=>d.hard[k]);
+      for(const id of hl) if(valid.has(id)) hard[id]=true;
+      const mk=Array.isArray(d.mock)?d.mock.filter(x=>x&&Number.isFinite(+x.score)).map(x=>({t:+x.t||0, score:Math.max(0,Math.min(35,+x.score)), total:+x.total||35})):[];
       const nr=Object.keys(res).length, nh=Object.keys(hard).length;
-      if(!confirm(`Replace progress of "${PROFILE}" with ${nr} question result(s) and ${nh} hard mark(s)`+(d.profile&&d.profile!==PROFILE?` from profile "${d.profile}"`:'')+'?')) return;
-      const mk=Array.isArray(d.mock)?d.mock.filter(x=>x&&Number.isFinite(+x.score)&&Number.isFinite(+x.t)).map(x=>({t:+x.t,score:Math.max(0,Math.min(35,+x.score)),total:+x.total||35,ids:Array.isArray(x.ids)?x.ids.filter(i=>valid.has(i)):[]})):[];
+      if(!confirm(`Replace progress of "${PROFILE}" with ${nr} question result(s), ${nh} hard mark(s) and ${mk.length} mock exam(s)`+(d.profile&&d.profile!==PROFILE?` from profile "${d.profile}"`:'')+'?')) return;
       save(res); saveHard(hard); saveMock(mk);
-      msg.textContent=`Imported ${nr} result(s) and ${nh} hard mark(s).`; msg.className='xmsg ok';
+      msg.textContent=`Imported ${nr} result(s), ${nh} hard mark(s), ${mk.length} mock exam(s).`; msg.className='xmsg ok';
       setTimeout(()=>location.reload(),900);
     };
     ta.focus();
@@ -376,7 +412,7 @@ function clearCheck(q){
 function record(q, ok){
   const s=load(), id=q.dataset.id, r=s[id]||{n:0,w:0};
   r.n++; if(!ok) r.w++;
-  r.r=ok?'right':'wrong'; r.t=Date.now(); s[id]=r; save(s);
+  r.r=ok?'right':'wrong'; delete r.t; s[id]=r; save(s);
 }
 function checkOne(q){
   const sel=q.querySelector('.o.sel'); if(!sel||graded) return;
@@ -404,7 +440,7 @@ function grade(){
     // real exam rules: every question counts; a blank is a wrong answer
     const total=qs.length, pass=right>=PASS_MARK;
     qs.forEach(q=>{ if(q.classList.contains('skip')) q.querySelector('.verdict').textContent='– Not answered (counts as wrong). The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.',''); });
-    const m=loadMock(); m.push({t:Date.now(), score:right, total, ids:qs.map(q=>q.dataset.id)}); saveMock(m);
+    const m=loadMock(); m.push({t:Date.now(), score:right, total}); saveMock(m);
     const res=document.getElementById('mockres');
     res.hidden=false; res.className='mockres '+(pass?'pass':'fail');
     res.innerHTML=(pass?'🎉 PASS!':'✘ Not yet. Keep studying!')+`<div class="big">${right} / ${total}</div>`+
@@ -539,6 +575,7 @@ def index(slides):
 <div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><a href="mock.html">&#128221; Mock exam</a><button class="resetall" id="exportbtn">Export</button><button class="resetall" id="importbtn">Import</button><button class="resetall" id="resetall">Reset progress</button></div></header>
 <main class="toc"><div class="xfer" id="xfer" hidden><h3 id="xtitle"></h3><p id="xhelp"></p>
 <textarea id="xtext" spellcheck="false"></textarea>
+<div class="xrow"><label>Format: <select id="xfmt"><option value="json">JSON (readable)</option><option value="b64">Short code for texting (compressed)</option></select></label><span id="xsize" class="hint"></span></div>
 <div class="xrow"><button id="xgo"></button><button class="sec" id="xdl">Download .txt</button><label>or load a file: <input type="file" id="xfile" accept=".txt,.json,text/plain"></label>
 <span class="xmsg" id="xmsg"></span><button class="sec" id="xclose" style="margin-left:auto">Close</button></div></div>
 {''.join(out)}</main><script src="groups.js"></script><script src="app.js"></script></body></html>"""
