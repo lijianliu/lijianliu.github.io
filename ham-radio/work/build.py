@@ -214,7 +214,6 @@ if(MOCK){
   Object.keys(byGroup).sort().forEach((g,i)=>{
     const list=byGroup[g], pick=SESS?list.find(q=>saved.has(q.dataset.id)):list[Math.floor(Math.random()*list.length)];
     list.forEach(q=>{ if(q!==pick) q.remove(); });
-    pick.querySelector('.qid').insertAdjacentHTML('beforebegin',`<span class="qnum">Q${i+1}</span>`);
     MOCK.insertBefore(pick,anchor);
   });
   const tot=MOCK.querySelectorAll('.q').length;
@@ -384,6 +383,8 @@ const xc=document.getElementById('xclose'); if(xc) xc.onclick=()=>{ xbox.hidden=
 
 // ---- topic page: pick answers, then grade all at once ----
 const body=document.body, qs=[...document.querySelectorAll('.q')];
+// "1/8" position badge before every question ID (topic, review and mock pages)
+qs.forEach((q,i)=>q.querySelector('.qid').insertAdjacentHTML('beforebegin',`<span class="qnum" title="Question ${i+1} of ${qs.length} on this page">${i+1}/${qs.length}</span>`));
 const sc=document.getElementById('score'), mb=document.getElementById('mode');
 const gbs=[...document.querySelectorAll('button.grade')], rbs=[...document.querySelectorAll('button.reset')];
 let graded=false;
