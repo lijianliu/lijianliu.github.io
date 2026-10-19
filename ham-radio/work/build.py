@@ -616,7 +616,7 @@ def page(n, total, s):
     extra = "".join(f'<img class="ill" style="margin-top:12px" src="{x}" alt="{e(x)}">' for x in s.get("extra_imgs", []))
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{n}. {e(s['title'])} – Ham Technician Study</title><link rel="stylesheet" href="style.css"></head>
+<title>{n}. {e(s['title'])} – Ham Technician Study</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.png" type="image/png" sizes="64x64"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="stylesheet" href="style.css"></head>
 <body class="quiz"><header style="background:{col}"><div class="t"><h1>{n}. {e(s['title'])}</h1>
 <div class="sub">{e(subtxt)} &bull; {len(s['ids'])} question{'s' if len(s['ids'])!=1 else ''}</div></div><div class="stats" id="stats"></div>{nav(n,total)}</header>
 <main><img class="ill" src="img/group_{n:03d}.png" alt="Illustration: {e(s['title'])}">{extra}
@@ -638,7 +638,7 @@ def index(slides):
         out.append(f'<a href="{fname(n)}" data-g="{n-1}"><span class="n">{n}.</span>{html.escape(s["title"])}<span class="c">{len(s["ids"])} q</span><span class="gs"></span></a>')
     total = sum(len(s["ids"]) for s in slides)
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ham Radio Technician – Study by Topic</title><link rel="stylesheet" href="style.css"></head><body>
+<title>Ham Radio Technician – Study by Topic</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.png" type="image/png" sizes="64x64"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="stylesheet" href="style.css"></head><body>
 <header style="background:#263238"><div class="t"><h1>&#128251; Ham Radio Technician 2026–2030 – Study by Topic</h1>
 <div class="sub">{len(slides)} topic pages &bull; {total} of {len(QS)} pool questions</div></div>
 <div class="stats" id="stats"></div><div class="nav"><a href="{fname(1)}">Start &rarr;</a><a href="mock.html">&#128221; Mock exam</a><button class="resetall" id="exportbtn">Export</button><button class="resetall" id="importbtn">Import</button><button class="resetall" id="resetall">Reset progress</button></div></header>
@@ -655,7 +655,7 @@ def review(slides):
         for i in s["ids"]:
             qs_html.append(q_html(i, SUBCOLORS[i[:2]], (n, s["title"])))
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Review – Ham Technician Study</title><link rel="stylesheet" href="style.css"></head>
+<title>Review – Ham Technician Study</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.png" type="image/png" sizes="64x64"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="stylesheet" href="style.css"></head>
 <body class="quiz"><header style="background:#b71c1c"><div class="t"><h1 id="rtitle">Review</h1>
 <div class="sub">Questions copied word-for-word from the pool &bull; answers re-shuffled each time</div></div>
 <div class="stats" id="stats"></div><div class="nav"><a href="index.html">Topics</a></div></header>
@@ -672,7 +672,7 @@ def mock_page(slides):
         for i in s["ids"]:
             qs_html.append(q_html(i, SUBCOLORS[i[:2]]))
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mock exam – Ham Technician Study</title><link rel="stylesheet" href="style.css"></head>
+<title>Mock exam – Ham Technician Study</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.png" type="image/png" sizes="64x64"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="stylesheet" href="style.css"></head>
 <body class="quiz mockpage"><header style="background:#37474f"><div class="t"><h1 id="mtitle">Mock exam</h1>
 <div class="sub">One random question from each of the 35 pool groups, like the real Element 2 exam &bull; answers shuffled</div></div>
 <div class="stats" id="stats"></div><div class="nav"><a href="index.html">Topics</a></div></header>
