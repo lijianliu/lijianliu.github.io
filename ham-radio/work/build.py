@@ -53,11 +53,12 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .o.ok{border-color:#2e7d32;background:#e8f5e9;color:#1b5e20;font-weight:bold}
 .o.ok .m{color:#2e7d32}
 /* quiz mode (default): pick answers, nothing is graded until "Grade" */
-.quiz .o{cursor:pointer;color:#222}
-.quiz .o:hover{border-color:#90caf9;background:#e3f2fd}
+/* Until a question is graded, the correct option (.ok) must look and behave EXACTLY like the others:
+   every quiz rule below lists .o and .o.ok together so they always have equal specificity. */
+.quiz .o,.quiz .o.ok{cursor:pointer;color:#222;border-color:#e3e3e3;background:#fafafa;font-weight:normal}
+.quiz .o:hover,.quiz .o.ok:hover{border-color:#90caf9;background:#e3f2fd}
 .quiz .o .m{visibility:hidden}
-.quiz .o.ok{border-color:#e3e3e3;background:#fafafa;color:#222;font-weight:normal}
-.quiz .o.sel{border-color:#1565c0;background:#bbdefb;color:#0d47a1;font-weight:bold}
+.quiz .o.sel,.quiz .o.ok.sel{border-color:#1565c0;background:#bbdefb;color:#0d47a1;font-weight:bold}
 .quiz .q.done .o{cursor:default}
 .quiz .q.done .o .m{visibility:visible}
 .quiz .q.done .o.ok{border-color:#2e7d32;background:#e8f5e9;color:#1b5e20;font-weight:bold}
@@ -71,8 +72,8 @@ button.chk{font-size:14px;font-weight:bold;padding:3px 12px;border-radius:6px;bo
 button.chk:disabled{border-color:#bdbdbd;color:#9e9e9e;cursor:default}
 .cmsg{font-weight:bold;font-size:15px}
 .q.c-right .cmsg{color:#2e7d32}.q.c-wrong .cmsg{color:#c62828}
-.quiz .q.c-right .o.sel{border-color:#2e7d32;background:#c8e6c9;color:#1b5e20}
-.quiz .q.c-wrong .o.sel{border-color:#c62828;background:#ffcdd2;color:#b71c1c}
+.quiz .q.c-right .o.sel,.quiz .q.c-right .o.ok.sel{border-color:#2e7d32;background:#c8e6c9;color:#1b5e20}
+.quiz .q.c-wrong .o.sel,.quiz .q.c-wrong .o.ok.sel{border-color:#c62828;background:#ffcdd2;color:#b71c1c}
 .q.c-right{box-shadow:0 0 0 3px #a5d6a7}.q.c-wrong{box-shadow:0 0 0 3px #ef9a9a}
 .quiz .q.done .qact{display:none}
 body:not(.quiz) .qact{display:none}
