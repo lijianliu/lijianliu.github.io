@@ -279,7 +279,20 @@ function paintStats(){
                `<span class="pill p-ok">Passed <b>${o.tested-o.failed}</b></span>`+
                `<a class="pill p-freq" href="review.html?f=freq" title="Questions you missed ${FREQ_MIN}+ times">&#128293; Frequently failed <b>${freqList().length}</b></a>`+
                `<a class="pill p-hard" href="review.html?f=hard" title="Show questions you marked hard">&#9733; Hard <b>${nh}</b></a>`+
-               `<a class="pill p-mock" href="mock.html" title="35 random questions, like the real exam">&#128221; Mock exam</a>`;
+               `<a class="pill p-mock" href="mock.html" title="${mockPillTitle()}">&#128221; Mock exam${mockPillCount()}</a>`;
+}
+// in-progress mock exam (saved per profile on every pick): show "answered / total" on the pill
+function mockSess(){ try{ return JSON.parse(localStorage.getItem('hamtech.'+PROFILE+'.mocknow')); }catch(e){ return null; } }
+function mockPillCount(){
+  const s=mockSess(); if(!s||!Array.isArray(s.ids)||!s.ids.length) return '';
+  const n=Object.keys(s.sel||{}).length;
+  return s.graded ? ' <b>&#10004;</b>' : n ? ` <b>${n}</b> / ${s.ids.length}` : '';
+}
+function mockPillTitle(){
+  const s=mockSess(), n=s&&s.sel?Object.keys(s.sel).length:0;
+  return s&&s.graded ? 'Your last mock exam is graded. Open it to see the result or start a new one'
+    : n ? `Mock exam in progress: ${n} of ${s.ids.length} answered. Click to continue`
+    : '35 random questions, like the real exam';
 }
 
 // ---- index page: per-group status ----
@@ -436,7 +449,7 @@ qs.forEach(q=>{
     if(!body.classList.contains('quiz')||graded) return;
     q.querySelectorAll('.o').forEach(x=>x.classList.remove('sel'));
     o.classList.add('sel'); q.classList.remove('skip'); clearCheck(q); paintButtons();
-    if(MOCK&&SESS){ SESS.sel[q.dataset.id]=+o.dataset.k; saveSess(SESS); paintSaved(); }
+    if(MOCK&&SESS){ SESS.sel[q.dataset.id]=+o.dataset.k; saveSess(SESS); paintSaved(); paintStats(); }
   }));
   const cb=q.querySelector('button.chk');
   if(cb) cb.addEventListener('click',()=>checkOne(q));
