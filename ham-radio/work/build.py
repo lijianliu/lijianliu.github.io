@@ -132,6 +132,7 @@ a.pill:hover{outline:2px solid #fff;filter:brightness(1.05)}
 .mockres div:last-child{font-size:17px;font-weight:normal}
 .mockres.pass{background:#e8f5e9;color:#1b5e20;border:3px solid #43a047}
 .mockres.fail{background:#ffebee;color:#b71c1c;border:3px solid #e53935}
+.mocksaved{font-size:15px;font-weight:bold;color:#2e7d32;margin:4px 2px 10px}
 .mockhist{background:#fff;border-radius:10px;padding:10px 16px;margin:10px 0;font-size:16px;box-shadow:0 1px 3px #0001}
 .mh{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .mh span{padding:3px 9px;border-radius:6px;font-weight:bold;font-size:14px}
@@ -194,12 +195,24 @@ const MKEY='hamtech.'+PROFILE+'.mock', PASS_MARK=26;
 function loadMock(){ try{ return JSON.parse(localStorage.getItem(MKEY))||[]; }catch(e){ return []; } }
 function saveMock(m){ try{ localStorage.setItem(MKEY, JSON.stringify(m)); }catch(e){} }
 const MOCK=document.getElementById('mock');
+// in-progress exam is saved after every click, so leaving the page by accident loses nothing.
+// { ids:[35 question IDs], order:{id:[original option indexes in shown order]}, sel:{id:original index}, graded:bool }
+const NKEY='hamtech.'+PROFILE+'.mocknow';
+function loadSess(){ try{ return JSON.parse(localStorage.getItem(NKEY)); }catch(e){ return null; } }
+function saveSess(s){ try{ localStorage.setItem(NKEY, JSON.stringify(s)); }catch(e){} }
+let SESS=null;
 if(MOCK){
   const byGroup={};
-  MOCK.querySelectorAll('.q').forEach(q=>{ (byGroup[q.dataset.id.slice(0,3)]=byGroup[q.dataset.id.slice(0,3)]||[]).push(q); });
+  MOCK.querySelectorAll('.q').forEach(q=>{
+    q.querySelectorAll('.o').forEach((o,k)=>o.dataset.k=k);        // stable option identity (HTML order)
+    (byGroup[q.dataset.id.slice(0,3)]=byGroup[q.dataset.id.slice(0,3)]||[]).push(q); });
   const anchor=MOCK.querySelector('.gradebar');
+  SESS=loadSess();
+  const saved=SESS&&Array.isArray(SESS.ids)?new Set(SESS.ids):null;
+  // a saved exam is only reused if it still has exactly one valid question per group
+  if(saved && !Object.keys(byGroup).every(g=>byGroup[g].filter(q=>saved.has(q.dataset.id)).length===1)) SESS=null;
   Object.keys(byGroup).sort().forEach((g,i)=>{
-    const list=byGroup[g], pick=list[Math.floor(Math.random()*list.length)];
+    const list=byGroup[g], pick=SESS?list.find(q=>saved.has(q.dataset.id)):list[Math.floor(Math.random()*list.length)];
     list.forEach(q=>{ if(q!==pick) q.remove(); });
     pick.querySelector('.qid').insertAdjacentHTML('beforebegin',`<span class="qnum">Q${i+1}</span>`);
     MOCK.insertBefore(pick,anchor);
@@ -279,7 +292,7 @@ document.querySelectorAll('.toc a[data-g]').forEach(a=>{
 });
 function resetProfile(){
   if(!confirm(`Are you sure you want to reset profile "${PROFILE}"?\n\nThis erases ALL its saved results, hard marks and mock exam history. It cannot be undone.\n(Tip: use Export on the Topics page first to keep a copy.)`)) return;
-  localStorage.removeItem(KEY); localStorage.removeItem(HKEY); localStorage.removeItem(MKEY); location.reload();
+  localStorage.removeItem(KEY); localStorage.removeItem(HKEY); localStorage.removeItem(MKEY); localStorage.removeItem('hamtech.'+PROFILE+'.mocknow'); location.reload();
 }
 document.querySelectorAll('#resetall, .topreset').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); resetProfile(); }));
 
@@ -387,6 +400,23 @@ function shuffleAnswers(){
   });
 }
 shuffleAnswers();
+function sessOrder(q){ return [...q.querySelectorAll('.o')].map(o=>+o.dataset.k); }
+function relabel(q){ q.querySelectorAll('.o').forEach((o,i)=>o.querySelector('b.l').textContent='ABCD'[i]+'.'); }
+if(MOCK){
+  if(SESS){
+    qs.forEach(q=>{
+      const ord=SESS.order&&SESS.order[q.dataset.id], v=q.querySelector('.from')||q.querySelector('.verdict');
+      const opts=[...q.querySelectorAll('.o')];
+      if(Array.isArray(ord)&&ord.length===opts.length){ ord.forEach(k=>{ const o=opts.find(x=>+x.dataset.k===k); if(o) q.insertBefore(o,v); }); relabel(q); }
+      const k=SESS.sel&&SESS.sel[q.dataset.id];
+      if(k!==undefined&&k!==null){ const o=opts.find(x=>+x.dataset.k===+k); if(o) o.classList.add('sel'); }
+    });
+  }else{
+    SESS={ids:qs.map(q=>q.dataset.id), order:{}, sel:{}, graded:false, started:Date.now()};
+    qs.forEach(q=>SESS.order[q.dataset.id]=sessOrder(q));
+    saveSess(SESS);
+  }
+}
 function paintHist(){
   const s=load();
   qs.forEach(q=>{ const h=q.querySelector('.hist'); if(!h) return; const r=s[q.dataset.id];
@@ -405,6 +435,7 @@ qs.forEach(q=>{
     if(!body.classList.contains('quiz')||graded) return;
     q.querySelectorAll('.o').forEach(x=>x.classList.remove('sel'));
     o.classList.add('sel'); q.classList.remove('skip'); clearCheck(q); paintButtons();
+    if(MOCK&&SESS){ SESS.sel[q.dataset.id]=+o.dataset.k; saveSess(SESS); paintSaved(); }
   }));
   const cb=q.querySelector('button.chk');
   if(cb) cb.addEventListener('click',()=>checkOne(q));
@@ -429,7 +460,8 @@ function checkOne(q){
   q.querySelector('button.chk').disabled=true;
   record(q, ok); paintStats(); paintHist();
 }
-function grade(){
+function grade(restoring){
+  restoring = restoring===true;
   if(graded) return;
   let right=0, done=0, first=null;
   qs.forEach(q=>{
@@ -439,7 +471,7 @@ function grade(){
     q.classList.add('done', ok?'right':'wrong');
     v.textContent= ok ? '✔ Correct!' : '✘ Not quite. The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.','');
     q.classList.remove('c-right','c-wrong');
-    record(q, ok);
+    if(!restoring) record(q, ok);
     if(!ok && !first) first=q;
   });
   graded=true;
@@ -447,14 +479,14 @@ function grade(){
     // real exam rules: every question counts; a blank is a wrong answer
     const total=qs.length, pass=right>=PASS_MARK;
     qs.forEach(q=>{ if(q.classList.contains('skip')) q.querySelector('.verdict').textContent='– Not answered (counts as wrong). The correct answer is '+q.querySelector('.o.ok b.l').textContent.replace('.',''); });
-    const m=loadMock(); m.push({t:Date.now(), score:right, total}); saveMock(m);
+    if(!restoring){ const m=loadMock(); m.push({t:Date.now(), score:right, total}); saveMock(m); SESS.graded=true; saveSess(SESS); }
     const res=document.getElementById('mockres');
     res.hidden=false; res.className='mockres '+(pass?'pass':'fail');
     res.innerHTML=(pass?'🎉 PASS!':'✘ Not yet. Keep studying!')+`<div class="big">${right} / ${total}</div>`+
       `<div>You need ${PASS_MARK} to pass. ${pass?`You had ${right-PASS_MARK} to spare.`:`You needed ${PASS_MARK-right} more.`} Wrong: ${done-right} &bull; Blank: ${total-done}</div>`;
     if(sc) sc.textContent=`${right} / ${total} correct, ${pass?'PASS':'not passed'}`;
-    paintButtons(); paintStats(); paintHist(); paintMockHist();
-    res.scrollIntoView({behavior:'smooth', block:'center'});
+    paintButtons(); paintStats(); paintHist(); paintMockHist(); paintSaved();
+    if(!restoring) res.scrollIntoView({behavior:'smooth', block:'center'});
     return;
   }
   if(sc) sc.textContent=`This page: ${right} / ${done} correct`+(done===qs.length&&right===done?'  🎉 Perfect!':'');
@@ -466,8 +498,24 @@ function reset(){
   qs.forEach(q=>{ q.classList.remove('done','right','wrong','skip'); q.querySelectorAll('.o').forEach(o=>o.classList.remove('sel')); clearCheck(q); });
   shuffleAnswers(); paintHist(); paintButtons();
 }
-gbs.forEach(b=>b.onclick=grade);
-rbs.forEach(b=>b.onclick=()=>{ if(MOCK){ location.reload(); return; } reset(); window.scrollTo({top:0,behavior:'smooth'}); });
+gbs.forEach(b=>b.onclick=()=>grade());
+// "New mock exam" is the ONLY thing that throws away the saved exam
+rbs.forEach(b=>b.onclick=()=>{
+  if(MOCK){
+    const s=loadSess(), n=s&&s.sel?Object.keys(s.sel).length:0;
+    if(s&&!s.graded&&n>0&&!confirm(`Start a new mock exam? Your ${n} answer(s) on the current exam will be thrown away.`)) return;
+    try{ localStorage.removeItem(NKEY); }catch(e){}
+    location.reload(); return;
+  }
+  reset(); window.scrollTo({top:0,behavior:'smooth'}); });
+function paintSaved(){
+  const el=document.getElementById('mocksaved'); if(!el||!SESS) return;
+  const n=Object.keys(SESS.sel||{}).length;
+  el.textContent = SESS.graded ? 'This exam is graded. Press "New mock exam" for another one.'
+    : n ? `💾 ${n} / ${qs.length} answers saved automatically. You can leave and come back anytime.`
+        : '💾 Your answers are saved automatically as you pick them.';
+}
+if(MOCK){ paintButtons(); paintSaved(); if(SESS&&SESS.graded) grade(true); }
 if(mb) mb.onclick=()=>{ body.classList.toggle('quiz'); reset();
   const q=body.classList.contains('quiz');
   mb.textContent=q?'Study mode: show all answers':'Back to quiz mode';
@@ -615,7 +663,7 @@ def mock_page(slides):
 <div class="sub">One random question from each of the 35 pool groups, like the real Element 2 exam &bull; answers shuffled</div></div>
 <div class="stats" id="stats"></div><div class="nav"><a href="index.html">Topics</a></div></header>
 <main id="mock"><div class="tools"><span class="hint">Answer all 35, then press <b>Finish &amp; grade exam</b> at the bottom. You need <b>26 correct</b> to pass. Blank answers count as wrong.</span></div>
-<div class="mockhist" id="mockhist"></div>
+<div class="mockhist" id="mockhist"></div><div class="mocksaved" id="mocksaved"></div>
 {''.join(qs_html)}
 <div class="gradebar"><button class="grade">Finish &amp; grade exam</button><span class="score" id="score"></span><button class="reset">&#8635; New mock exam</button></div>
 <div class="mockres" id="mockres" hidden></div>
